@@ -66,4 +66,7 @@ ctrlp.root
 #html
 *.html
 
+#Debug
 /Debug
+
+*.launch
