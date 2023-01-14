@@ -7,23 +7,23 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
   1 .text         00010f2c  080001d0  080001d0  000101d0  2**4
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .rodata       0000065c  080110fc  080110fc  000210fc  2**2
+  2 .rodata       00000660  080110fc  080110fc  000210fc  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  3 .ARM.extab    00000000  08011758  08011758  000303f8  2**0
+  3 .ARM.extab    00000000  0801175c  0801175c  000303f8  2**0
                   CONTENTS
-  4 .ARM          00000008  08011758  08011758  00021758  2**2
+  4 .ARM          00000008  0801175c  0801175c  0002175c  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  5 .preinit_array 00000000  08011760  08011760  000303f8  2**0
+  5 .preinit_array 00000000  08011764  08011764  000303f8  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  6 .init_array   00000004  08011760  08011760  00021760  2**2
+  6 .init_array   00000004  08011764  08011764  00021764  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  7 .fini_array   00000004  08011764  08011764  00021764  2**2
+  7 .fini_array   00000004  08011768  08011768  00021768  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  8 .data         000003f8  20000000  08011768  00030000  2**2
+  8 .data         000003f8  20000000  0801176c  00030000  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  9 .bss          00002588  200003f8  08011b60  000303f8  2**2
+  9 .bss          00002588  200003f8  08011b64  000303f8  2**2
                   ALLOC
- 10 ._user_heap_stack 00000c00  20002980  08011b60  00032980  2**0
+ 10 ._user_heap_stack 00000c00  20002980  08011b64  00032980  2**0
                   ALLOC
  11 .ARM.attributes 00000030  00000000  00000000  000303f8  2**0
                   CONTENTS, READONLY
@@ -39,11 +39,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  17 .debug_line   0002d248  00000000  00000000  000934b8  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    000debe8  00000000  00000000  000c0700  2**0
+ 18 .debug_str    000dec1a  00000000  00000000  000c0700  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000053  00000000  00000000  0019f2e8  2**0
+ 19 .comment      00000053  00000000  00000000  0019f31a  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  00008fa4  00000000  00000000  0019f33c  2**2
+ 20 .debug_frame  00008fa4  00000000  00000000  0019f370  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -7488,7 +7488,7 @@ LoopFillZerobss:
   ldr r1, =_edata
  8003674:	200003f8 	.word	0x200003f8
   ldr r2, =_sidata
- 8003678:	08011768 	.word	0x08011768
+ 8003678:	0801176c 	.word	0x0801176c
   ldr r2, =_sbss
  800367c:	200003f8 	.word	0x200003f8
   ldr r4, =_ebss
@@ -13648,7 +13648,7 @@ static uint32_t DMA_CalcBaseAndBitshift(DMA_HandleTypeDef *hdma)
  800582c:	4770      	bx	lr
  800582e:	bf00      	nop
  8005830:	aaaaaaab 	.word	0xaaaaaaab
- 8005834:	08011708 	.word	0x08011708
+ 8005834:	0801170c 	.word	0x0801170c
 
 08005838 <DMA_CheckFifoParam>:
   * @param  hdma       pointer to a DMA_HandleTypeDef structure that contains
@@ -21145,7 +21145,7 @@ HAL_StatusTypeDef HAL_RCC_ClockConfig(RCC_ClkInitTypeDef  *RCC_ClkInitStruct, ui
  8008426:	bf00      	nop
  8008428:	40023c00 	.word	0x40023c00
  800842c:	40023800 	.word	0x40023800
- 8008430:	080116f0 	.word	0x080116f0
+ 8008430:	080116f4 	.word	0x080116f4
  8008434:	20000198 	.word	0x20000198
  8008438:	20000318 	.word	0x20000318
 
@@ -21548,7 +21548,7 @@ uint32_t HAL_RCC_GetPCLK1Freq(void)
  8008704:	4618      	mov	r0, r3
  8008706:	bd80      	pop	{r7, pc}
  8008708:	40023800 	.word	0x40023800
- 800870c:	08011700 	.word	0x08011700
+ 800870c:	08011704 	.word	0x08011704
 
 08008710 <HAL_RCC_GetPCLK2Freq>:
   * @note   Each time PCLK2 changes, this function must be called to update the
@@ -21574,7 +21574,7 @@ uint32_t HAL_RCC_GetPCLK2Freq(void)
  800872c:	4618      	mov	r0, r3
  800872e:	bd80      	pop	{r7, pc}
  8008730:	40023800 	.word	0x40023800
- 8008734:	08011700 	.word	0x08011700
+ 8008734:	08011704 	.word	0x08011704
 
 08008738 <HAL_RCCEx_PeriphCLKConfig>:
   *         the backup registers) and RCC_BDCR register are set to their reset values.
@@ -37559,7 +37559,7 @@ void MX_FATFS_Init(void)
  800e490:	bf00      	nop
  800e492:	bd80      	pop	{r7, pc}
  800e494:	20001464 	.word	0x20001464
- 800e498:	08011710 	.word	0x08011710
+ 800e498:	08011714 	.word	0x08011714
  800e49c:	20001460 	.word	0x20001460
 
 0800e4a0 <BSP_SD_Init>:
@@ -42607,7 +42607,7 @@ uint8_t * USBD_FS_ManufacturerStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *l
  800ff9c:	46bd      	mov	sp, r7
  800ff9e:	bd80      	pop	{r7, pc}
  800ffa0:	20002368 	.word	0x20002368
- 800ffa4:	080116c0 	.word	0x080116c0
+ 800ffa4:	080116c4 	.word	0x080116c4
 
 0800ffa8 <USBD_FS_SerialStrDescriptor>:
   * @param  speed : Current device speed
@@ -42686,7 +42686,7 @@ uint8_t * USBD_FS_ConfigStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
  800fffc:	bd80      	pop	{r7, pc}
  800fffe:	bf00      	nop
  8010000:	20002368 	.word	0x20002368
- 8010004:	080116d4 	.word	0x080116d4
+ 8010004:	080116d8 	.word	0x080116d8
 
 08010008 <USBD_FS_InterfaceStrDescriptor>:
   * @param  speed : Current device speed
@@ -42730,7 +42730,7 @@ uint8_t * USBD_FS_InterfaceStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *leng
  8010038:	bd80      	pop	{r7, pc}
  801003a:	bf00      	nop
  801003c:	20002368 	.word	0x20002368
- 8010040:	080116e0 	.word	0x080116e0
+ 8010040:	080116e4 	.word	0x080116e4
 
 08010044 <USBD_FS_USR_BOSDescriptor>:
   * @param  speed : Current device speed
@@ -44170,10 +44170,10 @@ USBD_StatusTypeDef USBD_Get_USB_Status(HAL_StatusTypeDef hal_status)
  8010862:	4798      	blx	r3
  8010864:	3601      	adds	r6, #1
  8010866:	e7f2      	b.n	801084e <__libc_init_array+0x1e>
- 8010868:	08011760 	.word	0x08011760
- 801086c:	08011760 	.word	0x08011760
- 8010870:	08011760 	.word	0x08011760
- 8010874:	08011764 	.word	0x08011764
+ 8010868:	08011764 	.word	0x08011764
+ 801086c:	08011764 	.word	0x08011764
+ 8010870:	08011764 	.word	0x08011764
+ 8010874:	08011768 	.word	0x08011768
 
 08010878 <memset>:
  8010878:	4402      	add	r2, r0
@@ -44491,11 +44491,11 @@ USBD_StatusTypeDef USBD_Get_USB_Status(HAL_StatusTypeDef hal_status)
  8010b64:	f000 f87a 	bl	8010c5c <_printf_i>
  8010b68:	e7eb      	b.n	8010b42 <_svfiprintf_r+0x1c2>
  8010b6a:	bf00      	nop
- 8010b6c:	08011724 	.word	0x08011724
- 8010b70:	0801172e 	.word	0x0801172e
+ 8010b6c:	08011728 	.word	0x08011728
+ 8010b70:	08011732 	.word	0x08011732
  8010b74:	00000000 	.word	0x00000000
  8010b78:	080108c9 	.word	0x080108c9
- 8010b7c:	0801172a 	.word	0x0801172a
+ 8010b7c:	0801172e 	.word	0x0801172e
 
 08010b80 <_printf_common>:
  8010b80:	e92d 47f0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, lr}
@@ -44831,8 +44831,8 @@ USBD_StatusTypeDef USBD_Get_USB_Status(HAL_StatusTypeDef hal_status)
  8010e98:	f104 0619 	add.w	r6, r4, #25
  8010e9c:	e7f5      	b.n	8010e8a <_printf_i+0x22e>
  8010e9e:	bf00      	nop
- 8010ea0:	08011735 	.word	0x08011735
- 8010ea4:	08011746 	.word	0x08011746
+ 8010ea0:	08011739 	.word	0x08011739
+ 8010ea4:	0801174a 	.word	0x0801174a
 
 08010ea8 <memcpy>:
  8010ea8:	440a      	add	r2, r1
