@@ -129,23 +129,6 @@ typedef struct
    /* Select the interrupt preemption priority for the DMA interrupt */
 #define AUDIO_OUT_IRQ_PREPRIO                    ((uint32_t)0x0E)   /* Select the preemption priority level(0 is the highest) */
 
-/* Two channels are used:
-   - one channel as input which is connected to I2S SCK in stereo mode 
-   - one channel as output which divides the frequency on the input
-*/
-
-#define AUDIO_TIMx_CLK_ENABLE()             __HAL_RCC_TIM4_CLK_ENABLE()
-#define AUDIO_TIMx_CLK_DISABLE()            __HAL_RCC_TIM4_CLK_DISABLE()
-#define AUDIO_TIMx                          TIM4
-#define AUDIO_TIMx_IN_CHANNEL               TIM_CHANNEL_1
-#define AUDIO_TIMx_OUT_CHANNEL              TIM_CHANNEL_2 /* Select channel 2 as output */
-#define AUDIO_TIMx_GPIO_CLK_ENABLE()        __HAL_RCC_GPIOB_CLK_ENABLE()
-#define AUDIO_TIMx_GPIO_CLK_DISABLE()       __HAL_RCC_GPIOB_CLK_DISABLE()
-#define AUDIO_TIMx_GPIO_PORT                GPIOB
-#define AUDIO_TIMx_IN_GPIO_PIN              GPIO_PIN_6
-#define AUDIO_TIMx_OUT_GPIO_PIN             GPIO_PIN_7
-#define AUDIO_TIMx_AF                       GPIO_AF2_TIM4
-
 /*------------------------------------------------------------------------------
              CONFIGURATION: Audio Driver Configuration parameters
 ------------------------------------------------------------------------------*/
@@ -156,12 +139,6 @@ typedef struct
 #define AUDIO_OK                            ((uint8_t)0)
 #define AUDIO_ERROR                         ((uint8_t)1)
 #define AUDIO_TIMEOUT                       ((uint8_t)2)
-
-/* Audio out parameters */
-#define DEFAULT_AUDIO_OUT_FREQ              I2S_AUDIOFREQ_48K
-#define DEFAULT_AUDIO_OUT_BIT_RESOLUTION    ((uint8_t)16)
-#define DEFAULT_AUDIO_OUT_CHANNEL_NBR       ((uint8_t)2) /* Mono = 1, Stereo = 2 */
-#define DEFAULT_AUDIO_OUT_VOLUME            ((uint16_t)64)
 
 /*------------------------------------------------------------------------------
                             OUTPUT DEVICES definition

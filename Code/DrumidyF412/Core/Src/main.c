@@ -396,16 +396,16 @@ int main(void)
 	/* Set the current audio pointer position */
 	CurrentPos = (uint16_t*) (AUDIO_FILE_ADDRESS + AUDIO_START_OFFSET_ADDRESS);
 	/* Start the audio player */
-	BSP_AUDIO_OUT_Play((uint16_t*) CurrentPos,
-			(uint32_t) (AUDIO_FILE_SIZE - AUDIO_START_OFFSET_ADDRESS));
+	if (BSP_AUDIO_OUT_Play((uint16_t*) CurrentPos,
+			(uint32_t) (AUDIO_FILE_SIZE - AUDIO_START_OFFSET_ADDRESS)) != AUDIO_OK) {
+		sendUart("Can't play audio");
+		Error_Handler();
+	} else {
+		sendUart("Start playing audio");
+	}
 
 //	sdCardTextExample();
-//	HAL_StatusTypeDef audioStatus;
-//	audioStatus = HAL_I2SEx_TransmitReceive_DMA(&hi2s3, (uint16_t *)dacData, NULL, AUDIO_BUFFER_SIZE);
-//	if(audioStatus != HAL_OK){
-//		sendUart("Audio Wrong");
-//		Error_Handler();
-//	}
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
