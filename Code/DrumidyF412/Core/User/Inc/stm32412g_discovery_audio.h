@@ -46,7 +46,7 @@
 /* Include audio component Driver */
 #include "wm8994.h"
 #include "stm32f4xx_hal.h"
-//#include "stm32412g_discovery.h"
+#include "audio_io.h"
 
 /** @addtogroup BSP
   * @{
