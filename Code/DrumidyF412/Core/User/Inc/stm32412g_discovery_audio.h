@@ -48,40 +48,6 @@
 #include "stm32f4xx_hal.h"
 #include "audio_io.h"
 
-/** @addtogroup BSP
-  * @{
-  */ 
-
-/** @addtogroup STM32412G_DISCOVERY
-  * @{
-  */
-    
-/** @addtogroup STM32412G_DISCOVERY_AUDIO
-  * @{
-  */
-
-/** @defgroup STM32412G_DISCOVERY_AUDIO_Exported_Types STM32412G DISCOVERY Audio Exported Types
-  * @{
-  */  
-typedef struct
-{
-  uint32_t               Frequency;      /* Record Frequency */
-  uint32_t               BitResolution;  /* Record bit resolution */
-  uint32_t               ChannelNbr;     /* Record Channel Number */
-  uint16_t               *pRecBuf;       /* Pointer to record user buffer */
-  uint32_t               RecSize;        /* Size to record in mono, double size to record in stereo */
-  uint32_t               InputDevice;    /* Audio Input Device */
-  uint32_t               MultiBuffMode;  /* Multi buffer mode selection */
-}AUDIOIN_ContextTypeDef;
-
-/**
-  * @}
-  */ 
-
-/** @defgroup STM32412G_DISCOVERY_AUDIO_Exported_Constants  STM32412G DISCOVERY Audio Exported Constants
-  * @{
-  */
-
 /*------------------------------------------------------------------------------
                         AUDIO OUT CONFIGURATION
 ------------------------------------------------------------------------------*/
@@ -144,26 +110,8 @@ typedef struct
                             OUTPUT DEVICES definition
 ------------------------------------------------------------------------------*/
 
-/* Alias on existing output devices to adapt for 2 headphones output */
-#define OUTPUT_DEVICE_HEADPHONE1 OUTPUT_DEVICE_HEADPHONE
-#define OUTPUT_DEVICE_HEADPHONE2 OUTPUT_DEVICE_SPEAKER /* Headphone2 is connected to Speaker output of the wm8994 */
-
- /**
-  * @}
-  */
-   
-/** @defgroup STM32412G_DISCOVERY_AUDIO_Exported_Macros  STM32412G DISCOVERY Audio Exported Macros
-  * @{
-  */
 #define DMA_MAX(x)           (((x) <= DMA_MAX_SIZE)? (x):DMA_MAX_SIZE)
-#define POS_VAL(VAL)         (POSITION_VAL(VAL) - 4) 
-/**
-  * @}
-  */ 
 
-/** @defgroup STM32412G_DISCOVERY_AUDIO_OUT_Exported_Functions  STM32412G DISCOVERY AUDIO OUT Exported Functions
-  * @{
-  */
 uint8_t BSP_AUDIO_OUT_Init(uint16_t OutputDevice, uint8_t Volume, uint32_t AudioFreq);
 uint8_t BSP_AUDIO_OUT_Play(uint16_t* pBuffer, uint32_t Size);
 void    BSP_AUDIO_OUT_ChangeBuffer(uint16_t *pData, uint16_t Size);
