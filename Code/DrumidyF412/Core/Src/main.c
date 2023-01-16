@@ -31,6 +31,7 @@
 #include "wm8994.h"
 #include "audio_sample.h"
 #include "stm32412g_discovery_audio.h"
+#include "wavFile.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -38,25 +39,6 @@
 #define OFF_DELAY_MS 200
 #define FLASH_USER_START_ADDR 	0x08040000	//0x0804 0000 		//0x0801 F800
 const volatile uint32_t *userConfig=(const volatile uint32_t *)FLASH_USER_START_ADDR;
-
-typedef struct
-{
-  uint32_t   ChunkID;       /* 0 */
-  uint32_t   FileSize;      /* 4 */
-  uint32_t   FileFormat;    /* 8 */
-  uint32_t   SubChunk1ID;   /* 12 */
-  uint32_t   SubChunk1Size; /* 16*/
-  uint16_t   AudioFormat;   /* 20 */
-  uint16_t   NbrChannels;   /* 22 */
-  uint32_t   SampleRate;    /* 24 */
-
-  uint32_t   ByteRate;      /* 28 */
-  uint16_t   BlockAlign;    /* 32 */
-  uint16_t   BitPerSample;  /* 34 */
-  uint32_t   SubChunk2ID;   /* 36 */
-  uint32_t   SubChunk2Size; /* 40 */
-
-}WAVE_FormatTypeDef;
 
 typedef enum
 {
@@ -130,7 +112,6 @@ uint32_t custom_timer = 0;
 
 //SDCARD defines
 
-FRESULT res;
 uint32_t bytesWritten, bytesRead;
 uint8_t wText[] = "STM32 FATFS works great";
 uint8_t rText[_MAX_SS];
@@ -402,7 +383,7 @@ int main(void)
 		sendUart("Start playing audio");
 	}
 
-//	sdCardTextExample();
+	sdCardTextExample();
 
   /* USER CODE END 2 */
 
@@ -1214,30 +1195,75 @@ uint8_t Load_Setting()
 
 //receive number from serial or a given max length
 void sdCardTextExample(){
-	if(f_mount(&SDFatFS, (TCHAR const*)SDPath, 0) != FR_OK){
-			sendUart("SD CARD NOT DETECTED");
-		}
-		else{
-			if(f_mkfs((TCHAR const*)SDPath, FM_ANY, 0, rText, sizeof(rText)) != FR_OK){
-				sendUart("SD CARD FS NOT ACCESS");
+	FRESULT res;
+	DIR dir;
+	FILINFO fno;
+	UINT count = 0;
+	FIL fil;
+	WAVE_FormatTypeDef header;
+
+	res = f_mount(&SDFatFS, "", 0);
+	if (res != FR_OK){
+		sendUart("SD CARD NOT DETECTED");
+		return;
+	}
+
+	res = f_opendir(&dir, "");
+	if (res != FR_OK)
+		return; // EXIT_FAILURE;
+
+	while (1) {
+		res = f_readdir(&dir, &fno);
+		if (res != FR_OK || fno.fname[0] == 0)
+			break;
+
+		char *filename = fno.fname;
+
+		if (strstr(filename, ".WAV") != 0) {
+			res = f_open(&fil, filename, FA_READ);
+			if (res != FR_OK)
+				return;
+
+			res = f_read(&fil, &header, sizeof(struct WAVE_FormatTypeDef), &count);
+			if (res != FR_OK){
+				sendUart("CAN'T READ AUDIOFILE");
+				return;
 			}
-			else{
-				if(f_open(&SDFile, "STM32", FA_CREATE_ALWAYS | FA_WRITE) != FR_OK){
-					sendUart("SD CARD FS NOT ACCESS");
-				}
-				else{
-					res = f_write(&SDFile, wText, strlen((char *)wText), (void *)&bytesWritten);
-					if((bytesWritten == 0) || (res != FR_OK)){
-						sendUart("SD CARD CAN't WRITE FILE");
-					}
-					else{
-						f_close(&SDFile);
-						sendUart("SD CARD write is done");
-					}
-				}
-			}
-			f_mount(&SDFatFS, (TCHAR const*)NULL, 0);
+			sendUart("Header is read correctly \n\r");
+			sendUart(header.FileSize);
 		}
+	}
+
+	res = f_closedir(&dir);
+
+//	if (f_mount(&SDFatFS, (TCHAR const*) SDPath, 0) != FR_OK) {
+//		sendUart("SD CARD NOT DETECTED");
+//		return;
+//	}
+//
+//	if (f_mkfs((TCHAR const*) SDPath, FM_ANY, 0, rText, sizeof(rText))
+//			!= FR_OK) {
+//		sendUart("SD CARD FS NOT ACCESS");
+//		f_mount(&SDFatFS, (TCHAR const*) NULL, 0);
+//		return;
+//	}
+//	if (f_open(&SDFile, "STM32", FA_CREATE_ALWAYS | FA_WRITE) != FR_OK) {
+//		sendUart("SD CARD FS NOT ACCESS");
+//		f_mount(&SDFatFS, (TCHAR const*) NULL, 0);
+//		return;
+//	}
+//
+//	res = f_write(&SDFile, wText, strlen((char*) wText), (void*) &bytesWritten);
+//	if ((bytesWritten == 0) || (res != FR_OK)) {
+//		sendUart("SD CARD CAN't WRITE FILE");
+//		f_mount(&SDFatFS, (TCHAR const*) NULL, 0);
+//		return;
+//	}
+//
+//	f_close(&SDFile);
+//	sendUart("SD CARD write is done");
+//
+//	f_mount(&SDFatFS, (TCHAR const*) NULL, 0);
 }
 
 int get_num_from_uart(uint8_t _len){
