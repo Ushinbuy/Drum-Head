@@ -136,6 +136,8 @@ I2S_HandleTypeDef hi2s3;
 DMA_HandleTypeDef hdma_spi3_tx;
 
 SD_HandleTypeDef hsd;
+DMA_HandleTypeDef hdma_sdio_rx;
+DMA_HandleTypeDef hdma_sdio_tx;
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim4;
@@ -773,6 +775,12 @@ static void MX_DMA_Init(void)
   /* DMA2_Stream0_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+  /* DMA2_Stream3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
+  /* DMA2_Stream6_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream6_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream6_IRQn);
 
 }
 
@@ -1195,6 +1203,8 @@ uint8_t Load_Setting()
 
 //receive number from serial or a given max length
 void sdCardTextExample(){
+
+
 	FRESULT res;
 	DIR dir;
 	FILINFO fno;
@@ -1236,34 +1246,33 @@ void sdCardTextExample(){
 
 	res = f_closedir(&dir);
 
-//	if (f_mount(&SDFatFS, (TCHAR const*) SDPath, 0) != FR_OK) {
-//		sendUart("SD CARD NOT DETECTED");
-//		return;
-//	}
-//
-//	if (f_mkfs((TCHAR const*) SDPath, FM_ANY, 0, rText, sizeof(rText))
-//			!= FR_OK) {
-//		sendUart("SD CARD FS NOT ACCESS");
-//		f_mount(&SDFatFS, (TCHAR const*) NULL, 0);
-//		return;
-//	}
-//	if (f_open(&SDFile, "STM32", FA_CREATE_ALWAYS | FA_WRITE) != FR_OK) {
-//		sendUart("SD CARD FS NOT ACCESS");
-//		f_mount(&SDFatFS, (TCHAR const*) NULL, 0);
-//		return;
-//	}
-//
-//	res = f_write(&SDFile, wText, strlen((char*) wText), (void*) &bytesWritten);
-//	if ((bytesWritten == 0) || (res != FR_OK)) {
-//		sendUart("SD CARD CAN't WRITE FILE");
-//		f_mount(&SDFatFS, (TCHAR const*) NULL, 0);
-//		return;
-//	}
-//
-//	f_close(&SDFile);
-//	sendUart("SD CARD write is done");
-//
-//	f_mount(&SDFatFS, (TCHAR const*) NULL, 0);
+
+
+	/*
+	FATFS sd;
+	if (f_mount(&sd, "/", 0) != FR_OK) {
+		sendUart("SD CARD NOT DETECTED");
+		return;
+	}
+	if (f_open(&SDFile, "STM32_1", FA_CREATE_ALWAYS | FA_WRITE) != FR_OK) {
+		sendUart("SD CARD FS NOT ACCESS");
+		f_mount(&SDFatFS, (TCHAR const*) NULL, 0);
+		return;
+	}
+
+	FRESULT res;
+	res = f_write(&SDFile, wText, strlen((char*) wText), (void*) &bytesWritten);
+	if ((bytesWritten == 0) || (res != FR_OK)) {
+		sendUart("SD CARD CAN't WRITE FILE");
+		f_mount(&SDFatFS, (TCHAR const*) NULL, 0);
+		return;
+	}
+
+	f_close(&SDFile);
+	sendUart("SD CARD write is done");
+
+	f_mount(&SDFatFS, (TCHAR const*) NULL, 0);
+	*/
 }
 
 int get_num_from_uart(uint8_t _len){
