@@ -5,9 +5,7 @@
 #include <string.h>
 
 
-#define DRUMSET_CHANNEL 	9	// global midi property
 #define RIM_BLOCKING_TIME 	150	// ms when rim blocks main and main blocks rim
-
 #define PEAK_THRESHOLD		50	// adc digits for peak identification
 #define AUX_PEAK2PEAK		50	// ms aux p2p
 
@@ -72,6 +70,7 @@ typedef enum {
   TOMF   	= 0x2B,
   HHOPEN   	= 0x2E,
   HHCLOSE  	= 0x2A,
+  HHCLOSEPEDAL  = 0x15,
   CRASH  	= 0x31,
   RIDE   	= 0x33,
   HHPEDAL	= 0x2C,

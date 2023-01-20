@@ -1240,7 +1240,6 @@ void sdCardTextExample(){
 				return;
 			}
 			sendUart("Header is read correctly \n\r");
-			sendUart(header.FileSize);
 		}
 	}
 
