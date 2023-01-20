@@ -29,7 +29,8 @@
 #include "midi.h"
 #include "drumidy.h"
 #include "wavFile.h"
-#include "audioExample.h"
+//#include "audioExample.h"
+#include "audioFromSdCard.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -39,8 +40,6 @@
 const volatile uint32_t *userConfig=(const volatile uint32_t *)FLASH_USER_START_ADDR;
 
 #define NUMBER_OF_CHANNELS 6
-
-#define AUDIO_BUFFER_SIZE 960 	// must be equal to 20 ms * 48 kHz
 
 char ASCIILOGO[] = "\n"\
 "  ___                 _    _\n"\
@@ -63,8 +62,6 @@ char ASCIILOGO[] = "\n"\
 
 DRUM channel[NUMBER_OF_CHANNELS];	// array of drums
 
-int cnt;
-
 // ADC buffers0
 uint32_t adc_buf[NUMBER_OF_CHANNELS];
 // channel values
@@ -80,18 +77,7 @@ uint8_t buffer_in[64];
 // MIDI operation
 uint8_t upd_active_sens = 0;	//flag for active sense, triggered every 300ms
 uint8_t config_Mode[1] = {0};		// flag for activating config over serial
-uint32_t custom_timer = 0;
 
-
-//SDCARD defines
-
-uint32_t bytesWritten, bytesRead;
-uint8_t wText[] = "STM32 FATFS works great";
-uint8_t rText[_MAX_SS];
-
-//int16_t dacData[AUDIO_BUFFER_SIZE];
-//static volatile int16_t *outBufPtr = &dacData[0];
-uint8_t dataReadyFlag; // must be renamed
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -149,9 +135,6 @@ uint8_t UartConfigDialog();
 
 uint32_t dataReceivedSize = 0;
 volatile char flag_New_Settings;
-
-void sdCardTextExample();
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -160,7 +143,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	// 10kHz trigger, 0.1ms
 	if (htim->Instance == htim4.Instance) {
 		HAL_ADC_Start_DMA(&hadc1, (uint32_t*) &adc_buf[0], NUMBER_OF_CHANNELS);
-		cnt++;
 	}
 
 	// 3.33Hz active sensing, 300ms
@@ -271,12 +253,12 @@ int main(void)
 	HAL_TIM_Base_Start_IT(&htim4); //ADC
 
 
-	if(playAudioExample() == EXAMPLE_ERROR){
-		sendUart("AUDIO NOT START");
-	}
-	else{
-		sendUart("AUDIO START CORRECT");
-	}
+//	if(playAudioExample() == EXAMPLE_ERROR){
+//		sendUart("AUDIO NOT START");
+//	}
+//	else{
+//		sendUart("AUDIO START CORRECT");
+//	}
 	sdCardTextExample();
 
   /* USER CODE END 2 */
@@ -1094,50 +1076,7 @@ uint8_t Load_Setting()
 }
 
 //receive number from serial or a given max length
-void sdCardTextExample(){
 
-
-	FRESULT res;
-	DIR dir;
-	FILINFO fno;
-	UINT count = 0;
-	FIL fil;
-	WAVE_FormatTypeDef header;
-
-	res = f_mount(&SDFatFS, "", 0);
-	if (res != FR_OK){
-		sendUart("SD CARD NOT DETECTED");
-		return;
-	}
-
-	res = f_opendir(&dir, "");
-	if (res != FR_OK)
-		return; // EXIT_FAILURE;
-
-	while (1) {
-		res = f_readdir(&dir, &fno);
-		if (res != FR_OK || fno.fname[0] == 0)
-			break;
-
-		char *filename = fno.fname;
-
-		if (strstr(filename, ".WAV") != 0) {
-			res = f_open(&fil, filename, FA_READ);
-			if (res != FR_OK)
-				return;
-
-			res = f_read(&fil, &header, sizeof(struct WAVE_FormatTypeDef), &count);
-			if (res != FR_OK){
-				sendUart("CAN'T READ AUDIOFILE");
-				return;
-			}
-			sendUart("Header is read correctly \n\r");
-		}
-	}
-
-	res = f_closedir(&dir);
-	f_mount(&SDFatFS, (TCHAR const*) NULL, 0);
-}
 
 int get_num_from_uart(uint8_t _len){
 	uint8_t i;
