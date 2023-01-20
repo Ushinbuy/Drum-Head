@@ -28,10 +28,8 @@
 #include <usbd_cdc.h>
 #include "midi.h"
 #include "drumidy.h"
-#include "wm8994.h"
-#include "audio_sample.h"
-#include "stm32412g_discovery_audio.h"
 #include "wavFile.h"
+#include "audioExample.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,21 +38,9 @@
 #define FLASH_USER_START_ADDR 	0x08040000	//0x0804 0000 		//0x0801 F800
 const volatile uint32_t *userConfig=(const volatile uint32_t *)FLASH_USER_START_ADDR;
 
-typedef enum
-{
-  AUDIO_STATE_IDLE = 0,
-  AUDIO_STATE_INIT,
-  AUDIO_STATE_PLAYING,
-}AUDIO_PLAYBACK_StateTypeDef;
-
-
 #define NUMBER_OF_CHANNELS 6
 
-#define AUDIO_BUFFER_SIZE 128 	// must be equal to 20 ms
-
-#define AUDIO_START_OFFSET_ADDRESS		44
-#define AUDIO_FILE_ADDRESS				&AUDIO_SAMPLE[0]
-#define AUDIO_FILE_SIZE					sizeof(AUDIO_SAMPLE)
+#define AUDIO_BUFFER_SIZE 960 	// must be equal to 20 ms * 48 kHz
 
 char ASCIILOGO[] = "\n"\
 "  ___                 _    _\n"\
@@ -74,19 +60,6 @@ char ASCIILOGO[] = "\n"\
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
-__IO uint32_t uwCommand = AUDIO_PAUSE;
-__IO uint32_t uwVolume = 70;
-  uint8_t Volume_string[20] = {0};
-
-uint32_t AudioTotalSize = 0xFFFF;  /* This variable holds the total size of the audio file */
-uint32_t AudioRemSize   = 0xFFFF;  /* This variable holds the remaining data in audio file */
-uint16_t* CurrentPos;              /* This variable holds the current position address of audio data */
-static AUDIO_PLAYBACK_StateTypeDef  audio_state;
-
-// --------------------------
-
-
 
 DRUM channel[NUMBER_OF_CHANNELS];	// array of drums
 
@@ -161,7 +134,6 @@ static void MX_SDIO_SD_Init(void);
 static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
-uint8_t CDC_Receive_FS(uint8_t* Buf, uint16_t Len);
 
 void sendUart(char *_msg);
 
@@ -217,67 +189,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 			Update_channel(&channel[i], adc_val[i], aux_current_state[i]);
 		}
 	}
-}
-//
-//void HAL_I2SEx_TxRxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
-//	outBufPtr = &dacData[0];
-//
-//	dataReadyFlag = 1;
-//}
-//
-//void HAL_I2SEx_TxRxCpltCallback(I2S_HandleTypeDef *hi2s) {
-//	outBufPtr = &dacData[AUDIO_BUFFER_SIZE / 2];
-//
-//	dataReadyFlag = 1;
-//}
-
-void BSP_AUDIO_OUT_TransferComplete_CallBack(void)
-{
-  if (audio_state == AUDIO_STATE_PLAYING)
-  {
-    /* Calculate the remaining audio data in the file and the new size
-    for the DMA transfer. If the Audio files size is less than the DMA max
-    data transfer size, so there is no calculation to be done, just restart
-    from the beginning of the file ... */
-    /* Check if the end of file has been reached */
-    if(AudioRemSize > 0)
-    {
-      /* Replay from the current position */
-      BSP_AUDIO_OUT_ChangeBuffer((uint16_t*)CurrentPos, DMA_MAX(AudioRemSize));
-
-      /* Update the current pointer position */
-      CurrentPos += DMA_MAX(AudioRemSize);
-
-      /* Update the remaining number of data to be played */
-      AudioRemSize -= DMA_MAX(AudioRemSize);
-    }
-    else
-    {
-      /* Set the current audio pointer position */
-      CurrentPos = (uint16_t*)(AUDIO_FILE_ADDRESS + AUDIO_START_OFFSET_ADDRESS);
-      /* Replay from the beginning */
-      BSP_AUDIO_OUT_Play((uint16_t*)CurrentPos,  (uint32_t)(AUDIO_FILE_SIZE - AUDIO_START_OFFSET_ADDRESS));
-      /* Update the remaining number of data to be played */
-      AudioRemSize = AudioTotalSize - DMA_MAX(AudioTotalSize);
-      /* Update the current audio pointer position */
-      CurrentPos += DMA_MAX(AudioTotalSize);
-    }
-  }
-}
-
-/**
-  * @brief  Manages the DMA FIFO error event.
-  * @param  None
-  * @retval None
-  */
-void BSP_AUDIO_OUT_Error_CallBack(void)
-{
-  /* Display message on the LCD screen */
-  sendUart("Error while playing audio");
-  /* Stop the program with an infinite loop */
-  while (1)
-  {
-  }
 }
 /* USER CODE END 0 */
 
@@ -359,32 +270,13 @@ int main(void)
 	HAL_TIM_Base_Start_IT(&htim2); //AS
 	HAL_TIM_Base_Start_IT(&htim4); //ADC
 
-	WAVE_FormatTypeDef *waveformat = NULL;
-	if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_AUTO, uwVolume,
-			I2S_AUDIOFREQ_8K) != AUDIO_OK) {
-		/* Initialization Error */
-		sendUart("Initialization problem");
-		Error_Handler();
-	} else {
-		sendUart("Audio Codec Ready");
+
+	if(playAudioExample() == EXAMPLE_ERROR){
+		sendUart("AUDIO NOT START");
 	}
-
-	audio_state = AUDIO_STATE_PLAYING;
-	waveformat = (WAVE_FormatTypeDef*) AUDIO_FILE_ADDRESS;
-
-	AudioTotalSize = (AUDIO_FILE_SIZE - AUDIO_START_OFFSET_ADDRESS)
-			/ (waveformat->NbrChannels);
-	/* Set the current audio pointer position */
-	CurrentPos = (uint16_t*) (AUDIO_FILE_ADDRESS + AUDIO_START_OFFSET_ADDRESS);
-	/* Start the audio player */
-	if (BSP_AUDIO_OUT_Play((uint16_t*) CurrentPos,
-			(uint32_t) (AUDIO_FILE_SIZE - AUDIO_START_OFFSET_ADDRESS)) != AUDIO_OK) {
-		sendUart("Can't play audio");
-		Error_Handler();
-	} else {
-		sendUart("Start playing audio");
+	else{
+		sendUart("AUDIO START CORRECT");
 	}
-
 	sdCardTextExample();
 
   /* USER CODE END 2 */
@@ -393,8 +285,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	while (1) {
 		handleConfigFromUart();
-		sendMidiActiveSense(&upd_active_sens);
-		checkPiezoChannels();
+//		sendMidiActiveSense(&upd_active_sens);
+//		checkPiezoChannels();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -1244,34 +1136,7 @@ void sdCardTextExample(){
 	}
 
 	res = f_closedir(&dir);
-
-
-
-	/*
-	FATFS sd;
-	if (f_mount(&sd, "/", 0) != FR_OK) {
-		sendUart("SD CARD NOT DETECTED");
-		return;
-	}
-	if (f_open(&SDFile, "STM32_1", FA_CREATE_ALWAYS | FA_WRITE) != FR_OK) {
-		sendUart("SD CARD FS NOT ACCESS");
-		f_mount(&SDFatFS, (TCHAR const*) NULL, 0);
-		return;
-	}
-
-	FRESULT res;
-	res = f_write(&SDFile, wText, strlen((char*) wText), (void*) &bytesWritten);
-	if ((bytesWritten == 0) || (res != FR_OK)) {
-		sendUart("SD CARD CAN't WRITE FILE");
-		f_mount(&SDFatFS, (TCHAR const*) NULL, 0);
-		return;
-	}
-
-	f_close(&SDFile);
-	sendUart("SD CARD write is done");
-
 	f_mount(&SDFatFS, (TCHAR const*) NULL, 0);
-	*/
 }
 
 int get_num_from_uart(uint8_t _len){
