@@ -4,29 +4,31 @@
 
 static uint16_t audioBuffer[AUDIO_BUFFER_SIZE];
 static uint32_t fileSize;
-static uint32_t currentPosition;
 FIL fil;
 
-void BSP_AUDIO_OUT_Error_CallBack(void) {
-	sendUart("Error in playing audio from sd card");
-	Error_Handler();
-}
-
-uint16_t getBytesFromBuffer(void);
+static uint16_t updateBufferFromFile(void);
+static void playAudioSd(FILINFO fno);
+static void stopPlaying(void);
 
 void BSP_AUDIO_OUT_HalfTransfer_CallBack(void) {
-	uint16_t amountToRead = getBytesFromBuffer();
+	uint16_t amountToRead = updateBufferFromFile();
 	BSP_AUDIO_OUT_ChangeBuffer(&audioBuffer[0], amountToRead);
+	if (amountToRead < AUDIO_BUFFER_SIZE / 2){
+		stopPlaying();
+		// TODO add correctly stop
+	}
 }
 
 void BSP_AUDIO_OUT_TransferComplete_CallBack(void) {
-	uint16_t amountToRead = getBytesFromBuffer();
-	BSP_AUDIO_OUT_ChangeBuffer(&audioBuffer[AUDIO_BUFFER_SIZE/2], amountToRead);
+	uint16_t amountToRead = updateBufferFromFile();
+	BSP_AUDIO_OUT_ChangeBuffer(&audioBuffer[AUDIO_BUFFER_SIZE / 2], amountToRead);
+	if (amountToRead < AUDIO_BUFFER_SIZE / 2) {
+		stopPlaying();
+		// TODO add correctly stop
+	}
 }
 
-
-
-void playAudioSd(FILINFO fno) {
+static void playAudioSd(FILINFO fno) {
 	FRESULT res;
 	WAVE_FormatTypeDef header;
 	UINT count = 0;
@@ -53,8 +55,8 @@ void playAudioSd(FILINFO fno) {
 		sendUart("CAN'T READ FILE AT START");
 	}
 //	currentPosition = sizeof(struct WAVE_FormatTypeDef) + bytesWasRead;
-	uint8_t uwVolume = 35;
-	if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_AUTO, uwVolume, I2S_AUDIOFREQ_8K)
+	uint8_t uwVolume = 25;
+	if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_AUTO, uwVolume, I2S_AUDIOFREQ_48K)
 			!= AUDIO_OK) {
 		return;
 	}
@@ -96,7 +98,7 @@ void sdCardTextExample(void) {
 	f_closedir(&dir);
 }
 
-uint16_t getBytesFromBuffer(void){
+static uint16_t updateBufferFromFile(void){
 	UINT bytesWasRead;
 	uint16_t amountToRead = fileSize - sizeof(struct WAVE_FormatTypeDef);
 	if (amountToRead > AUDIO_BUFFER_SIZE / 2) {
@@ -105,10 +107,10 @@ uint16_t getBytesFromBuffer(void){
 	if (f_read(&fil, audioBuffer, amountToRead, &bytesWasRead) != FR_OK) {
 		sendUart("CAN'T READ FILE AT START");
 	}
-	currentPosition = sizeof(struct WAVE_FormatTypeDef) + bytesWasRead;
 	return amountToRead;
 }
 
-void stopPlaying(void) {
+static void stopPlaying(void) {
+	BSP_AUDIO_OUT_Stop(CODEC_PDWN_SW);
 	f_mount(&SDFatFS, (TCHAR const*) NULL, 0);
 }

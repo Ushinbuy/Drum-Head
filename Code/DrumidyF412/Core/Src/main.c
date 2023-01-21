@@ -252,13 +252,6 @@ int main(void)
 	HAL_TIM_Base_Start_IT(&htim2); //AS
 	HAL_TIM_Base_Start_IT(&htim4); //ADC
 
-
-//	if(playAudioExample() == EXAMPLE_ERROR){
-//		sendUart("AUDIO NOT START");
-//	}
-//	else{
-//		sendUart("AUDIO START CORRECT");
-//	}
 	sdCardTextExample();
 
   /* USER CODE END 2 */
@@ -267,8 +260,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	while (1) {
 		handleConfigFromUart();
-//		sendMidiActiveSense(&upd_active_sens);
-//		checkPiezoChannels();
+		sendMidiActiveSense(&upd_active_sens);
+		checkPiezoChannels();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -1074,8 +1067,6 @@ uint8_t Load_Setting()
 
 	return 1;
 }
-
-//receive number from serial or a given max length
 
 
 int get_num_from_uart(uint8_t _len){
