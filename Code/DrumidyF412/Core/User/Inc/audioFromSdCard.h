@@ -8,7 +8,8 @@
 #include "fatfs.h"
 #include <string.h>
 
-void sendUart(char *_msg);
+void sendUart(char *_msg); // interface. This need to release in youre platform
+
 void sdCardTextExample(void);
 
 #endif /* USER_INC_AUDIOFROMSDCARD_H_ */

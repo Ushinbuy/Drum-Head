@@ -71,8 +71,6 @@
   * @}
   */
 
-#define AUDIODATA_SIZE                      2   /* 16-bits audio data size */
-
 /* Audio status definition */
 #define AUDIO_OK                            ((uint8_t)0)
 #define AUDIO_ERROR                         ((uint8_t)1)
