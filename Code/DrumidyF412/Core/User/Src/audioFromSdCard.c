@@ -4,27 +4,30 @@
 
 static uint16_t audioBuffer[AUDIO_BUFFER_SIZE];
 static uint32_t fileSize;
-FIL fil;
+static uint32_t offset;
+static FIL fil;
 
-uint16_t updateBufferFromFile(void);
+static uint16_t* pBufferFirstHalf = &audioBuffer[0];
+static uint16_t* pBufferSecondHalf = &audioBuffer[AUDIO_BUFFER_SIZE/2];
+
+uint16_t updateBufferFromFile(uint16_t* pBuffer);
 void playAudioSd(FILINFO fno);
 void stopPlaying(void);
 
 void BSP_AUDIO_OUT_HalfTransfer_CallBack(void) {
-	uint16_t amountToRead = updateBufferFromFile();
-	BSP_AUDIO_OUT_ChangeBuffer(&audioBuffer[0], amountToRead);
-	if (amountToRead < AUDIO_BUFFER_SIZE / 2){
-		stopPlaying();
-		// TODO add correctly stop
+	if (offset < fileSize) {
+		uint16_t amountToRead = updateBufferFromFile(pBufferFirstHalf);
+		BSP_AUDIO_OUT_ChangeBuffer(pBufferFirstHalf, amountToRead);
 	}
 }
 
 void BSP_AUDIO_OUT_TransferComplete_CallBack(void) {
-	uint16_t amountToRead = updateBufferFromFile();
-	BSP_AUDIO_OUT_ChangeBuffer(&audioBuffer[AUDIO_BUFFER_SIZE / 2], amountToRead);
-	if (amountToRead < AUDIO_BUFFER_SIZE / 2) {
+	if(offset < fileSize){
+		uint16_t amountToRead = updateBufferFromFile(pBufferSecondHalf);
+		BSP_AUDIO_OUT_ChangeBuffer(pBufferSecondHalf, amountToRead);
+	}
+	else{
 		stopPlaying();
-		// TODO add correctly stop
 	}
 }
 
@@ -51,6 +54,7 @@ void playAudioSd(FILINFO fno) {
 	if (amountToRead > AUDIO_BUFFER_SIZE) {
 		amountToRead = AUDIO_BUFFER_SIZE;
 	}
+	offset = sizeof(struct WAVE_FormatTypeDef);
 	if (f_read(&fil, audioBuffer, amountToRead, &bytesWasRead) != FR_OK) {
 		sendUart("CAN'T READ FILE AT START");
 	}
@@ -98,15 +102,16 @@ void sdCardTextExample(void) {
 	f_closedir(&dir);
 }
 
-uint16_t updateBufferFromFile(void){
+uint16_t updateBufferFromFile(uint16_t* pBuffer){
 	UINT bytesWasRead;
 	uint16_t amountToRead = fileSize - sizeof(struct WAVE_FormatTypeDef);
 	if (amountToRead > AUDIO_BUFFER_SIZE / 2) {
 		amountToRead = AUDIO_BUFFER_SIZE / 2;
 	}
-	if (f_read(&fil, audioBuffer, amountToRead, &bytesWasRead) != FR_OK) {
+	if (f_read(&fil, pBuffer, amountToRead, &bytesWasRead) != FR_OK) {
 		sendUart("CAN'T READ FILE AT START");
 	}
+	offset += amountToRead;
 	return amountToRead;
 }
 
