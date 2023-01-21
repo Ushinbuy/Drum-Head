@@ -6,9 +6,9 @@ static uint16_t audioBuffer[AUDIO_BUFFER_SIZE];
 static uint32_t fileSize;
 FIL fil;
 
-static uint16_t updateBufferFromFile(void);
-static void playAudioSd(FILINFO fno);
-static void stopPlaying(void);
+uint16_t updateBufferFromFile(void);
+void playAudioSd(FILINFO fno);
+void stopPlaying(void);
 
 void BSP_AUDIO_OUT_HalfTransfer_CallBack(void) {
 	uint16_t amountToRead = updateBufferFromFile();
@@ -28,7 +28,7 @@ void BSP_AUDIO_OUT_TransferComplete_CallBack(void) {
 	}
 }
 
-static void playAudioSd(FILINFO fno) {
+void playAudioSd(FILINFO fno) {
 	FRESULT res;
 	WAVE_FormatTypeDef header;
 	UINT count = 0;
@@ -98,7 +98,7 @@ void sdCardTextExample(void) {
 	f_closedir(&dir);
 }
 
-static uint16_t updateBufferFromFile(void){
+uint16_t updateBufferFromFile(void){
 	UINT bytesWasRead;
 	uint16_t amountToRead = fileSize - sizeof(struct WAVE_FormatTypeDef);
 	if (amountToRead > AUDIO_BUFFER_SIZE / 2) {
@@ -110,7 +110,7 @@ static uint16_t updateBufferFromFile(void){
 	return amountToRead;
 }
 
-static void stopPlaying(void) {
+void stopPlaying(void) {
 	BSP_AUDIO_OUT_Stop(CODEC_PDWN_SW);
 	f_mount(&SDFatFS, (TCHAR const*) NULL, 0);
 }
