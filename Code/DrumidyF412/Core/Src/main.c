@@ -982,14 +982,12 @@ uint8_t Save_Setting(uint8_t _rst)
 
 	for (i = 0; i < 64; i++)
 		SavingBuff[i] = 0;
-//112233445566778899 AABBCCDDEEFF
 	if (_rst == 0)
 		SavingBuff[0] = 0xC4C0FFEE; // load settings marker
 	else
 		SavingBuff[0] = 0xFFFFFFFF; // do not load marker
 	SavingBuff[1] = 0xBB;
 
-	// 0x11223344
 	for (i = 1; i < 10; i++) {
 		// channel configuration settings
 		SavingBuff[2 * i] = (channel[i - 1].main_voice & 0xFF) * 0x01000000;
@@ -1034,7 +1032,6 @@ uint8_t Save_Setting(uint8_t _rst)
 uint8_t Load_Setting()
 {
 	uint8_t i;
-//	uint32_t LoadingBuff[64];
 
 	for (i=0;i<64;i++){
 		saved_config[i] = *(userConfig+i);
