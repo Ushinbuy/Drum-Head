@@ -71,8 +71,6 @@
   * @}
   */
 
-#define AUDIODATA_SIZE                      2   /* 16-bits audio data size */
-
 /* Audio status definition */
 #define AUDIO_OK                            ((uint8_t)0)
 #define AUDIO_ERROR                         ((uint8_t)1)
@@ -99,25 +97,13 @@ typedef struct
   uint32_t  (*SetOutputMode)(uint16_t, uint8_t);
   uint32_t  (*Reset)(uint16_t);
 }AUDIO_DrvTypeDef;
-/**
-  * @}
-  */
 
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
+typedef enum
+{
+  AUDIO_STATE_IDLE = 0,
+  AUDIO_STATE_INIT,
+  AUDIO_STATE_PLAYING,
+}AUDIO_PLAYBACK_StateTypeDef;
 
 #ifdef __cplusplus
 }

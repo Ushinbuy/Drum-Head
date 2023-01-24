@@ -8,9 +8,6 @@
 /* Exported constant IO ------------------------------------------------------*/
 
 #define AUDIO_I2C_ADDRESS                ((uint16_t)0x34)
-#define EEPROM_I2C_ADDRESS_A01           ((uint16_t)0xA0)
-#define EEPROM_I2C_ADDRESS_A02           ((uint16_t)0xA6)
-#define TS_I2C_ADDRESS                   ((uint16_t)0x70)
 
 /* User can use this section to tailor I2Cx/I2Cx instance used and associated
    resources */

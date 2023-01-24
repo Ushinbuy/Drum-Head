@@ -93,87 +93,9 @@ Known Limitations:
 /* Includes ------------------------------------------------------------------*/
 #include "stm32412g_discovery_audio.h"
 
-/** @addtogroup BSP
-  * @{
-  */
-
-/** @addtogroup STM32412G_DISCOVERY
-  * @{
-  */ 
-  
-/** @defgroup STM32412G_DISCOVERY_AUDIO STM32412G-DISCOVERY AUDIO
-  * @brief This file includes the low layer driver for wm8994 Audio Codec
-  *        available on STM32412G-DISCOVERY board(MB1209).
-  * @{
-  */ 
-
-/** @defgroup STM32412G_DISCOVERY_AUDIO_Private_Types STM32412G Discovery Audio Private Types
-  * @{
-  */
-
-/**
-  * @}
-  */ 
-  
-/** @defgroup STM32412G_DISCOVERY_AUDIO_Private_Defines STM32412G Discovery Audio Private Defines
-  * @{
-  */
-/**
-  * @}
-  */ 
-
-/** @defgroup STM32412G_DISCOVERY_AUDIO_Private_Macros STM32412G Discovery Audio Private macros 
-  * @{
-  */
-
-#define DFSDM_OVER_SAMPLING(__FREQUENCY__) \
-        (__FREQUENCY__ == AUDIO_FREQUENCY_8K)  ? 256 \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_11K) ? 256 \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_16K) ? 128 \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_22K) ? 128 \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_32K) ? 64 \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_44K) ? 64  \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_48K) ? 32 : 25  \
-
-#define DFSDM_CLOCK_DIVIDER(__FREQUENCY__) \
-        (__FREQUENCY__ == AUDIO_FREQUENCY_8K)  ? 24 \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_11K) ? 48 \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_16K) ? 24 \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_22K) ? 48 \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_32K) ? 24 \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_44K) ? 48  \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_48K) ? 32 : 72  \
-        
-#define DFSDM_FILTER_ORDER(__FREQUENCY__) \
-        (__FREQUENCY__ == AUDIO_FREQUENCY_8K)  ? DFSDM_FILTER_SINC3_ORDER \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_11K) ? DFSDM_FILTER_SINC3_ORDER \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_16K) ? DFSDM_FILTER_SINC3_ORDER \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_22K) ? DFSDM_FILTER_SINC3_ORDER \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_32K) ? DFSDM_FILTER_SINC4_ORDER \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_44K) ? DFSDM_FILTER_SINC4_ORDER  \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_48K) ? DFSDM_FILTER_SINC4_ORDER : DFSDM_FILTER_SINC4_ORDER  \
-
-#define DFSDM_MIC_BIT_SHIFT(__FREQUENCY__) \
-        (__FREQUENCY__ == AUDIO_FREQUENCY_8K)  ? 5 \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_11K) ? 4 \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_16K) ? 2 \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_22K) ? 2 \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_32K) ? 5 \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_44K) ? 6  \
-      : (__FREQUENCY__ == AUDIO_FREQUENCY_48K) ? 2 : 0  \
-        
-/* Saturate the record PCM sample */
-#define SaturaLH(N, L, H) (((N)<(L))?(L):(((N)>(H))?(H):(N)))
 
 #define AUDIO_I2C_ADDRESS                ((uint16_t)0x34)
 
-/**
-  * @}
-  */ 
-  
-/** @defgroup STM32412G_DISCOVERY_AUDIO_Private_Variables STM32412G Discovery Audio Private Variables
-  * @{
-  */
   
 AUDIO_DrvTypeDef                *audio_drv;
 I2S_HandleTypeDef               haudio_i2s;       /* for Audio_OUT and Audio_IN_analog mic */

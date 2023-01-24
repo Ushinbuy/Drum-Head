@@ -28,9 +28,9 @@
 #include <usbd_cdc.h>
 #include "midi.h"
 #include "drumidy.h"
-#include "wm8994.h"
-#include "audio_sample.h"
-#include "stm32412g_discovery_audio.h"
+#include "wavFile.h"
+//#include "audioExample.h"
+#include "audioFromSdCard.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -39,40 +39,7 @@
 #define FLASH_USER_START_ADDR 	0x08040000	//0x0804 0000 		//0x0801 F800
 const volatile uint32_t *userConfig=(const volatile uint32_t *)FLASH_USER_START_ADDR;
 
-typedef struct
-{
-  uint32_t   ChunkID;       /* 0 */
-  uint32_t   FileSize;      /* 4 */
-  uint32_t   FileFormat;    /* 8 */
-  uint32_t   SubChunk1ID;   /* 12 */
-  uint32_t   SubChunk1Size; /* 16*/
-  uint16_t   AudioFormat;   /* 20 */
-  uint16_t   NbrChannels;   /* 22 */
-  uint32_t   SampleRate;    /* 24 */
-
-  uint32_t   ByteRate;      /* 28 */
-  uint16_t   BlockAlign;    /* 32 */
-  uint16_t   BitPerSample;  /* 34 */
-  uint32_t   SubChunk2ID;   /* 36 */
-  uint32_t   SubChunk2Size; /* 40 */
-
-}WAVE_FormatTypeDef;
-
-typedef enum
-{
-  AUDIO_STATE_IDLE = 0,
-  AUDIO_STATE_INIT,
-  AUDIO_STATE_PLAYING,
-}AUDIO_PLAYBACK_StateTypeDef;
-
-
 #define NUMBER_OF_CHANNELS 6
-
-#define AUDIO_BUFFER_SIZE 128 	// must be equal to 20 ms
-
-#define AUDIO_START_OFFSET_ADDRESS		44
-#define AUDIO_FILE_ADDRESS				&AUDIO_SAMPLE[0]
-#define AUDIO_FILE_SIZE					sizeof(AUDIO_SAMPLE)
 
 char ASCIILOGO[] = "\n"\
 "  ___                 _    _\n"\
@@ -93,22 +60,7 @@ char ASCIILOGO[] = "\n"\
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-__IO uint32_t uwCommand = AUDIO_PAUSE;
-__IO uint32_t uwVolume = 70;
-  uint8_t Volume_string[20] = {0};
-
-uint32_t AudioTotalSize = 0xFFFF;  /* This variable holds the total size of the audio file */
-uint32_t AudioRemSize   = 0xFFFF;  /* This variable holds the remaining data in audio file */
-uint16_t* CurrentPos;              /* This variable holds the current position address of audio data */
-static AUDIO_PLAYBACK_StateTypeDef  audio_state;
-
-// --------------------------
-
-
-
 DRUM channel[NUMBER_OF_CHANNELS];	// array of drums
-
-int cnt;
 
 // ADC buffers0
 uint32_t adc_buf[NUMBER_OF_CHANNELS];
@@ -125,19 +77,7 @@ uint8_t buffer_in[64];
 // MIDI operation
 uint8_t upd_active_sens = 0;	//flag for active sense, triggered every 300ms
 uint8_t config_Mode[1] = {0};		// flag for activating config over serial
-uint32_t custom_timer = 0;
 
-
-//SDCARD defines
-
-FRESULT res;
-uint32_t bytesWritten, bytesRead;
-uint8_t wText[] = "STM32 FATFS works great";
-uint8_t rText[_MAX_SS];
-
-//int16_t dacData[AUDIO_BUFFER_SIZE];
-//static volatile int16_t *outBufPtr = &dacData[0];
-uint8_t dataReadyFlag; // must be renamed
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -155,8 +95,6 @@ I2S_HandleTypeDef hi2s3;
 DMA_HandleTypeDef hdma_spi3_tx;
 
 SD_HandleTypeDef hsd;
-DMA_HandleTypeDef hdma_sdio_rx;
-DMA_HandleTypeDef hdma_sdio_tx;
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim4;
@@ -180,7 +118,6 @@ static void MX_SDIO_SD_Init(void);
 static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
-uint8_t CDC_Receive_FS(uint8_t* Buf, uint16_t Len);
 
 void sendUart(char *_msg);
 
@@ -196,9 +133,6 @@ uint8_t UartConfigDialog();
 
 uint32_t dataReceivedSize = 0;
 volatile char flag_New_Settings;
-
-void sdCardTextExample();
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -207,7 +141,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	// 10kHz trigger, 0.1ms
 	if (htim->Instance == htim4.Instance) {
 		HAL_ADC_Start_DMA(&hadc1, (uint32_t*) &adc_buf[0], NUMBER_OF_CHANNELS);
-		cnt++;
 	}
 
 	// 3.33Hz active sensing, 300ms
@@ -236,67 +169,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 			Update_channel(&channel[i], adc_val[i], aux_current_state[i]);
 		}
 	}
-}
-//
-//void HAL_I2SEx_TxRxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
-//	outBufPtr = &dacData[0];
-//
-//	dataReadyFlag = 1;
-//}
-//
-//void HAL_I2SEx_TxRxCpltCallback(I2S_HandleTypeDef *hi2s) {
-//	outBufPtr = &dacData[AUDIO_BUFFER_SIZE / 2];
-//
-//	dataReadyFlag = 1;
-//}
-
-void BSP_AUDIO_OUT_TransferComplete_CallBack(void)
-{
-  if (audio_state == AUDIO_STATE_PLAYING)
-  {
-    /* Calculate the remaining audio data in the file and the new size
-    for the DMA transfer. If the Audio files size is less than the DMA max
-    data transfer size, so there is no calculation to be done, just restart
-    from the beginning of the file ... */
-    /* Check if the end of file has been reached */
-    if(AudioRemSize > 0)
-    {
-      /* Replay from the current position */
-      BSP_AUDIO_OUT_ChangeBuffer((uint16_t*)CurrentPos, DMA_MAX(AudioRemSize));
-
-      /* Update the current pointer position */
-      CurrentPos += DMA_MAX(AudioRemSize);
-
-      /* Update the remaining number of data to be played */
-      AudioRemSize -= DMA_MAX(AudioRemSize);
-    }
-    else
-    {
-      /* Set the current audio pointer position */
-      CurrentPos = (uint16_t*)(AUDIO_FILE_ADDRESS + AUDIO_START_OFFSET_ADDRESS);
-      /* Replay from the beginning */
-      BSP_AUDIO_OUT_Play((uint16_t*)CurrentPos,  (uint32_t)(AUDIO_FILE_SIZE - AUDIO_START_OFFSET_ADDRESS));
-      /* Update the remaining number of data to be played */
-      AudioRemSize = AudioTotalSize - DMA_MAX(AudioTotalSize);
-      /* Update the current audio pointer position */
-      CurrentPos += DMA_MAX(AudioTotalSize);
-    }
-  }
-}
-
-/**
-  * @brief  Manages the DMA FIFO error event.
-  * @param  None
-  * @retval None
-  */
-void BSP_AUDIO_OUT_Error_CallBack(void)
-{
-  /* Display message on the LCD screen */
-  sendUart("Error while playing audio");
-  /* Stop the program with an infinite loop */
-  while (1)
-  {
-  }
 }
 /* USER CODE END 0 */
 
@@ -378,34 +250,8 @@ int main(void)
 	HAL_TIM_Base_Start_IT(&htim2); //AS
 	HAL_TIM_Base_Start_IT(&htim4); //ADC
 
-	WAVE_FormatTypeDef *waveformat = NULL;
-	if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_AUTO, uwVolume,
-			I2S_AUDIOFREQ_8K) != AUDIO_OK) {
-		/* Initialization Error */
-		sendUart("Initialization problem");
-		Error_Handler();
-	} else {
-		sendUart("Audio Codec Ready");
-	}
+	sdCardTextExample();
 
-	audio_state = AUDIO_STATE_PLAYING;
-	waveformat = (WAVE_FormatTypeDef*) AUDIO_FILE_ADDRESS;
-
-	AudioTotalSize = (AUDIO_FILE_SIZE - AUDIO_START_OFFSET_ADDRESS)
-			/ (waveformat->NbrChannels);
-	/* Set the current audio pointer position */
-	CurrentPos = (uint16_t*) (AUDIO_FILE_ADDRESS + AUDIO_START_OFFSET_ADDRESS);
-	/* Start the audio player */
-	BSP_AUDIO_OUT_Play((uint16_t*) CurrentPos,
-			(uint32_t) (AUDIO_FILE_SIZE - AUDIO_START_OFFSET_ADDRESS));
-
-//	sdCardTextExample();
-//	HAL_StatusTypeDef audioStatus;
-//	audioStatus = HAL_I2SEx_TransmitReceive_DMA(&hi2s3, (uint16_t *)dacData, NULL, AUDIO_BUFFER_SIZE);
-//	if(audioStatus != HAL_OK){
-//		sendUart("Audio Wrong");
-//		Error_Handler();
-//	}
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -612,7 +458,7 @@ static void MX_I2S3_Init(void)
   hi2s3.Init.Standard = I2S_STANDARD_PHILIPS;
   hi2s3.Init.DataFormat = I2S_DATAFORMAT_16B;
   hi2s3.Init.MCLKOutput = I2S_MCLKOUTPUT_ENABLE;
-  hi2s3.Init.AudioFreq = I2S_AUDIOFREQ_8K;
+  hi2s3.Init.AudioFreq = I2S_AUDIOFREQ_48K;
   hi2s3.Init.CPOL = I2S_CPOL_LOW;
   hi2s3.Init.ClockSource = I2S_CLOCK_PLL;
   hi2s3.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_ENABLE;
@@ -647,7 +493,7 @@ static void MX_SDIO_SD_Init(void)
   hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
   hsd.Init.BusWide = SDIO_BUS_WIDE_1B;
   hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_DISABLE;
-  hsd.Init.ClockDiv = 0;
+  hsd.Init.ClockDiv = 4;
   /* USER CODE BEGIN SDIO_Init 2 */
 
   /* USER CODE END SDIO_Init 2 */
@@ -794,12 +640,6 @@ static void MX_DMA_Init(void)
   /* DMA2_Stream0_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
-  /* DMA2_Stream3_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
-  /* DMA2_Stream6_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream6_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream6_IRQn);
 
 }
 
@@ -1134,14 +974,12 @@ uint8_t Save_Setting(uint8_t _rst)
 
 	for (i = 0; i < 64; i++)
 		SavingBuff[i] = 0;
-//112233445566778899 AABBCCDDEEFF
 	if (_rst == 0)
 		SavingBuff[0] = 0xC4C0FFEE; // load settings marker
 	else
 		SavingBuff[0] = 0xFFFFFFFF; // do not load marker
 	SavingBuff[1] = 0xBB;
 
-	// 0x11223344
 	for (i = 1; i < 10; i++) {
 		// channel configuration settings
 		SavingBuff[2 * i] = (channel[i - 1].main_voice & 0xFF) * 0x01000000;
@@ -1186,7 +1024,6 @@ uint8_t Save_Setting(uint8_t _rst)
 uint8_t Load_Setting()
 {
 	uint8_t i;
-//	uint32_t LoadingBuff[64];
 
 	for (i=0;i<64;i++){
 		saved_config[i] = *(userConfig+i);
@@ -1220,33 +1057,6 @@ uint8_t Load_Setting()
 	return 1;
 }
 
-//receive number from serial or a given max length
-void sdCardTextExample(){
-	if(f_mount(&SDFatFS, (TCHAR const*)SDPath, 0) != FR_OK){
-			sendUart("SD CARD NOT DETECTED");
-		}
-		else{
-			if(f_mkfs((TCHAR const*)SDPath, FM_ANY, 0, rText, sizeof(rText)) != FR_OK){
-				sendUart("SD CARD FS NOT ACCESS");
-			}
-			else{
-				if(f_open(&SDFile, "STM32", FA_CREATE_ALWAYS | FA_WRITE) != FR_OK){
-					sendUart("SD CARD FS NOT ACCESS");
-				}
-				else{
-					res = f_write(&SDFile, wText, strlen((char *)wText), (void *)&bytesWritten);
-					if((bytesWritten == 0) || (res != FR_OK)){
-						sendUart("SD CARD CAN't WRITE FILE");
-					}
-					else{
-						f_close(&SDFile);
-						sendUart("SD CARD write is done");
-					}
-				}
-			}
-			f_mount(&SDFatFS, (TCHAR const*)NULL, 0);
-		}
-}
 
 int get_num_from_uart(uint8_t _len){
 	uint8_t i;
