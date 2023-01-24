@@ -58,7 +58,6 @@
 extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 extern ADC_HandleTypeDef hadc3;
 extern SAI_HandleTypeDef hsai_BlockA2;
-extern SAI_HandleTypeDef hsai_BlockB2;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim4;
 extern UART_HandleTypeDef huart1;
@@ -299,7 +298,6 @@ void SAI2_IRQHandler(void)
 
   /* USER CODE END SAI2_IRQn 0 */
   HAL_SAI_IRQHandler(&hsai_BlockA2);
-  HAL_SAI_IRQHandler(&hsai_BlockB2);
   /* USER CODE BEGIN SAI2_IRQn 1 */
 
   /* USER CODE END SAI2_IRQn 1 */

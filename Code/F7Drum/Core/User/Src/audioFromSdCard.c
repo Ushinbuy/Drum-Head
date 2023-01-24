@@ -60,7 +60,7 @@ void playAudioSd(FILINFO fno) {
 	}
 //	currentPosition = sizeof(struct WAVE_FormatTypeDef) + bytesWasRead;
 	uint8_t uwVolume = 25;
-	if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_AUTO, uwVolume, I2S_AUDIOFREQ_48K)
+	if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_AUTO, uwVolume, AUDIO_FREQUENCY_48K)
 			!= AUDIO_OK) {
 		return;
 	}

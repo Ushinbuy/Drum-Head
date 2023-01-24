@@ -2,7 +2,7 @@
 #define USER_INC_AUDIOFROMSDCARD_H_
 
 #include "wm8994.h"
-#include "stm32412g_discovery_audio.h"
+#include "stm32746g_discovery_audio.h"
 #include "wavFile.h"
 #include "audio.h"
 #include "fatfs.h"

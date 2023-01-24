@@ -835,6 +835,7 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef* hsai)
 
     /**SAI2_A_Block_A GPIO Configuration
     PI4     ------> SAI2_MCLK_A
+    PG10     ------> SAI2_SD_B
     PI5     ------> SAI2_SCK_A
     PI7     ------> SAI2_FS_A
     PI6     ------> SAI2_SD_A
@@ -846,23 +847,6 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef* hsai)
     GPIO_InitStruct.Alternate = GPIO_AF10_SAI2;
     HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 
-    }
-    if(hsai->Instance==SAI2_Block_B)
-    {
-      /* Peripheral clock enable */
-      if (SAI2_client == 0)
-      {
-       __HAL_RCC_SAI2_CLK_ENABLE();
-
-      /* Peripheral interrupt init*/
-      HAL_NVIC_SetPriority(SAI2_IRQn, 0, 0);
-      HAL_NVIC_EnableIRQ(SAI2_IRQn);
-      }
-    SAI2_client ++;
-
-    /**SAI2_B_Block_B GPIO Configuration
-    PG10     ------> SAI2_SD_B
-    */
     GPIO_InitStruct.Pin = SAI2_SDB_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -889,27 +873,13 @@ void HAL_SAI_MspDeInit(SAI_HandleTypeDef* hsai)
 
     /**SAI2_A_Block_A GPIO Configuration
     PI4     ------> SAI2_MCLK_A
+    PG10     ------> SAI2_SD_B
     PI5     ------> SAI2_SCK_A
     PI7     ------> SAI2_FS_A
     PI6     ------> SAI2_SD_A
     */
     HAL_GPIO_DeInit(GPIOI, SAI2_MCLKA_Pin|SAI2_SCKA_Pin|SAI2_FSA_Pin|SAI2_SDA_Pin);
 
-    }
-    if(hsai->Instance==SAI2_Block_B)
-    {
-    SAI2_client --;
-      if (SAI2_client == 0)
-      {
-      /* Peripheral clock disable */
-      __HAL_RCC_SAI2_CLK_DISABLE();
-    /* SAI2 interrupt DeInit */
-      HAL_NVIC_DisableIRQ(SAI2_IRQn);
-      }
-
-    /**SAI2_B_Block_B GPIO Configuration
-    PG10     ------> SAI2_SD_B
-    */
     HAL_GPIO_DeInit(SAI2_SDB_GPIO_Port, SAI2_SDB_Pin);
 
     }
