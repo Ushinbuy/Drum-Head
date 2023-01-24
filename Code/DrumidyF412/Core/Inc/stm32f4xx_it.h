@@ -60,12 +60,9 @@ void ADC_IRQHandler(void);
 void TIM2_IRQHandler(void);
 void TIM4_IRQHandler(void);
 void USART2_IRQHandler(void);
-void SDIO_IRQHandler(void);
 void SPI3_IRQHandler(void);
 void DMA2_Stream0_IRQHandler(void);
-void DMA2_Stream3_IRQHandler(void);
 void OTG_FS_IRQHandler(void);
-void DMA2_Stream6_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */

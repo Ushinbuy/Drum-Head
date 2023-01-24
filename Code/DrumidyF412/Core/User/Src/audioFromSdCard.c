@@ -72,18 +72,21 @@ void playAudioSd(FILINFO fno) {
 	sendUart("Header is read correctly \n\r");
 }
 
+extern char SDPath[4];   /* SD logical drive path */
+extern FATFS SDFatFS;
+
 void sdCardTextExample(void) {
 	FRESULT res;
 	DIR dir;
 	FILINFO fno;
 
-	res = f_mount(&SDFatFS, "", 0);
+	res = f_mount(&SDFatFS, SDPath, 0);
 	if (res != FR_OK) {
 		sendUart("SD CARD NOT DETECTED");
 		return;
 	}
 
-	res = f_opendir(&dir, "");
+	res = f_opendir(&dir, SDPath);
 	if (res != FR_OK)
 		return; // EXIT_FAILURE;
 
