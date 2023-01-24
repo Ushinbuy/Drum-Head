@@ -23,16 +23,59 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <string.h>
+#include <stdio.h>
+#include <usbd_cdc.h>
+#include "midi.h"
+#include "drumidy.h"
+#include "wavFile.h"
+//#include "audioExample.h"
+#include "audioFromSdCard.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+#define OFF_DELAY_MS 200
+#define FLASH_USER_START_ADDR 	0x08040000	//0x0804 0000 		//0x0801 F800
+const volatile uint32_t *userConfig=(const volatile uint32_t *)FLASH_USER_START_ADDR;
 
+#define NUMBER_OF_CHANNELS 6
+
+char ASCIILOGO[] = "\n"\
+"  ___                 _    _\n"\
+" |   \\ _ _ _  _ _ __ (_)__| |_  _ \n"\
+" | |) | '_| || | '  \\| / _` | || |\n"\
+" |___/|_|  \\_,_|_|_|_|_\\__,_|\\_, |\n"\
+"     .-.,     ,--. ,--.      |__/ \n"\
+"    `/|~\\     \\__/T`--'     . \n"\
+"    x |`' __   ,-~^~-.___ ==I== \n"\
+"      |  |--| /       \\__}  | \n"\
+"      |  |  |{   /~\\   }    | \n"\
+"     /|\\ \\__/ \\  \\_/  /|   /|\\ \n"\
+"    / | \\|  | /`~-_-~'X.\\ //| \\ \n\n"\
+"= Send any char for configuration =\n";
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+DRUM channel[NUMBER_OF_CHANNELS];	// array of drums
+
+// ADC buffers0
+uint32_t adc_buf[NUMBER_OF_CHANNELS];
+// channel values
+uint16_t adc_val[NUMBER_OF_CHANNELS];
+
+GPIO_PinState aux_current_state[NUMBER_OF_CHANNELS];
+
+uint32_t saved_config[64];
+
+char buffer_out[1000];			// USB Buffers
+uint8_t buffer_in[64];
+
+// MIDI operation
+uint8_t upd_active_sens = 0;	//flag for active sense, triggered every 300ms
+uint8_t config_Mode[1] = {0};		// flag for activating config over serial
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -42,12 +85,14 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc3;
+DMA_HandleTypeDef hdma_adc3;
 
 I2C_HandleTypeDef hi2c3;
 
 QSPI_HandleTypeDef hqspi;
 
 SAI_HandleTypeDef hsai_BlockA2;
+DMA_HandleTypeDef hdma_sai2_a;
 
 SD_HandleTypeDef hsd1;
 
@@ -74,16 +119,50 @@ static void MX_SAI2_Init(void);
 static void MX_SDMMC1_SD_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_USART1_UART_Init(void);
+static void MX_DMA_Init(void);
 static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
+uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
 
+void sendUart(char *_msg);
+
+void getAuxState(GPIO_PinState *_state);
+void checkPiezoChannels();
+void handleConfigFromUart(void);
+
+void sendDebug (uint8_t _ch, uint8_t _aux);
+uint8_t Save_Setting(uint8_t _rst);
+uint8_t Load_Setting();
+int get_num_from_uart(uint8_t _len);
+uint8_t UartConfigDialog();
+
+uint32_t dataReceivedSize = 0;
+volatile char flag_New_Settings;
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+	if (huart->Instance == huart1.Instance) {
+		buffer_in[15] = 1;
+	}
+}
 
-extern char SDPath[4];   /* SD logical drive path */
-extern FATFS SDFatFS;
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
+	if (hadc->Instance == hadc3.Instance) {
+		for (uint8_t i = 0; i < NUMBER_OF_CHANNELS; i++) {
+			adc_val[i] = adc_buf[i];
+		}
+
+		getAuxState(aux_current_state);
+
+		setStepTime(HAL_GetTick());
+
+		for (uint8_t i = 0; i < NUMBER_OF_CHANNELS; i++) {
+			Update_channel(&channel[i], adc_val[i], aux_current_state[i]);
+		}
+	}
+}
 /* USER CODE END 0 */
 
 /**
@@ -127,44 +206,58 @@ int main(void)
   MX_USART1_UART_Init();
   MX_FATFS_Init();
   MX_USB_DEVICE_Init();
+  MX_DMA_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
-  DBGMCU->APB1FZ |= DBGMCU_APB1_FZ_DBG_TIM6_STOP;
-  HAL_GPIO_WritePin(LCD_BL_CTRL_GPIO_Port, LCD_BL_CTRL_Pin, GPIO_PIN_RESET);
 
-	FRESULT res;
-	DIR dir;
-	FILINFO fno;
+	HAL_ADC_Start(&hadc3);
+	HAL_Delay(200);
 
-	res = f_mount(&SDFatFS, SDPath, 1);
-	if (res != FR_OK) {
-		return;
-	}
+	/// **************************
+	/// ******* Defaul CFG *******
+	/// **************************
+	getAuxState(aux_current_state);
 
-	res = f_opendir(&dir, SDPath);
-	if (res != FR_OK)
-		return; // EXIT_FAILURE;
+	initDrum(&channel[0], HHCLOSE, HHCLOSE, MESH_PAD_AUTOAUX, aux_current_state[0]);
+	initDrum(&channel[1], TOMF, TOMF, MESH_PAD_AUTOAUX, aux_current_state[1]);
+	initDrum(&channel[2], HHPEDAL, HHPEDAL, MESH_PAD_AUTOAUX, aux_current_state[2]);
+	initDrum(&channel[3], TOM3, TOM3, MESH_PAD_AUTOAUX, aux_current_state[3]);
+	initDrum(&channel[4], HHOPEN, HHOPEN, MESH_PAD_AUTOAUX, aux_current_state[4]);
+	initDrum(&channel[5], TOM2, TOM2, MESH_PAD_AUTOAUX, aux_current_state[5]);
+//  initDrum(&channel[6], TOMF , TOMF  	, MESH_PAD_AUTOAUX	, aux_current_state[6]);
+//
+//  // cymbals
+//  initDrum(&channel[7], CRASH, CRASH 	, CYMBAL_MUTE			, aux_current_state[7]);	// CH7 aux disabled
+//  initDrum(&channel[8], RIDE ,  BELL 	, CYMBAL_2_ZONE			, aux_current_state[8]);
 
-	while (1) {
-		res = f_readdir(&dir, &fno);
-		if (res != FR_OK || fno.fname[0] == 0)
-			return;
+	// === Previous Settings ===
+	sendUart(ASCIILOGO);
+	HAL_Delay(500);
 
-		char *filename = fno.fname;
+	Load_Setting();
 
-		if (strstr(filename, ".WAV") || (strstr(filename, ".wav")) != 0) {
-			break;
-		}
-	}
-	f_closedir(&dir);
+	// start waiting for serial commands
+	HAL_Delay(200);
+	config_Mode[0] = 0;
+	HAL_UART_Receive_IT (&huart1, &config_Mode[0], 1);
+
+	/// **************************
+	/// ******* LETS ROCK! *******
+	/// **************************
+	HAL_TIM_Base_Start_IT(&htim2); //AS
+	HAL_TIM_Base_Start_IT(&htim4); //ADC
+
+	sdCardTextExample();
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
+	while (1) {
+		handleConfigFromUart();
+		sendMidiActiveSense(&upd_active_sens);
+		checkPiezoChannels();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -611,6 +704,25 @@ static void MX_USART1_UART_Init(void)
 
 }
 
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA2_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+  /* DMA2_Stream4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream4_IRQn);
+
+}
+
 /* FMC initialization function */
 static void MX_FMC_Init(void)
 {
@@ -869,13 +981,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : ARDUINO_SCK_D13_Pin */
-  GPIO_InitStruct.Pin = ARDUINO_SCK_D13_Pin;
+  /*Configure GPIO pin : LD1_Pin */
+  GPIO_InitStruct.Pin = LD1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
-  HAL_GPIO_Init(ARDUINO_SCK_D13_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(LD1_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : DCMI_PWR_EN_Pin */
   GPIO_InitStruct.Pin = DCMI_PWR_EN_Pin;
@@ -1005,6 +1117,472 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+void sendUart (char *_msg){
+	HAL_UART_Transmit(&huart1, (uint8_t*) _msg, strlen((char const*) _msg), 50);
+}
+
+void handleConfigFromUart(void){
+	while (config_Mode[0]) {
+
+		uint8_t rs = UartConfigDialog();
+
+		if ((rs == 1) || (rs == 2)) {
+			rs = Save_Setting(0);
+			sprintf(buffer_out, "New configuration saved (%X)\n", rs);
+			sendUart(buffer_out);
+		}
+		if (rs == 99) {
+			rs = Save_Setting(1);
+			sprintf(buffer_out, "Reset to default values, restart the device (%X)\n", rs);
+			sendUart(buffer_out);
+		}
+		config_Mode[0] = 0;
+		HAL_UART_Receive_IT(&huart1, &config_Mode[0], 1);
+	}
+}
+
+void checkPiezoChannels(){
+	int _volume;
+	for (uint8_t ch = 0; ch < NUMBER_OF_CHANNELS; ch++) {
+
+		if (channel[ch].main_rdy) {
+			channel[ch].main_rdy = 0;
+
+			// custom volume calculation for mesh
+			if (channel[ch].chnl_type < 2) {
+				_volume = (int) (100.
+						* (float) (channel[ch].main_rdy_height - PEAK_THRESHOLD)
+						/ 4096. * 100. / (float) channel[ch].peak_volume_norm);
+				if ((channel[ch].chnl_type == MESH_RIM_AUTOAUX)
+						&& (channel[ch].main_rdy_usealt))
+					_volume = _volume * 4;
+			} else {
+				//volume for cymbals
+				_volume = (int) (100.
+						* (float) (channel[ch].main_rdy_height - PEAK_THRESHOLD)
+						/ 4096. * 100. / (float) channel[ch].peak_volume_norm
+						* 2);
+			}
+
+			if (_volume > 127)
+				_volume = 127;
+			if (_volume < 1)
+				_volume = 1;
+			channel[ch].main_rdy_volume = (uint8_t) _volume;
+
+			uint8_t vc;
+			if (channel[ch].main_rdy_usealt)
+				vc = channel[ch].alt_voice;	//	sendMidiGEN(channel[ch].alt_voice ,channel[ch].main_rdy_volume);
+			else
+				vc = channel[ch].main_voice;//	sendMidiGEN(channel[ch].main_voice,channel[ch].main_rdy_volume);
+
+//#define DEBUG_ADC
+#ifdef DEBUG_ADC
+			  sprintf(buffer_out, "\r\n 0- %d 1 - %d 2 - %d 3 - %d 4 - %d 5 - %d", adc_val[0], adc_val[1], adc_val[2], adc_val[3], adc_val[4], adc_val[5]);
+			  sendUart(buffer_out);
+#endif
+			sendMidi(vc, channel[ch].main_rdy_volume);
+			channel[ch].main_last_on_voice = vc;
+			channel[ch].main_last_on_time = HAL_GetTick();
+
+			sendDebug(ch, 0);
+		}
+
+		if (channel[ch].aux_rdy) {
+			channel[ch].aux_rdy = 0;
+			sendDebug(ch, 1);
+
+			switch (channel[ch].chnl_type) {
+			case CYMBAL_HIHAT:
+				if (channel[ch].aux_rdy_state == CHANNEL_PEDAL_PRESSED)
+					sendMidiHHPedalOn();
+				//				  else
+				//					  sendMidiGEN(channel[ch].main_voice, 5);
+				break;
+
+			case CYMBAL_MUTE:
+				if (channel[ch].aux_rdy_state == CHANNEL_PEDAL_PRESSED)
+					sendMidi2(channel[ch].main_voice, 1, channel[ch].main_voice,
+							0);
+				break;
+
+			case CYMBAL_2_ZONE:
+				sendMidi2(channel[ch].main_voice, 1, channel[ch].main_voice, 0);
+				break;
+
+				// INDEPENDENT AUX INPUTS
+			default:
+				if (channel[ch].aux_type == AUX_TYPE_PAD)
+					sendMidi2(channel[ch].aux_voice, 100, channel[ch].aux_voice,
+							0);
+				else { //PEDAL
+					   // PEDAL pressed
+					if (channel[ch].aux_rdy_state == CHANNEL_PEDAL_PRESSED)
+						sendMidi2(channel[ch].aux_voice, 100,
+								channel[ch].aux_voice, 0);
+					// PEDAL RELEASED... IN CASE
+					//					  else
+					//						  sendMidi2(channel[ch].aux_voice, 1, channel[ch].aux_voice,0);
+				}
+			}
+		}
+		// send off command if needed
+		if (channel[ch].main_last_on_voice > 0) {
+			if (HAL_GetTick()
+					> (channel[ch].main_last_on_time + OFF_DELAY_MS)) {
+				sendMidi(channel[ch].main_last_on_voice, 0);
+				channel[ch].main_last_on_voice = 0;
+			}
+		}
+	}
+}
+
+
+
+void tx_midi(uint8_t *_buffer, uint16_t len) {
+	uint8_t rt = USBD_BUSY;
+
+	while (rt == USBD_BUSY) {
+		rt = CDC_Transmit_FS(_buffer, len);
+	};
+
+	TIM2->CNT = 0; // restart active sense timer
+}
+
+void sendDebug(uint8_t _ch, uint8_t _aux)
+{
+	uint8_t voice;
+	uint8_t volume;
+	uint8_t length;
+
+	if (_aux) {
+		voice = channel[_ch].aux_voice;
+
+		sprintf(buffer_out, ">>>AUX %d: %X %d [%d %d]\n", _ch, voice,
+				channel[_ch].aux_rdy_state, channel[_ch].main_peaking,
+				channel[_ch].aux_status);
+	} else {
+		if (channel[_ch].main_rdy_usealt)
+			voice = channel[_ch].alt_voice;
+		else
+			voice = channel[_ch].main_voice;
+		volume = channel[_ch].main_rdy_volume;
+		length = channel[_ch].main_rdy_length;
+		sprintf(buffer_out,
+				">>MAIN %d: voice %X (alt:%d), vol %d (%u/4096) t=%u; AUX = %d\n",
+				_ch, voice, channel[_ch].alt_voice, volume,
+				channel[_ch].main_rdy_height, length, channel[_ch].aux_status);
+	}
+	sendUart(buffer_out);
+
+	HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
+}
+
+
+// READ Diginal state of aux channels
+void getAuxState (GPIO_PinState *_state){
+	_state[0] = HAL_GPIO_ReadPin(ARDUINO_RX_D0_GPIO_Port, ARDUINO_RX_D0_Pin);
+	_state[1] = HAL_GPIO_ReadPin(ARDUINO_TX_D1_GPIO_Port, ARDUINO_TX_D1_Pin);
+	_state[2] = HAL_GPIO_ReadPin(ARDUINO_D2_GPIO_Port, ARDUINO_D2_Pin);
+	_state[3] = HAL_GPIO_ReadPin(ARDUINO_PWM_D3_GPIO_Port, ARDUINO_PWM_D3_Pin);
+
+	_state[4] = HAL_GPIO_ReadPin(ARDUINO_D4_GPIO_Port, ARDUINO_D4_Pin);
+	_state[5] = HAL_GPIO_ReadPin(ARDUINO_PWM_CS_D5_GPIO_Port, ARDUINO_PWM_CS_D5_Pin);
+//	_state[6] = HAL_GPIO_ReadPin(DIG_IN7_GPIO_Port, DIG_IN7_Pin);
+//	_state[7] = 0; //HAL_GPIO_ReadPin(DIG_IN8_GPIO_Port, DIG_IN8_Pin);
+
+//	_state[8] = HAL_GPIO_ReadPin(DIG_IN9_GPIO_Port, DIG_IN9_Pin);
+//	_state[9] = 0;
+}
+
+uint8_t Save_Setting(uint8_t _rst)
+{
+	uint32_t SavingBuff[64];
+	uint8_t i;
+	uint32_t error = 0;
+	uint64_t val = 0;
+
+	FLASH_EraseInitTypeDef FLASH_EraseInitStruct = {
+			.TypeErase = FLASH_TYPEERASE_SECTORS,
+//			.Banks = FLASH_BANK_1,
+			.Sector = 6,
+			.NbSectors = 1
+	};
+
+	for (i = 0; i < 64; i++)
+		SavingBuff[i] = 0;
+	if (_rst == 0)
+		SavingBuff[0] = 0xC4C0FFEE; // load settings marker
+	else
+		SavingBuff[0] = 0xFFFFFFFF; // do not load marker
+	SavingBuff[1] = 0xBB;
+
+	for (i = 1; i < 10; i++) {
+		// channel configuration settings
+		SavingBuff[2 * i] = (channel[i - 1].main_voice & 0xFF) * 0x01000000;
+		SavingBuff[2 * i] += (channel[i - 1].aux_voice & 0xFF) * 0x00010000;
+		SavingBuff[2 * i] += (channel[i - 1].alt_voice & 0xFF) * 0x00000100;
+		SavingBuff[2 * i] += (channel[i - 1].chnl_type & 0xFF);
+		// channel parameter settings
+		SavingBuff[2 * i + 1] = (channel[i - 1].peak_volume_norm & 0xFF) * 0x01000000;
+		SavingBuff[2 * i + 1] += (channel[i - 1].peak_min_length & 0xFF) * 0x00010000;
+		SavingBuff[2 * i + 1] += (channel[i - 1].peak_max_length & 0xFF) * 0x00000100;
+//		SavingBuff[2*i + 1] += (channel[i-1].peak2peak  & 0xFF);
+	}
+
+	HAL_StatusTypeDef err;
+	uint8_t st = 0;
+	err = HAL_FLASH_Unlock();
+	if (err != HAL_OK)
+		st += 0b10000000;
+	__HAL_FLASH_CLEAR_FLAG (FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR
+							| FLASH_FLAG_PGAERR | FLASH_SR_ERSERR);
+
+	err = HAL_FLASHEx_Erase(&FLASH_EraseInitStruct, &error);
+	if (err != HAL_OK)
+		st += 0b01000000;
+
+	for (i = 0; i < 32; i++) {
+		val = (((uint64_t) SavingBuff[i * 2 + 1]) << 32) + SavingBuff[i * 2];
+		if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD,
+				FLASH_USER_START_ADDR + 8 * i, val) != HAL_OK)
+			st += 1;
+	}
+	if (HAL_FLASH_Lock() != HAL_OK)
+		st += 0b00100000;
+
+	for (i = 0; i < 64; i++)
+		saved_config[0] = 0;
+
+	return st;
+}
+
+
+uint8_t Load_Setting()
+{
+	uint8_t i;
+
+	for (i=0;i<64;i++){
+		saved_config[i] = *(userConfig+i);
+	}
+
+	if (saved_config[0] != 0xC4C0FFEE) return 0;
+
+	for (i = 1; i < 10; i++){
+		channel[i-1].main_voice = 0xff & (uint8_t)(saved_config[2*i]>>24);
+		channel[i-1].aux_voice 	= 0xff & (uint8_t)(saved_config[2*i]>>16);
+		channel[i-1].alt_voice 	= 0xff & (uint8_t)(saved_config[2*i]>>8);
+		channel[i-1].chnl_type 	= 0xff & (uint8_t)(saved_config[2*i]);
+
+		//		channel[i-1].peak_threshold 	= 0xff & (uint8_t)(saved_config[2*i+1]>>24);
+		channel[i-1].peak_volume_norm 	= 0xff & (uint8_t)(saved_config[2*i+1]>>24);
+		channel[i-1].peak_min_length 	= 0xff & (uint8_t)(saved_config[2*i+1]>>16);
+		channel[i-1].peak_max_length 	= 0xff & (uint8_t)(saved_config[2*i+1]>>8);
+//		channel[i-1].time_between_peaks = 0xff & (uint8_t)(saved_config[2*i+1]);
+	}
+
+	sprintf(buffer_out, "........ Previous settings: .......\n%08lX %08lX %08lX %08lX\n%08lX %08lX %08lX %08lX\n%08lX %08lX %08lX %08lX\n%08lX %08lX %08lX %08lX\n%08lX %08lX %08lX %08lX\n",
+	  saved_config[0] ,saved_config[1] ,saved_config[2] ,saved_config[3] ,
+	  saved_config[4] ,saved_config[5] ,saved_config[6] ,saved_config[7] ,
+	  saved_config[8] ,saved_config[9] ,saved_config[10],saved_config[11],
+	  saved_config[12],saved_config[13],saved_config[14],saved_config[15],
+	  saved_config[16],saved_config[17],saved_config[18],saved_config[19]);
+
+		sendUart(buffer_out);
+	  HAL_Delay(500);
+
+	return 1;
+}
+
+
+int get_num_from_uart(uint8_t _len){
+	uint8_t i;
+	int val = 0;
+	for (i = 0; i<_len+1; i++)
+		buffer_in[i] = 0;
+
+
+	HAL_UART_Receive_IT (&huart1, &buffer_in[0], _len);
+	while (buffer_in[0] == 0) {HAL_Delay(1);};
+	HAL_Delay(2); // wait for the rest of the message
+
+	val = 0;
+	for (i = 0; i<_len; i++){
+		if ((buffer_in[i] == 0) || (buffer_in[i] == 10) || (buffer_in[i] == 13)) break;
+		if ((buffer_in[0]>='0') && (buffer_in[0]<='9'))
+			val = val*10 + (buffer_in[i]-'0');
+		else{
+			val = -1;
+			break;
+		}
+	}
+	HAL_UART_AbortReceive(&huart1);
+	return val;
+}
+
+uint8_t UartConfigDialog(){
+
+	int val = 0;
+
+	uint8_t rtrn = 0;
+
+	sendUart("\nConfig mode.\nType number of the pad [1..9], or hit the drum (x - reset to default):\n");
+
+	buffer_in[0] = 0;
+	HAL_UART_Receive_IT (&huart1, &buffer_in[0], 1);
+
+	uint8_t chnl = 10;
+	while (chnl == 10){
+		  for (uint8_t ch = 0; ch < NUMBER_OF_CHANNELS; ch++)
+			  if ((channel[ch].main_rdy)||(channel[ch].aux_rdy)){
+				  channel[ch].main_rdy = 0;
+				  channel[ch].aux_rdy = 0;
+				  chnl = ch;
+				  HAL_UART_AbortReceive(&huart1);
+			  }
+		  if (buffer_in[0]>0){
+			  if ((buffer_in[0]>='1') && (buffer_in[0]<='9'))
+				  chnl = buffer_in[0]-'1';
+			  else
+				  chnl = 255;
+
+			  if (buffer_in[0]=='x')
+				  // reset to default
+				  return 99;
+		  }
+	}
+
+	if (chnl == 255) {
+		HAL_UART_AbortReceive(&huart1);
+		sendUart("Ciao\n");
+		config_Mode[0] = 0;
+		HAL_UART_Receive_IT (&huart1, &config_Mode[0], 1);
+		return 0;
+	}
+
+	// got the correct channel.
+	// print current values
+	sprintf(buffer_out, "Current values CH#%d:\n\tVoices: main %d, aux %d, alt %d\n\tTimings: peak min %d max %d\n\tChannel type: %d,volume norm %d\n",
+			chnl+1, channel[chnl].main_voice, channel[chnl].aux_voice, channel[chnl].alt_voice,
+			(int)channel[chnl].peak_min_length, (int)channel[chnl].peak_max_length,
+			channel[chnl].aux_type, (int)channel[chnl].peak_volume_norm);
+	sendUart(buffer_out);
+	HAL_Delay(200);
+
+	// Starting to change the values
+	// main voicepeak_volume_norm
+	sprintf(buffer_out, "\nCH#%d Change main voice from %d:\t",chnl+1, channel[chnl].main_voice);
+	sendUart(buffer_out);
+	HAL_Delay(200);
+
+	 val = get_num_from_uart(2);
+	if ((val>25)&&(val<90)){
+		channel[chnl].main_voice = val & 0xFF;
+		sprintf(buffer_out, "New main voice: %d\n", channel[chnl].main_voice);
+	}else
+		sprintf(buffer_out, "Keeping the old value: %d\n", channel[chnl].main_voice);
+	sendUart(buffer_out);
+	HAL_Delay(200);
+
+	// aux voice
+	sprintf(buffer_out, "\nCH#%d Change aux input voice from %d:\t",chnl+1, channel[chnl].aux_voice);
+	sendUart(buffer_out);
+	HAL_Delay(200);
+
+	 val = get_num_from_uart(2);
+	if ((val>25)&&(val<90)){
+		channel[chnl].aux_voice = val & 0xFF;
+		sprintf(buffer_out, "New aux voice: %d\n", channel[chnl].aux_voice);
+	}else
+		sprintf(buffer_out, "Keeping the old value: %d\n", channel[chnl].aux_voice);
+	sendUart(buffer_out);
+	HAL_Delay(200);
+
+	// main alt voice
+	sprintf(buffer_out, "\nCH#%d Change main alt voice (when pedal pressed) from %d:\t",chnl+1, channel[chnl].alt_voice);
+	sendUart(buffer_out);
+	HAL_Delay(200);
+
+	 val = get_num_from_uart(2);
+	if ((val>25)&&(val<90)){
+		channel[chnl].alt_voice = val & 0xFF;
+		sprintf(buffer_out, "New alt voice: %d\n", channel[chnl].alt_voice);
+	}else
+		sprintf(buffer_out, "Keeping the old value: %d\n", channel[chnl].alt_voice);
+	sendUart(buffer_out);
+	HAL_Delay(200);
+
+	// channel type
+	sprintf(buffer_out, "\nCH#%d Change aux type from %d to:\n\tAUX - auto, MAIN - Mesh(0), Mesh with rim(1), or Cymbal(2),\n\t HiHat(3) with pedal, Cymbal with 2 zones(4), Cymabal with mute button(5)\n", chnl+1,  channel[chnl].chnl_type);
+	sendUart(buffer_out);
+	HAL_Delay(200);
+
+	val = get_num_from_uart(1);
+	if ((val>=0)&&(val<=4)){
+		channel[chnl].chnl_type = val & 0xFF;
+		sprintf(buffer_out, "New channel type: %d\n", channel[chnl].chnl_type);
+	}else
+		sprintf(buffer_out, "Keeping the old value: %d\n", channel[chnl].chnl_type);
+	sendUart(buffer_out);
+	HAL_Delay(200);
+
+	rtrn = 1;
+	sprintf(buffer_out, "\nAdjust timing? y - yes, n - save settings and exit\n");
+	sendUart(buffer_out);
+	HAL_Delay(200);
+
+
+	buffer_in[0] = 0;
+	HAL_UART_Receive_IT (&huart1, &buffer_in[0], 1);
+	while (buffer_in[0] == 0){HAL_Delay(1);}
+	if (buffer_in[0] == 'y'){
+
+		// Peak threshold
+		sprintf(buffer_out, "\nCH#%d Volume norm = %d (default 50, 0..255) (full volume point, 100~4096). New:\t",chnl+1,(int) channel[chnl].peak_volume_norm);
+		sendUart(buffer_out);
+		HAL_Delay(200);
+
+		val = get_num_from_uart(3);
+		if ((val>0)&&(val<256)){
+			channel[chnl].peak_volume_norm = val;
+			sprintf(buffer_out, "New threshold = %d\n", (int)channel[chnl].peak_volume_norm);
+		}else
+			sprintf(buffer_out, "Keeping the old value: %d\n", (int)channel[chnl].peak_volume_norm);
+		sendUart(buffer_out);
+		HAL_Delay(200);
+
+		// min peak len
+		sprintf(buffer_out, "\nCH#%d Peak min length = %d (default mesh 15, cymbal 4, 1..99) [x0.1ms]. New:\t",chnl+1,(int) channel[chnl].peak_min_length);
+		sendUart(buffer_out);
+		HAL_Delay(200);
+
+		val = get_num_from_uart(2);
+		if ((val>0)&&(val<100)){
+			channel[chnl].peak_min_length = val;
+			sprintf(buffer_out, "New min length = %d\n", (int)channel[chnl].peak_min_length);
+		}else
+			sprintf(buffer_out, "Keeping the old value: %d\n", (int)channel[chnl].peak_min_length);
+		sendUart(buffer_out);
+		HAL_Delay(200);
+
+		// max peak len
+		sprintf(buffer_out, "\nCH#%d Peak max length = %d (default 200, 1..255) [x0.1ms]. New:\t",chnl+1, (int)channel[chnl].peak_max_length);
+		sendUart(buffer_out);
+		HAL_Delay(200);
+
+		val = get_num_from_uart(3);
+		if ((val>0)&&(val<256)){
+			channel[chnl].peak_max_length = val;
+			sprintf(buffer_out, "New max length = %d\n", (int)channel[chnl].peak_max_length);
+		}else
+			sprintf(buffer_out, "Keeping the old value: %d\n", (int)channel[chnl].peak_max_length);
+		sendUart(buffer_out);
+		HAL_Delay(200);
+		rtrn = 2;
+	}
+	return rtrn;
+}
+
 /* USER CODE END 4 */
 
 /**
@@ -1024,7 +1602,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
+	// 10kHz trigger, 0.1ms
+	if (htim->Instance == htim4.Instance) {
+		HAL_ADC_Start_DMA(&hadc3, (uint32_t*) &adc_buf[0], NUMBER_OF_CHANNELS);
+	}
 
+	// 3.33Hz active sensing, 300ms
+	if (htim->Instance == htim2.Instance) {
+		upd_active_sens = 1;
+	}
   /* USER CODE END Callback 1 */
 }
 
