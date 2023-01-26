@@ -173,8 +173,6 @@ void Error_Handler(void);
 #define TP3_GPIO_Port GPIOH
 #define LD1_Pin GPIO_PIN_1
 #define LD1_GPIO_Port GPIOI
-#define OTG_FS_ID_Pin GPIO_PIN_10
-#define OTG_FS_ID_GPIO_Port GPIOA
 #define RCC_OSC32_IN_Pin GPIO_PIN_14
 #define RCC_OSC32_IN_GPIO_Port GPIOC
 #define FMC_A1_Pin GPIO_PIN_1
