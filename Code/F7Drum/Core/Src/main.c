@@ -209,6 +209,9 @@ int main(void)
   MX_DMA_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
+	DBGMCU->APB1FZ |= DBGMCU_APB1_FZ_DBG_TIM6_STOP;		// shutdown TIM6 on debug
+	HAL_GPIO_WritePin(LCD_BL_CTRL_GPIO_Port, LCD_BL_CTRL_Pin, GPIO_PIN_RESET);	// shutdown display
+
 
 
 	HAL_ADC_Start(&hadc3);
