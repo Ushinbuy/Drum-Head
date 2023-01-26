@@ -59,7 +59,7 @@ void playAudioSd(FILINFO fno) {
 		sendUart("CAN'T READ FILE AT START");
 	}
 //	currentPosition = sizeof(struct WAVE_FormatTypeDef) + bytesWasRead;
-	uint8_t uwVolume = 25;
+	uint8_t uwVolume = 15;
 	if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_AUTO, uwVolume, AUDIO_FREQUENCY_48K)
 			!= AUDIO_OK) {
 		return;
@@ -107,7 +107,7 @@ void sdCardTextExample(void) {
 
 uint16_t updateBufferFromFile(uint16_t* pBuffer){
 	UINT bytesWasRead;
-	uint16_t amountToRead = fileSize - offset;
+	uint32_t amountToRead = fileSize - offset;
 	if (amountToRead > AUDIO_BUFFER_SIZE / 2) {
 		amountToRead = AUDIO_BUFFER_SIZE / 2;
 	}
