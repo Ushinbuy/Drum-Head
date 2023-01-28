@@ -724,7 +724,7 @@ static void SAIx_Out_Init(uint32_t AudioFreq)
   FS Definition: Start frame + Channel Side identification
   FS Polarity: FS active Low
   FS Offset: FS asserted one bit before the first bit of slot 0 */ 
-  haudio_out_sai.FrameInit.FrameLength = 64; 
+  haudio_out_sai.FrameInit.FrameLength = 64;
   haudio_out_sai.FrameInit.ActiveFrameLength = 32;
   haudio_out_sai.FrameInit.FSDefinition = SAI_FS_CHANNEL_IDENTIFICATION;
   haudio_out_sai.FrameInit.FSPolarity = SAI_FS_ACTIVE_LOW;
@@ -737,8 +737,8 @@ static void SAIx_Out_Init(uint32_t AudioFreq)
   Slot Active: All slot actives */
   haudio_out_sai.SlotInit.FirstBitOffset = 0;
   haudio_out_sai.SlotInit.SlotSize = SAI_SLOTSIZE_DATASIZE;
-  haudio_out_sai.SlotInit.SlotNumber = 4; 
-  haudio_out_sai.SlotInit.SlotActive = CODEC_AUDIOFRAME_SLOT_0123;
+  haudio_out_sai.SlotInit.SlotNumber = 4;
+  haudio_out_sai.SlotInit.SlotActive = CODEC_AUDIOFRAME_SLOT_02;
 
   HAL_SAI_Init(&haudio_out_sai);
   
