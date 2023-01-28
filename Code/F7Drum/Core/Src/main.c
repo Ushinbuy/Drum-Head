@@ -259,7 +259,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	while (1) {
 		handleConfigFromUart();
-		sendMidiActiveSense(&upd_active_sens);
+		if(isUsbConfigured()){
+			sendMidiActiveSense(&upd_active_sens);
+		}
 		checkPiezoChannels();
     /* USER CODE END WHILE */
 
@@ -1243,6 +1245,9 @@ void checkPiezoChannels(){
 
 
 void tx_midi(uint8_t *_buffer, uint16_t len) {
+	if(!isUsbConfigured()){
+		return;
+	}
 	uint8_t rt = USBD_BUSY;
 
 	while (rt == USBD_BUSY) {
