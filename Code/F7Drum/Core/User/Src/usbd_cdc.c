@@ -250,6 +250,10 @@ __ALIGN_BEGIN static uint8_t USBD_CDC_CfgHSDesc[USB_CDC_CONFIG_DESC_SIZ] __ALIGN
   0x00                                        /* bInterval: ignore for Bulk transfer */
 };
 
+#if USB_CDC_CONFIG_DESC_SIZ == 67
+#undef USB_CDC_CONFIG_DESC_SIZ
+#define USB_CDC_CONFIG_DESC_SIZ 101
+#endif
 
 __ALIGN_BEGIN static uint8_t USBD_CDC_CfgFSDesc[USB_CDC_CONFIG_DESC_SIZ] __ALIGN_END =
 {
