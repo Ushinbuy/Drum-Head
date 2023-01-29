@@ -1,6 +1,6 @@
 #include "audioFromSdCard.h"
 
-#define AUDIO_BUFFER_SIZE 960 	// must be equal to 20 ms * 48 kHz
+#define AUDIO_BUFFER_SIZE 4096*4 	// must be equal to 20 ms * 48 kHz
 
 static uint16_t audioBuffer[AUDIO_BUFFER_SIZE];
 static uint32_t fileSize;
@@ -31,46 +31,6 @@ void BSP_AUDIO_OUT_TransferComplete_CallBack(void) {
 	}
 }
 
-void playAudioSd(FILINFO fno) {
-	FRESULT res;
-	WAVE_FormatTypeDef header;
-	UINT count = 0;
-
-	// TODO optimize this section it must be separated
-	res = f_open(&fil, fno.fname, FA_READ);
-	if (res != FR_OK)
-		return;
-
-	res = f_read(&fil, &header, sizeof(struct WAVE_FormatTypeDef), &count);
-	if (res != FR_OK) {
-		sendUart("CAN'T READ AUDIOFILE");
-		return;
-	}
-
-	fileSize = header.FileSize;
-
-	UINT bytesWasRead;
-	uint16_t amountToRead = fileSize - sizeof(struct WAVE_FormatTypeDef);
-	if (amountToRead > AUDIO_BUFFER_SIZE) {
-		amountToRead = AUDIO_BUFFER_SIZE;
-	}
-	offset = sizeof(struct WAVE_FormatTypeDef);
-	if (f_read(&fil, pBufferFirstHalf, amountToRead, &bytesWasRead) != FR_OK) {
-		sendUart("CAN'T READ FILE AT START");
-	}
-//	currentPosition = sizeof(struct WAVE_FormatTypeDef) + bytesWasRead;
-	uint8_t uwVolume = 15;
-	if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_AUTO, uwVolume, AUDIO_FREQUENCY_48K)
-			!= AUDIO_OK) {
-		return;
-	}
-
-	if (BSP_AUDIO_OUT_Play(audioBuffer, amountToRead) != AUDIO_OK) {
-		sendUart("ERROR START TO PLAY AUDIO");
-		return;
-	}
-	sendUart("Header is read correctly \n\r");
-}
 
 extern char SDPath[4];   /* SD logical drive path */
 extern FATFS SDFatFS;
@@ -103,6 +63,47 @@ void sdCardTextExample(void) {
 		}
 	}
 	f_closedir(&dir);
+}
+
+void playAudioSd(FILINFO fno) {
+	FRESULT res;
+	WAVE_FormatTypeDef header;
+	UINT count = 0;
+
+	// TODO optimize this section it must be separated
+	res = f_open(&fil, fno.fname, FA_READ);
+	if (res != FR_OK)
+		return;
+
+	res = f_read(&fil, &header, sizeof(struct WAVE_FormatTypeDef), &count);
+	if (res != FR_OK) {
+		sendUart("CAN'T READ AUDIOFILE");
+		return;
+	}
+
+	fileSize = header.FileSize;
+
+	uint8_t uwVolume = 15;
+	if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_AUTO, uwVolume,
+			header.SampleRate) != AUDIO_OK) {
+		return;
+	}
+
+	UINT bytesWasRead;
+	uint16_t amountToRead = fileSize - sizeof(struct WAVE_FormatTypeDef);
+	if (amountToRead > AUDIO_BUFFER_SIZE) {
+		amountToRead = AUDIO_BUFFER_SIZE;
+	}
+	offset = sizeof(struct WAVE_FormatTypeDef);
+	if (f_read(&fil, pBufferFirstHalf, amountToRead, &bytesWasRead) != FR_OK) {
+		sendUart("CAN'T READ FILE AT START");
+	}
+
+	if (BSP_AUDIO_OUT_Play(audioBuffer, amountToRead) != AUDIO_OK) {
+		sendUart("ERROR START TO PLAY AUDIO");
+		return;
+	}
+	sendUart("Header is read correctly \n\r");
 }
 
 uint16_t updateBufferFromFile(uint16_t* pBuffer){
