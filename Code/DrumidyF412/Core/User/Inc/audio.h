@@ -98,13 +98,6 @@ typedef struct
   uint32_t  (*Reset)(uint16_t);
 }AUDIO_DrvTypeDef;
 
-typedef enum
-{
-  AUDIO_STATE_IDLE = 0,
-  AUDIO_STATE_INIT,
-  AUDIO_STATE_PLAYING,
-}AUDIO_PLAYBACK_StateTypeDef;
-
 #ifdef __cplusplus
 }
 #endif

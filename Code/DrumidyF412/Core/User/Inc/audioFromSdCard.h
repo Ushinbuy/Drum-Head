@@ -11,5 +11,6 @@
 void sendUart(char *_msg); // interface. This need to release in youre platform
 
 void sdCardTextExample(void);
+void handleAudioStream(void);
 
 #endif /* USER_INC_AUDIOFROMSDCARD_H_ */
