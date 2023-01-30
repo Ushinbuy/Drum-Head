@@ -738,7 +738,7 @@ static void SAIx_Out_Init(uint32_t AudioFreq)
   haudio_out_sai.SlotInit.FirstBitOffset = 0;
   haudio_out_sai.SlotInit.SlotSize = SAI_SLOTSIZE_DATASIZE;
   haudio_out_sai.SlotInit.SlotNumber = 4;
-  haudio_out_sai.SlotInit.SlotActive = CODEC_AUDIOFRAME_SLOT_02;
+  haudio_out_sai.SlotInit.SlotActive = CODEC_AUDIOFRAME_SLOT_0123;
 
   HAL_SAI_Init(&haudio_out_sai);
   
