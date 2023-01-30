@@ -1,7 +1,7 @@
 #include "audioFromSdCard.h"
 #include <stdio.h>
 
-#define AUDIO_BUFFER_SIZE 2048 	// must be equal to 20 ms * 48 kHz
+#define AUDIO_BUFFER_SIZE 1024 	// must be equal to 20 ms * 48 kHz
 
 uint8_t audioBuffer[AUDIO_BUFFER_SIZE];
 static uint32_t fileSize;
