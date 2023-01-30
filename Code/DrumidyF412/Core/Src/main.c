@@ -120,8 +120,6 @@ static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
 
-void sendUart(char *_msg);
-
 void getAuxState(GPIO_PinState *_state);
 void checkPiezoChannels();
 void handleConfigFromUart(void);
