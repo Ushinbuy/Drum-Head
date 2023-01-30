@@ -53,7 +53,7 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+void sendUart(char *_msg);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
