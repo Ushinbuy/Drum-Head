@@ -4,8 +4,10 @@
 
 //static char buffer_out[1000];
 static uint8_t buffer_in[64];
-extern UART_HandleTypeDef huart1;
+
 uint8_t config_Mode[1] = {0};		// flag for activating config over serial
+
+extern UART_HandleTypeDef huart1;	// TODO remove externs
 extern DRUM channel[NUMBER_OF_CHANNELS];
 
 static int get_num_from_uart(uint8_t _len);
