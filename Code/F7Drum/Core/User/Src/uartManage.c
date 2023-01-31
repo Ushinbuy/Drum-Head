@@ -18,7 +18,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 }
 
 void sendUart (char *_msg){
-	HAL_UART_Transmit(&huart1, (uint8_t*) _msg, strlen((char const*) _msg), 50);
+	HAL_UART_Transmit_DMA(&huart1, (uint8_t*) _msg, strlen((char const*) _msg));
 }
 
 void sendDebug(uint8_t _ch, uint8_t _aux)
