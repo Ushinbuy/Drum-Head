@@ -55,11 +55,9 @@ void handleAudioStream(void) {
 	switch (audioBufferOffset) {
 	case PLAY_BUFFER_OFFSET_HALF:
 		amountWasRead = updateBufferFromFile(pBufferFirstHalf);
-		sendUart("\r\n1st half callback");
 		break;
 	case PLAY_BUFFER_OFFSET_FULL:
 		amountWasRead = updateBufferFromFile(pBufferSecondHalf);
-		sendUart("\r\n2nd half callback");
 		break;
 	default:
 		return;
