@@ -92,10 +92,6 @@ static void MX_DMA_Init(void);
 static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
-void checkPiezoChannels();
-
-uint32_t dataReceivedSize = 0;
-volatile char flag_New_Settings;
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
