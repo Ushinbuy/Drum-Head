@@ -104,12 +104,16 @@ void checkPiezoChannels(void){
 			channel[ch].main_last_on_voice = vc;
 			channel[ch].main_last_on_time = HAL_GetTick();
 
+#ifdef DEBUG
 			sendDebug(ch, 0);
+#endif
 		}
 
 		if (channel[ch].aux_rdy) {
 			channel[ch].aux_rdy = 0;
+#ifdef DEBUG
 			sendDebug(ch, 1);
+#endif
 
 			switch (channel[ch].chnl_type) {
 			case CYMBAL_HIHAT:
@@ -182,9 +186,6 @@ void initAndStartDrum(void) {
 	HAL_Delay(200);
 	initSettingsFromUart();
 
-	/// **************************
-	/// ******* LETS ROCK! *******
-	/// **************************
 	HAL_TIM_Base_Start_IT(&htim2); //AS
 	HAL_TIM_Base_Start_IT(&htim4); //ADC
 }
