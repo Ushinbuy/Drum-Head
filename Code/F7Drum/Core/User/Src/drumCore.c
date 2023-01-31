@@ -1,4 +1,7 @@
 #include "drumCore.h"
+#include "uartManage.h"
+#include "midi.h"
+#include "eepromSettings.h"
 
 #define OFF_DELAY_MS 200
 

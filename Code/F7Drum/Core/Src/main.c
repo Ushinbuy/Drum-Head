@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <usbd_cdc.h>
 #include "midi.h"
-#include "wavFile.h"
 #include "uartManage.h"
 //#include "audioExample.h"
 #include "audioFromSdCard.h"
