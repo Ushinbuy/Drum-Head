@@ -1,4 +1,11 @@
 #include "audioFromSdCard.h"
+#include "wm8994.h"
+#include "stm32746g_discovery_audio.h"
+#include "wavFile.h"
+#include "audio.h"
+#include "fatfs.h"
+#include "uartManage.h"
+#include <string.h>
 #include <stdio.h>
 
 #define AUDIO_BUFFER_SIZE 1024 	// must be equal to 20 ms * 48 kHz
