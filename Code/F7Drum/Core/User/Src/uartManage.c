@@ -1,6 +1,6 @@
 #include "uartManage.h"
 #include "drumCore.h"
-#include <stdio.h>
+#include "eepromSettings.h"
 
 //static char buffer_out[1000];
 static uint8_t buffer_in[64];
@@ -53,21 +53,6 @@ void sendDebug(uint8_t _ch, uint8_t _aux)
 void initSettingsFromUart(void) {
 	config_Mode[0] = 0;
 	HAL_UART_Receive_IT(&huart1, &config_Mode[0], 1);
-}
-
-void getAuxState (GPIO_PinState *_state){
-	_state[0] = HAL_GPIO_ReadPin(ARDUINO_RX_D0_GPIO_Port, ARDUINO_RX_D0_Pin);
-	_state[1] = HAL_GPIO_ReadPin(ARDUINO_TX_D1_GPIO_Port, ARDUINO_TX_D1_Pin);
-	_state[2] = HAL_GPIO_ReadPin(ARDUINO_D2_GPIO_Port, ARDUINO_D2_Pin);
-	_state[3] = HAL_GPIO_ReadPin(ARDUINO_PWM_D3_GPIO_Port, ARDUINO_PWM_D3_Pin);
-
-	_state[4] = HAL_GPIO_ReadPin(ARDUINO_D4_GPIO_Port, ARDUINO_D4_Pin);
-	_state[5] = HAL_GPIO_ReadPin(ARDUINO_PWM_CS_D5_GPIO_Port, ARDUINO_PWM_CS_D5_Pin);
-//	_state[6] = HAL_GPIO_ReadPin(DIG_IN7_GPIO_Port, DIG_IN7_Pin);
-//	_state[7] = 0; //HAL_GPIO_ReadPin(DIG_IN8_GPIO_Port, DIG_IN8_Pin);
-
-//	_state[8] = HAL_GPIO_ReadPin(DIG_IN9_GPIO_Port, DIG_IN9_Pin);
-//	_state[9] = 0;
 }
 
 static int get_num_from_uart(uint8_t _len){

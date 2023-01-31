@@ -4,7 +4,7 @@
 #include "uartManage.h"
 
 #define FLASH_USER_START_ADDR 	0x08040000	//0x0804 0000 		//0x0801 F800
-const volatile uint32_t *userConfig=(const volatile uint32_t *)FLASH_USER_START_ADDR;
+static const volatile uint32_t *userConfig=(const volatile uint32_t *)FLASH_USER_START_ADDR;
 
 static uint32_t saved_config[64];
 extern DRUM channel[NUMBER_OF_CHANNELS];
