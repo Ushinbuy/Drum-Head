@@ -6,15 +6,18 @@
 #define OFF_DELAY_MS 200
 
 DRUM channel[NUMBER_OF_CHANNELS];	// array of drums
-GPIO_PinState aux_current_state[NUMBER_OF_CHANNELS];
-// ADC buffers0
-uint32_t adc_buf[NUMBER_OF_CHANNELS];
+static GPIO_PinState aux_current_state[NUMBER_OF_CHANNELS];
+// ADC buffers
+static uint32_t adc_buf[NUMBER_OF_CHANNELS];
 // channel values
-uint16_t adc_val[NUMBER_OF_CHANNELS];
+static uint16_t adc_val[NUMBER_OF_CHANNELS];
 
-extern ADC_HandleTypeDef hadc3;
-extern TIM_HandleTypeDef htim2;
-extern TIM_HandleTypeDef htim4;
+static ADC_HandleTypeDef* adcLocal;
+static TIM_HandleTypeDef* timActiveSense;
+static TIM_HandleTypeDef* timPiezoAsk;
+extern char buffer_out[1000];
+
+static void getAuxState(GPIO_PinState *_state);
 
 char ASCIILOGO[] = "\n"\
 "  ___                 _    _\n"\
@@ -30,8 +33,16 @@ char ASCIILOGO[] = "\n"\
 "    / | \\|  | /`~-_-~'X.\\ //| \\ \n\n"\
 "= Send any char for configuration =\n";
 
+void setLinksDrumCore(ADC_HandleTypeDef *adcGlobal,
+		TIM_HandleTypeDef *timGlobalPiezoAsk,
+		TIM_HandleTypeDef *timGlobalActiveSense) {
+	adcLocal = adcGlobal;
+	timActiveSense = timGlobalActiveSense;
+	timPiezoAsk = timGlobalPiezoAsk;
+}
+
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
-	if (hadc->Instance == hadc3.Instance) {
+	if (hadc->Instance == (*adcLocal).Instance) {
 		for (uint8_t i = 0; i < NUMBER_OF_CHANNELS; i++) {
 			adc_val[i] = adc_buf[i];
 		}
@@ -46,7 +57,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 	}
 }
 
-void getAuxState (GPIO_PinState *_state){
+static void getAuxState (GPIO_PinState *_state){
 	_state[0] = HAL_GPIO_ReadPin(ARDUINO_RX_D0_GPIO_Port, ARDUINO_RX_D0_Pin);
 	_state[1] = HAL_GPIO_ReadPin(ARDUINO_TX_D1_GPIO_Port, ARDUINO_TX_D1_Pin);
 	_state[2] = HAL_GPIO_ReadPin(ARDUINO_D2_GPIO_Port, ARDUINO_D2_Pin);
@@ -62,7 +73,7 @@ void getAuxState (GPIO_PinState *_state){
 }
 
 void requestPiezoAdc(void){
-	HAL_ADC_Start_DMA(&hadc3, (uint32_t*) &adc_buf[0], NUMBER_OF_CHANNELS);
+	HAL_ADC_Start_DMA(adcLocal, (uint32_t*) &adc_buf[0], NUMBER_OF_CHANNELS);
 }
 
 void checkPiezoChannels(void){
@@ -161,7 +172,11 @@ void checkPiezoChannels(void){
 }
 
 void initAndStartDrum(void) {
-	HAL_ADC_Start(&hadc3);
+	HAL_ADC_Start(adcLocal);
+
+	setLinksEeprom(channel);
+	setLinksUartDrums(channel);
+
 	getAuxState(aux_current_state);
 
 	initDrum(&channel[0], HHCLOSE, HHCLOSE, MESH_PAD_AUTOAUX, aux_current_state[0]);
@@ -186,6 +201,6 @@ void initAndStartDrum(void) {
 	HAL_Delay(200);
 	initSettingsFromUart();
 
-	HAL_TIM_Base_Start_IT(&htim2); //AS
-	HAL_TIM_Base_Start_IT(&htim4); //ADC
+	HAL_TIM_Base_Start_IT(timActiveSense); //AS
+	HAL_TIM_Base_Start_IT(timPiezoAsk); //ADC
 }

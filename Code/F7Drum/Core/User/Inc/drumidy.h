@@ -138,7 +138,7 @@ typedef struct _drum
 
 void setStepTime(uint32_t _tickValue);
 void 	initDrum		(DRUM* _chnl, DRM_voice _main_voice, DRM_voice _aux_voice, DRM_type _chnl_type, GPIO_PinState _aux_state);
-//void 	initDrum		(DRUM* _chnl, DRM_voice _main_voice, DRM_voice _aux_voice, DRM_type _aux_type);
+
 uint8_t Update_channel	(DRUM* _chnl, uint32_t _adc_reading, GPIO_PinState _aux_state);
 
 #endif /* DRUMIDY_H_ */

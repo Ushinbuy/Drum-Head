@@ -2,10 +2,11 @@
 #define USER_INC_UARTMANAGE_H_
 
 #include <stdio.h>
-#include "main.h"
+#include "drumCore.h"
 
-char buffer_out[1000];			// USB Buffers
+//char buffer_out[1000];			// USB Buffers
 
+void setLinksUartDrums(DRUM extChannel[]);
 void setLinkUart(UART_HandleTypeDef* globalUart);
 void initSettingsFromUart(void);
 void sendUart(char *_msg);

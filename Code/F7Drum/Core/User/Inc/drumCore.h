@@ -9,6 +9,9 @@
 void requestPiezoAdc(void);
 void checkPiezoChannels(void);
 void initAndStartDrum(void);
-void getAuxState(GPIO_PinState *_state);
+
+void setLinksDrumCore(ADC_HandleTypeDef *adcGlobal,
+		TIM_HandleTypeDef *timGlobalPiezoAsk,
+		TIM_HandleTypeDef *timGlobalActiveSense);
 
 #endif /* USER_INC_DRUMCORE_H_ */

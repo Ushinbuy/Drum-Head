@@ -1,13 +1,18 @@
 #include "eepromSettings.h"
 #include "main.h"
-#include "drumCore.h"
 #include "uartManage.h"
 
 #define FLASH_USER_START_ADDR 	0x08040000	//0x0804 0000 		//0x0801 F800
 static const volatile uint32_t *userConfig=(const volatile uint32_t *)FLASH_USER_START_ADDR;
 
 static uint32_t saved_config[64];
-extern DRUM channel[NUMBER_OF_CHANNELS];
+static DRUM locChannel[NUMBER_OF_CHANNELS];
+
+extern char buffer_out[1000];
+
+void setLinksEeprom(DRUM extChannel[]){
+	*locChannel = *extChannel;
+}
 
 uint8_t Save_Setting(uint8_t _rst)
 {
@@ -33,15 +38,15 @@ uint8_t Save_Setting(uint8_t _rst)
 
 	for (i = 1; i < 10; i++) {
 		// channel configuration settings
-		SavingBuff[2 * i] = (channel[i - 1].main_voice & 0xFF) * 0x01000000;
-		SavingBuff[2 * i] += (channel[i - 1].aux_voice & 0xFF) * 0x00010000;
-		SavingBuff[2 * i] += (channel[i - 1].alt_voice & 0xFF) * 0x00000100;
-		SavingBuff[2 * i] += (channel[i - 1].chnl_type & 0xFF);
+		SavingBuff[2 * i] = (locChannel[i - 1].main_voice & 0xFF) * 0x01000000;
+		SavingBuff[2 * i] += (locChannel[i - 1].aux_voice & 0xFF) * 0x00010000;
+		SavingBuff[2 * i] += (locChannel[i - 1].alt_voice & 0xFF) * 0x00000100;
+		SavingBuff[2 * i] += (locChannel[i - 1].chnl_type & 0xFF);
 		// channel parameter settings
-		SavingBuff[2 * i + 1] = (channel[i - 1].peak_volume_norm & 0xFF) * 0x01000000;
-		SavingBuff[2 * i + 1] += (channel[i - 1].peak_min_length & 0xFF) * 0x00010000;
-		SavingBuff[2 * i + 1] += (channel[i - 1].peak_max_length & 0xFF) * 0x00000100;
-//		SavingBuff[2*i + 1] += (channel[i-1].peak2peak  & 0xFF);
+		SavingBuff[2 * i + 1] = (locChannel[i - 1].peak_volume_norm & 0xFF) * 0x01000000;
+		SavingBuff[2 * i + 1] += (locChannel[i - 1].peak_min_length & 0xFF) * 0x00010000;
+		SavingBuff[2 * i + 1] += (locChannel[i - 1].peak_max_length & 0xFF) * 0x00000100;
+//		SavingBuff[2*i + 1] += (locChannel[i-1].peak2peak  & 0xFF);
 	}
 
 	HAL_StatusTypeDef err;
@@ -82,16 +87,16 @@ uint8_t Load_Setting()
 	if (saved_config[0] != 0xC4C0FFEE) return 0;
 
 	for (i = 1; i < 10; i++){
-		channel[i-1].main_voice = 0xff & (uint8_t)(saved_config[2*i]>>24);
-		channel[i-1].aux_voice 	= 0xff & (uint8_t)(saved_config[2*i]>>16);
-		channel[i-1].alt_voice 	= 0xff & (uint8_t)(saved_config[2*i]>>8);
-		channel[i-1].chnl_type 	= 0xff & (uint8_t)(saved_config[2*i]);
+		locChannel[i-1].main_voice = 0xff & (uint8_t)(saved_config[2*i]>>24);
+		locChannel[i-1].aux_voice 	= 0xff & (uint8_t)(saved_config[2*i]>>16);
+		locChannel[i-1].alt_voice 	= 0xff & (uint8_t)(saved_config[2*i]>>8);
+		locChannel[i-1].chnl_type 	= 0xff & (uint8_t)(saved_config[2*i]);
 
-		//		channel[i-1].peak_threshold 	= 0xff & (uint8_t)(saved_config[2*i+1]>>24);
-		channel[i-1].peak_volume_norm 	= 0xff & (uint8_t)(saved_config[2*i+1]>>24);
-		channel[i-1].peak_min_length 	= 0xff & (uint8_t)(saved_config[2*i+1]>>16);
-		channel[i-1].peak_max_length 	= 0xff & (uint8_t)(saved_config[2*i+1]>>8);
-//		channel[i-1].time_between_peaks = 0xff & (uint8_t)(saved_config[2*i+1]);
+		//		locChannel[i-1].peak_threshold 	= 0xff & (uint8_t)(saved_config[2*i+1]>>24);
+		locChannel[i-1].peak_volume_norm 	= 0xff & (uint8_t)(saved_config[2*i+1]>>24);
+		locChannel[i-1].peak_min_length 	= 0xff & (uint8_t)(saved_config[2*i+1]>>16);
+		locChannel[i-1].peak_max_length 	= 0xff & (uint8_t)(saved_config[2*i+1]>>8);
+//		locChannel[i-1].time_between_peaks = 0xff & (uint8_t)(saved_config[2*i+1]);
 	}
 
 	sprintf(buffer_out, "........ Previous settings: .......\n%08lX %08lX %08lX %08lX\n%08lX %08lX %08lX %08lX\n%08lX %08lX %08lX %08lX\n%08lX %08lX %08lX %08lX\n%08lX %08lX %08lX %08lX\n",

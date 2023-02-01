@@ -33,8 +33,6 @@ typedef enum {
 	PLAY_BUFFER_OFFSET_FULL,
 } BUFFER_StateTypeDef;
 
-char buffer_out[1000];			// USB Buffers
-
 BUFFER_StateTypeDef audioBufferOffset = BUFFER_OFFSET_NONE;
 AUDIO_PLAYBACK_StateTypeDef audioState = AUDIO_STATE_IDLE;
 
