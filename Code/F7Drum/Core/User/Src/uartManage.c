@@ -7,20 +7,24 @@ static uint8_t buffer_in[64];
 
 uint8_t config_Mode[1] = {0};		// flag for activating config over serial
 
-extern UART_HandleTypeDef huart1;	// TODO remove externs
+UART_HandleTypeDef* localUart;	// TODO remove externs
 extern DRUM channel[NUMBER_OF_CHANNELS];
 
 static int get_num_from_uart(uint8_t _len);
 static uint8_t UartConfigDialog();
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-	if (huart->Instance == huart1.Instance) {
+	if (huart->Instance == (*localUart).Instance) {
 		buffer_in[15] = 1;
 	}
 }
 
+void setLinkUart(UART_HandleTypeDef* globalUart){
+	localUart = globalUart;
+}
+
 void sendUart (char *_msg){
-	HAL_UART_Transmit_DMA(&huart1, (uint8_t*) _msg, strlen((char const*) _msg));
+	HAL_UART_Transmit_DMA(localUart, (uint8_t*) _msg, strlen((char const*) _msg));
 }
 
 void sendDebug(uint8_t _ch, uint8_t _aux)
@@ -54,7 +58,7 @@ void sendDebug(uint8_t _ch, uint8_t _aux)
 
 void initSettingsFromUart(void) {
 	config_Mode[0] = 0;
-	HAL_UART_Receive_IT(&huart1, &config_Mode[0], 1);
+	HAL_UART_Receive_IT(localUart, &config_Mode[0], 1);
 }
 
 static int get_num_from_uart(uint8_t _len){
@@ -64,7 +68,7 @@ static int get_num_from_uart(uint8_t _len){
 		buffer_in[i] = 0;
 
 
-	HAL_UART_Receive_IT (&huart1, &buffer_in[0], _len);
+	HAL_UART_Receive_IT (localUart, &buffer_in[0], _len);
 	while (buffer_in[0] == 0) {HAL_Delay(1);};
 	HAL_Delay(2); // wait for the rest of the message
 
@@ -78,7 +82,7 @@ static int get_num_from_uart(uint8_t _len){
 			break;
 		}
 	}
-	HAL_UART_AbortReceive(&huart1);
+	HAL_UART_AbortReceive(localUart);
 	return val;
 }
 
@@ -98,7 +102,7 @@ void handleConfigFromUart(void){
 			sendUart(buffer_out);
 		}
 		config_Mode[0] = 0;
-		HAL_UART_Receive_IT(&huart1, &config_Mode[0], 1);
+		HAL_UART_Receive_IT(localUart, &config_Mode[0], 1);
 	}
 }
 
@@ -111,7 +115,7 @@ static uint8_t UartConfigDialog(){
 	sendUart("\nConfig mode.\nType number of the pad [1..9], or hit the drum (x - reset to default):\n");
 
 	buffer_in[0] = 0;
-	HAL_UART_Receive_IT (&huart1, &buffer_in[0], 1);
+	HAL_UART_Receive_IT (localUart, &buffer_in[0], 1);
 
 	uint8_t chnl = 10;
 	while (chnl == 10){
@@ -120,7 +124,7 @@ static uint8_t UartConfigDialog(){
 				  channel[ch].main_rdy = 0;
 				  channel[ch].aux_rdy = 0;
 				  chnl = ch;
-				  HAL_UART_AbortReceive(&huart1);
+				  HAL_UART_AbortReceive(localUart);
 			  }
 		  if (buffer_in[0]>0){
 			  if ((buffer_in[0]>='1') && (buffer_in[0]<='9'))
@@ -135,10 +139,10 @@ static uint8_t UartConfigDialog(){
 	}
 
 	if (chnl == 255) {
-		HAL_UART_AbortReceive(&huart1);
+		HAL_UART_AbortReceive(localUart);
 		sendUart("Ciao\n");
 		config_Mode[0] = 0;
-		HAL_UART_Receive_IT (&huart1, &config_Mode[0], 1);
+		HAL_UART_Receive_IT (localUart, &config_Mode[0], 1);
 		return 0;
 	}
 
@@ -215,7 +219,7 @@ static uint8_t UartConfigDialog(){
 
 
 	buffer_in[0] = 0;
-	HAL_UART_Receive_IT (&huart1, &buffer_in[0], 1);
+	HAL_UART_Receive_IT (localUart, &buffer_in[0], 1);
 	while (buffer_in[0] == 0){HAL_Delay(1);}
 	if (buffer_in[0] == 'y'){
 

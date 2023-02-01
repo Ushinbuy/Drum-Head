@@ -127,6 +127,7 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
   MX_DMA_Init();
+  setLinkUart(&huart1);
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
