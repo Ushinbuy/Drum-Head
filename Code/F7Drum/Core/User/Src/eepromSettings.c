@@ -2,7 +2,7 @@
 #include "main.h"
 #include "uartManage.h"
 
-#define FLASH_USER_START_ADDR 	0x08040000	//0x0804 0000 		//0x0801 F800
+#define FLASH_USER_START_ADDR 	0x08080000	//0x0804 0000 		//0x0801 F800
 static const volatile uint32_t *userConfig=(const volatile uint32_t *)FLASH_USER_START_ADDR;
 
 static uint32_t saved_config[64];
@@ -63,7 +63,7 @@ uint8_t Save_Setting(uint8_t _rst)
 
 	for (i = 0; i < 32; i++) {
 		val = (((uint64_t) SavingBuff[i * 2 + 1]) << 32) + SavingBuff[i * 2];
-		if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD,
+		if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD,
 				FLASH_USER_START_ADDR + 8 * i, val) != HAL_OK)
 			st += 1;
 	}
