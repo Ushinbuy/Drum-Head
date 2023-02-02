@@ -1033,11 +1033,11 @@ void tx_midi(uint8_t *_buffer, uint16_t len) {
 	if(!isUsbConfigured()){
 		return;
 	}
-	uint8_t rt = USBD_BUSY;
-
-	while (rt == USBD_BUSY) {
-		rt = CDC_Transmit_FS(_buffer, len);
-	};
+//	uint8_t rt = USBD_BUSY;
+//	while (rt == USBD_BUSY) {
+//		rt = CDC_Transmit_FS(_buffer, len);
+//	};
+	CDC_Transmit_FS(_buffer, len);
 
 	TIM2->CNT = 0; // restart active sense timer
 }
