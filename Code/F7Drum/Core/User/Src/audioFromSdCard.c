@@ -49,13 +49,13 @@ void drumPlaySound(void){
 }
 
 void initSounds(void){
-	WAVE_FormatTypeDef *waveformat = NULL;
+//	WAVE_FormatTypeDef *waveformat = NULL;
 
 	snare.soundState = SOUND_INIT;
 	snare.startAddress = &BLOCK_SAMPLE[0];
-	snare.currentOffset = 44;	// pass WAV header
-	waveformat = (WAVE_FormatTypeDef*) BLOCK_SAMPLE;
-	snare.fileLength = waveformat->FileSize;
+	snare.currentOffset = sizeof(WAVE_FormatTypeDef);	// pass WAV header
+//	waveformat = (WAVE_FormatTypeDef*) BLOCK_SAMPLE;
+	snare.fileLength = sizeof(BLOCK_SAMPLE);
 
 	snare.soundState = SOUND_IDLE;
 }
@@ -201,9 +201,9 @@ uint16_t updateBufferFromFile(uint8_t *pBuffer) {
 	}
 	if (snare.soundState == SOUND_PLAY){
 		// TODO create function from this
-		if(snare.currentOffset + AUDIO_BUFFER_SIZE > snare.fileLength){
+		if(snare.currentOffset + AUDIO_BUFFER_SIZE / 2 >= snare.fileLength){
 			snare.soundState = SOUND_IDLE;
-			snare.currentOffset = 44;
+			snare.currentOffset = sizeof(WAVE_FormatTypeDef);
 		}
 		else{
 			for (uint16_t inc = 0; inc < AUDIO_BUFFER_SIZE/2; inc++){
