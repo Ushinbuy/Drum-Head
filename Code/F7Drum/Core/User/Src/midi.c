@@ -18,7 +18,7 @@ void sendMidiActiveSense(uint8_t* _upd_active_sens){
 // MIDI generic ON/OFF message
 void sendMidiGEN(uint8_t note, uint8_t vel){
   uint8_t bff[8] = {TAB,  NOTE_ON, 0, 0,
-		  	  	  	TAB,  0x99,0, 0x00};
+		  	  	  	TAB,  NOTE_OFF,0, 0x00};
   bff[2] = 0x7f & note;
   bff[3] = 0x7f & vel;
   bff[6] = 0x7f & note;

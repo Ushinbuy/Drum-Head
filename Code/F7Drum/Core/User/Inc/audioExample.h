@@ -7,11 +7,6 @@
  * and start playAudioExample();
  */
 
-#include "wm8994.h"
-#include "stm32412g_discovery_audio.h"
-#include "wavFile.h"
-#include "audio.h"
-
 typedef enum {
 	EXAMPLE_ERROR,
 	EXAMPLE_OK

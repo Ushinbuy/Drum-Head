@@ -1,5 +1,9 @@
 #include "audioExample.h"
 #include "audio_sample.h"
+#include "wm8994.h"
+//#include "stm32412g_discovery_audio.h"
+#include "wavFile.h"
+#include "audio.h"
 
 #define AUDIO_START_OFFSET_ADDRESS		sizeof(WAVE_FormatTypeDef)
 #define AUDIO_FILE_ADDRESS				&AUDIO_SAMPLE[0]

@@ -1,4 +1,11 @@
 #include "audioFromSdCard.h"
+#include "wm8994.h"
+#include "stm32746g_discovery_audio.h"
+#include "wavFile.h"
+#include "audio.h"
+#include "fatfs.h"
+#include "uartManage.h"
+#include <string.h>
 #include <stdio.h>
 
 #define AUDIO_BUFFER_SIZE 1024 	// must be equal to 20 ms * 48 kHz
@@ -25,8 +32,6 @@ typedef enum {
 	PLAY_BUFFER_OFFSET_HALF,
 	PLAY_BUFFER_OFFSET_FULL,
 } BUFFER_StateTypeDef;
-
-char buffer_out[1000];			// USB Buffers
 
 BUFFER_StateTypeDef audioBufferOffset = BUFFER_OFFSET_NONE;
 AUDIO_PLAYBACK_StateTypeDef audioState = AUDIO_STATE_IDLE;
@@ -55,11 +60,9 @@ void handleAudioStream(void) {
 	switch (audioBufferOffset) {
 	case PLAY_BUFFER_OFFSET_HALF:
 		amountWasRead = updateBufferFromFile(pBufferFirstHalf);
-		sendUart("\r\n1st half callback");
 		break;
 	case PLAY_BUFFER_OFFSET_FULL:
 		amountWasRead = updateBufferFromFile(pBufferSecondHalf);
-		sendUart("\r\n2nd half callback");
 		break;
 	default:
 		return;
