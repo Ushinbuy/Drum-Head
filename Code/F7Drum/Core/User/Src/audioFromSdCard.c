@@ -7,6 +7,7 @@
 #include "uartManage.h"
 #include <string.h>
 #include <stdio.h>
+#include "blockSample.h"
 
 #define AUDIO_BUFFER_SIZE 1024 	// must be equal to 20 ms * 48 kHz
 
@@ -15,13 +16,40 @@ static uint32_t fileSize;
 static uint32_t offset;
 static FIL fil;
 
-// TODO to know difference between uint16_t and uint8_t for playing in SAI and i2S
-static uint16_t *pBufferFirstHalf = (uint16_t*) &audioBuffer[0];
-static uint16_t *pBufferSecondHalf = (uint16_t*) &audioBuffer[AUDIO_BUFFER_SIZE / 2];
+static uint8_t *pBufferFirstHalf = &audioBuffer[0];
+static uint8_t *pBufferSecondHalf = &audioBuffer[AUDIO_BUFFER_SIZE / 2];
 
-uint16_t updateBufferFromFile(uint16_t *pBuffer);
+uint16_t updateBufferFromFile(uint8_t *pBuffer);
 void playAudioSd(FILINFO fno);
 void stopPlaying(void);
+
+typedef enum{
+	SOUND_INIT = 0,
+	SOUND_IDLE,
+	SOUND_PLAY
+} SoundStateEnum;
+
+typedef struct {
+	uint32_t fileLength;
+	uint32_t currentOffset;
+	volatile SoundStateEnum soundState;
+	const uint8_t* startAddress;
+	uint8_t buffer[AUDIO_BUFFER_SIZE / 2];
+} DrumSoundStruct;
+
+DrumSoundStruct snare;
+
+void initSounds(void){
+	WAVE_FormatTypeDef *waveformat = NULL;
+
+	snare.soundState = SOUND_INIT;
+	snare.startAddress = &BLOCK_SAMPLE[0];
+	snare.currentOffset = 44;	// pass WAV header
+	waveformat = (WAVE_FormatTypeDef*) BLOCK_SAMPLE;
+	snare.fileLength = waveformat->FileSize;
+
+	snare.soundState = SOUND_IDLE;
+}
 
 typedef enum {
 	AUDIO_STATE_IDLE = 0, AUDIO_STATE_INIT, AUDIO_STATE_PLAYING,
@@ -123,6 +151,8 @@ void playAudioSd(FILINFO fno) {
 		return;
 	}
 
+	initSounds();
+
 	fileSize = header.FileSize;
 	audioState = AUDIO_STATE_INIT;
 
@@ -150,15 +180,22 @@ void playAudioSd(FILINFO fno) {
 	sendUart("Header is read correctly \n\r");
 }
 
-uint16_t updateBufferFromFile(uint16_t *pBuffer) {
+uint16_t updateBufferFromFile(uint8_t *pBuffer) {
 	UINT bytesWasRead;
-	if (f_read(&fil, pBuffer, AUDIO_BUFFER_SIZE / 2, &bytesWasRead) != FR_OK) {
+	uint8_t currentBuffer[AUDIO_BUFFER_SIZE / 2];
+	if (f_read(&fil, currentBuffer, AUDIO_BUFFER_SIZE / 2, &bytesWasRead) != FR_OK) {
 		stopPlaying();
 		sendUart("CAN'T READ FILE AT START");
 	}
 	if (bytesWasRead == 0){
 		stopPlaying();
 	}
+	if (snare.soundState == SOUND_PLAY){
+		for (uint16_t inc = 0; inc < AUDIO_BUFFER_SIZE/2; inc++){
+			currentBuffer[inc] += snare.startAddress[offset + inc];
+		}
+	}
+	memcpy(pBuffer, currentBuffer, AUDIO_BUFFER_SIZE/2);
 	offset = fil.fptr;
 	return bytesWasRead;
 }
