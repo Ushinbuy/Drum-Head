@@ -35,7 +35,6 @@ typedef struct {
 	uint32_t currentOffset;
 	volatile SoundStateEnum soundState;
 	const uint8_t* startAddress;
-	uint8_t buffer[AUDIO_BUFFER_SIZE / 2];
 } DrumSoundStruct;
 
 DrumSoundStruct snare;
