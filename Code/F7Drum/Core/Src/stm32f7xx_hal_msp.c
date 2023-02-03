@@ -417,7 +417,7 @@ void HAL_SD_MspInit(SD_HandleTypeDef* hsd)
     hdma_sdmmc1.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
     hdma_sdmmc1.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
     hdma_sdmmc1.Init.Mode = DMA_PFCTRL;
-    hdma_sdmmc1.Init.Priority = DMA_PRIORITY_HIGH;
+    hdma_sdmmc1.Init.Priority = DMA_PRIORITY_MEDIUM;
     hdma_sdmmc1.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
     hdma_sdmmc1.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
     hdma_sdmmc1.Init.MemBurst = DMA_MBURST_INC4;

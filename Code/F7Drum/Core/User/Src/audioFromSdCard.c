@@ -22,6 +22,7 @@ static uint8_t *pBufferSecondHalf = &audioBuffer[AUDIO_BUFFER_SIZE / 2];
 uint16_t updateBufferFromFile(uint8_t *pBuffer);
 void playAudioSd(FILINFO fno);
 void stopPlaying(void);
+void initSounds(void);
 
 typedef enum{
 	SOUND_INIT = 0,
@@ -38,6 +39,14 @@ typedef struct {
 } DrumSoundStruct;
 
 DrumSoundStruct snare;
+
+void drumPlaySound(void){
+	if(snare.soundState == SOUND_PLAY){
+		return;
+	}
+
+	snare.soundState = SOUND_PLAY;
+}
 
 void initSounds(void){
 	WAVE_FormatTypeDef *waveformat = NULL;
@@ -191,8 +200,16 @@ uint16_t updateBufferFromFile(uint8_t *pBuffer) {
 		stopPlaying();
 	}
 	if (snare.soundState == SOUND_PLAY){
-		for (uint16_t inc = 0; inc < AUDIO_BUFFER_SIZE/2; inc++){
-			currentBuffer[inc] += snare.startAddress[offset + inc];
+		// TODO create function from this
+		if(snare.currentOffset + AUDIO_BUFFER_SIZE > snare.fileLength){
+			snare.soundState = SOUND_IDLE;
+			snare.currentOffset = 44;
+		}
+		else{
+			for (uint16_t inc = 0; inc < AUDIO_BUFFER_SIZE/2; inc++){
+				currentBuffer[inc] += snare.startAddress[snare.currentOffset + inc];
+			}
+			snare.currentOffset += AUDIO_BUFFER_SIZE /2;
 		}
 	}
 	memcpy(pBuffer, currentBuffer, AUDIO_BUFFER_SIZE/2);
