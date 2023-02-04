@@ -154,21 +154,21 @@ int main(void)
 	HAL_GPIO_WritePin(LCD_BL_CTRL_GPIO_Port, LCD_BL_CTRL_Pin, GPIO_PIN_RESET);	// shutdown display
 
 	initAndStartDrum();
-	sdCardTextExample();
+	searchAudioSd();
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1) {
-		handleAudioStream();
+		handleAudioStreamSd();
 		handleConfigFromUart();
 		if(isUsbConfigured()){
 			sendMidiActiveSense(&upd_active_sens);
 		}
 		checkPiezoChannels();
 		if(HAL_GPIO_ReadPin(BTN_GPIO_Port, BTN_Pin) == GPIO_PIN_SET){
-			drumPlaySound();
+			drumPlaySoundSd();
 		}
     /* USER CODE END WHILE */
 

@@ -39,7 +39,7 @@ typedef struct {
 
 DrumSoundStruct snare;
 
-void drumPlaySound(void){
+void drumPlaySoundSd(void){
 	if(snare.soundState == SOUND_PLAY){
 		return;
 	}
@@ -91,7 +91,7 @@ void BSP_AUDIO_OUT_TransferComplete_CallBack(void) {
 /**
  * Place this method in main stream
  */
-void handleAudioStream(void) {
+void handleAudioStreamSd(void) {
 	uint16_t amountWasRead;
 	switch (audioBufferOffset) {
 	case PLAY_BUFFER_OFFSET_HALF:
@@ -112,7 +112,7 @@ void handleAudioStream(void) {
 extern char SDPath[4]; /* SD logical drive path */
 extern FATFS SDFatFS;
 
-void sdCardTextExample(void) {
+void searchAudioSd(void) {
 	FRESULT res;
 	DIR dir;
 	FILINFO fno;
