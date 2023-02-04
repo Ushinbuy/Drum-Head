@@ -29,7 +29,7 @@ typedef struct {
 	uint32_t fileLength;
 	uint32_t currentOffset;
 	volatile SoundStateEnum soundState;
-	const uint8_t* startAddress;
+	const uint8_t startAddress;
 } DrumSoundStruct;
 
 
@@ -39,7 +39,12 @@ static uint8_t *pBufferSecondHalf = &audioBuffer[AUDIO_BUFFER_SIZE / 2];
 static AUDIO_PLAYBACK_StateTypeDef audioState = AUDIO_STATE_IDLE;
 static BUFFER_StateTypeDef audioBufferOffset = BUFFER_OFFSET_NONE;
 
+DrumSoundStruct kick;
+DrumSoundStruct crash;
+DrumSoundStruct cowbell;
+DrumSoundStruct hat;
 DrumSoundStruct snare;
+DrumSoundStruct tom;
 
 static void updateBufferFromFile(uint8_t *pBuffer);
 
@@ -62,12 +67,9 @@ void BSP_AUDIO_OUT_TransferComplete_CallBack(void) {
 void initSounds(void){
 	audioState = AUDIO_STATE_INIT;
 
-//	WAVE_FormatTypeDef *waveformat = NULL;
-
 	snare.soundState = SOUND_INIT;
 	snare.startAddress = &BLOCK_SAMPLE[0];
 	snare.currentOffset = sizeof(WAVE_FormatTypeDef);	// pass WAV header
-//	waveformat = (WAVE_FormatTypeDef*) BLOCK_SAMPLE;
 	snare.fileLength = sizeof(BLOCK_SAMPLE);
 
 	snare.soundState = SOUND_IDLE;
