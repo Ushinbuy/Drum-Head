@@ -29,7 +29,7 @@ typedef struct {
 	uint32_t fileLength;
 	uint32_t currentOffset;
 	volatile SoundStateEnum soundState;
-	const uint8_t startAddress;
+	const uint8_t* startAddress;
 } DrumSoundStruct;
 
 
@@ -38,6 +38,7 @@ static uint8_t *pBufferFirstHalf = &audioBuffer[0];
 static uint8_t *pBufferSecondHalf = &audioBuffer[AUDIO_BUFFER_SIZE / 2];
 static AUDIO_PLAYBACK_StateTypeDef audioState = AUDIO_STATE_IDLE;
 static BUFFER_StateTypeDef audioBufferOffset = BUFFER_OFFSET_NONE;
+
 
 DrumSoundStruct kick;
 DrumSoundStruct crash;
