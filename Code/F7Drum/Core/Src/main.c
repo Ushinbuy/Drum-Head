@@ -29,7 +29,12 @@
 #include "midi.h"
 #include "uartManage.h"
 //#include "audioExample.h"
+//#define SDPLAY
+#ifdef SDPLAY
 #include "audioFromSdCard.h"
+#else
+#include "drumAudioCore.h"
+#endif
 #include "drumCore.h"
 /* USER CODE END Includes */
 
@@ -154,22 +159,31 @@ int main(void)
 	HAL_GPIO_WritePin(LCD_BL_CTRL_GPIO_Port, LCD_BL_CTRL_Pin, GPIO_PIN_RESET);	// shutdown display
 
 	initAndStartDrum();
-	searchAudioSd();
 
+#ifdef SDPLAY
+	searchAudioSd();
+#else
+	initSounds();
+#endif
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1) {
+#ifdef SDPLAY
 		handleAudioStreamSd();
+#else
+	handleAudioStream();
+	if(HAL_GPIO_ReadPin(BTN_GPIO_Port, BTN_Pin) == GPIO_PIN_SET){
+		drumPlaySound();
+	}
+#endif
 		handleConfigFromUart();
 		if(isUsbConfigured()){
 			sendMidiActiveSense(&upd_active_sens);
 		}
 		checkPiezoChannels();
-		if(HAL_GPIO_ReadPin(BTN_GPIO_Port, BTN_Pin) == GPIO_PIN_SET){
-			drumPlaySoundSd();
-		}
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

@@ -7,11 +7,10 @@
 #include "uartManage.h"
 #include <string.h>
 #include <stdio.h>
-#include "blockSample.h"
 
 #define AUDIO_BUFFER_SIZE 1024 	// must be equal to 20 ms * 48 kHz
 
-uint8_t audioBuffer[AUDIO_BUFFER_SIZE];
+static uint8_t audioBuffer[AUDIO_BUFFER_SIZE];
 static uint32_t fileSize;
 static uint32_t offset;
 static FIL fil;
@@ -19,45 +18,9 @@ static FIL fil;
 static uint8_t *pBufferFirstHalf = &audioBuffer[0];
 static uint8_t *pBufferSecondHalf = &audioBuffer[AUDIO_BUFFER_SIZE / 2];
 
-uint16_t updateBufferFromFile(uint8_t *pBuffer);
+static uint16_t updateBufferFromFile(uint8_t *pBuffer);
 void playAudioSd(FILINFO fno);
 void stopPlaying(void);
-void initSounds(void);
-
-typedef enum{
-	SOUND_INIT = 0,
-	SOUND_IDLE,
-	SOUND_PLAY
-} SoundStateEnum;
-
-typedef struct {
-	uint32_t fileLength;
-	uint32_t currentOffset;
-	volatile SoundStateEnum soundState;
-	const uint8_t* startAddress;
-} DrumSoundStruct;
-
-DrumSoundStruct snare;
-
-void drumPlaySoundSd(void){
-	if(snare.soundState == SOUND_PLAY){
-		return;
-	}
-
-	snare.soundState = SOUND_PLAY;
-}
-
-void initSounds(void){
-//	WAVE_FormatTypeDef *waveformat = NULL;
-
-	snare.soundState = SOUND_INIT;
-	snare.startAddress = &BLOCK_SAMPLE[0];
-	snare.currentOffset = sizeof(WAVE_FormatTypeDef);	// pass WAV header
-//	waveformat = (WAVE_FormatTypeDef*) BLOCK_SAMPLE;
-	snare.fileLength = sizeof(BLOCK_SAMPLE);
-
-	snare.soundState = SOUND_IDLE;
-}
 
 typedef enum {
 	AUDIO_STATE_IDLE = 0, AUDIO_STATE_INIT, AUDIO_STATE_PLAYING,
@@ -69,8 +32,8 @@ typedef enum {
 	PLAY_BUFFER_OFFSET_FULL,
 } BUFFER_StateTypeDef;
 
-BUFFER_StateTypeDef audioBufferOffset = BUFFER_OFFSET_NONE;
-AUDIO_PLAYBACK_StateTypeDef audioState = AUDIO_STATE_IDLE;
+static BUFFER_StateTypeDef audioBufferOffset = BUFFER_OFFSET_NONE;
+static AUDIO_PLAYBACK_StateTypeDef audioState = AUDIO_STATE_IDLE;
 
 void BSP_AUDIO_OUT_HalfTransfer_CallBack(void) {
 	if (audioState != AUDIO_STATE_PLAYING) {
@@ -159,8 +122,6 @@ void playAudioSd(FILINFO fno) {
 		return;
 	}
 
-	initSounds();
-
 	fileSize = header.FileSize;
 	audioState = AUDIO_STATE_INIT;
 
@@ -190,28 +151,13 @@ void playAudioSd(FILINFO fno) {
 
 uint16_t updateBufferFromFile(uint8_t *pBuffer) {
 	UINT bytesWasRead;
-	uint8_t currentBuffer[AUDIO_BUFFER_SIZE / 2];
-	if (f_read(&fil, currentBuffer, AUDIO_BUFFER_SIZE / 2, &bytesWasRead) != FR_OK) {
+	if (f_read(&fil, pBuffer, AUDIO_BUFFER_SIZE / 2, &bytesWasRead) != FR_OK) {
 		stopPlaying();
 		sendUart("CAN'T READ FILE AT START");
 	}
 	if (bytesWasRead == 0){
 		stopPlaying();
 	}
-	if (snare.soundState == SOUND_PLAY){
-		// TODO create function from this
-		if(snare.currentOffset + AUDIO_BUFFER_SIZE / 2 >= snare.fileLength){
-			snare.soundState = SOUND_IDLE;
-			snare.currentOffset = sizeof(WAVE_FormatTypeDef);
-		}
-		else{
-			for (uint16_t inc = 0; inc < AUDIO_BUFFER_SIZE/2; inc++){
-				currentBuffer[inc] += snare.startAddress[snare.currentOffset + inc];
-			}
-			snare.currentOffset += AUDIO_BUFFER_SIZE /2;
-		}
-	}
-	memcpy(pBuffer, currentBuffer, AUDIO_BUFFER_SIZE/2);
 	offset = fil.fptr;
 	return bytesWasRead;
 }
