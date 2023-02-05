@@ -10,7 +10,7 @@
 
 extern char buffer_out[1000];
 
-#define AUDIO_BUFFER_SIZE 1024 	// must be equal to 20 ms * 48 kHz
+#define AUDIO_BUFFER_SIZE 128 	// must be equal to 20 ms * 48 kHz
 #define NUMBER_OF_AUDIO_CHANNELS NUMBER_OF_CHANNELS + 0 // can be more, because have alternate sounds - rim, ride bell, etc.
 
 typedef enum {
@@ -51,6 +51,7 @@ DrumSoundStruct tom;
 DrumSoundStruct drumSet[NUMBER_OF_AUDIO_CHANNELS];
 
 static void updateBufferFromFile(uint8_t *pBuffer);
+static void resetPlaying(DrumSoundStruct *drum);
 static void initSounds(void);
 
 void BSP_AUDIO_OUT_HalfTransfer_CallBack(void) {
@@ -97,47 +98,102 @@ void initSounds(void){
 	WRITE_REG(QUADSPI->LPTR, 0xFFF);
 
 
-	drumSet[0] = kick;
-	drumSet[1] = crash;
-	drumSet[2] = cowbell;
-	drumSet[3] = hat;
-	drumSet[4] = snare;
-	drumSet[5] = tom;
+//	drumSet[0] = kick;
+//	drumSet[1] = crash;
+//	drumSet[2] = cowbell;
+//	drumSet[3] = hat;
+//	drumSet[4] = snare;
+//	drumSet[5] = tom;
 
 
 	snare.soundState = SOUND_INIT;
-	snare.startAddress = (uint8_t*) ADDRESS_CRASH;
+	snare.startAddress = (uint8_t*) ADDRESS_SNARE;
 	snare.currentOffset = sizeof(WAVE_FormatTypeDef);	// pass WAV header
+	snare.fileLength = waveformat->FileSize - 1000;	// TODO 4000 - strange number
 
 	memcpy(waveformat, snare.startAddress, sizeof(WAVE_FormatTypeDef));
 
-	snare.fileLength = waveformat->FileSize - 4000;	// TODO 4000 - strange number
 	snare.soundState = SOUND_IDLE;
 
+
+	kick.soundState = SOUND_INIT;
+	kick.startAddress = (uint8_t*) ADDRESS_KICK;
+	kick.currentOffset = sizeof(WAVE_FormatTypeDef);	// pass WAV header
+	kick.fileLength = waveformat->FileSize - 1000;	// TODO 4000 - strange number
+
+	memcpy(waveformat, kick.startAddress, sizeof(WAVE_FormatTypeDef));
+
+	kick.soundState = SOUND_IDLE;
+
+
+	crash.soundState = SOUND_INIT;
+	crash.startAddress = (uint8_t*) ADDRESS_CRASH;
+	crash.currentOffset = sizeof(WAVE_FormatTypeDef);	// pass WAV header
+	crash.fileLength = waveformat->FileSize - 1000;	// TODO 4000 - strange number
+
+	memcpy(waveformat, crash.startAddress, sizeof(WAVE_FormatTypeDef));
+
+	crash.soundState = SOUND_IDLE;
 }
 
 void drumPlaySound(void){
 	if(snare.soundState == SOUND_IDLE){
 		snare.soundState = SOUND_PLAY;
 	}
+
+	if(kick.soundState == SOUND_IDLE){
+		kick.soundState = SOUND_PLAY;
+	}
+
+	if(crash.soundState == SOUND_IDLE){
+		crash.soundState = SOUND_PLAY;
+	}
 }
 
 static void updateBufferFromFile(uint8_t *pBuffer) {
-	uint8_t currentBuffer[AUDIO_BUFFER_SIZE / 2] = {0};
-	if (snare.soundState == SOUND_PLAY){
-		// TODO create function from this
-		if(snare.currentOffset + AUDIO_BUFFER_SIZE / 2 >= snare.fileLength){
-			snare.soundState = SOUND_IDLE;
-			snare.currentOffset = sizeof(WAVE_FormatTypeDef);
+	uint8_t currentBuffer[AUDIO_BUFFER_SIZE / 2] = { 0 };
+	if (snare.soundState == SOUND_PLAY) {
+		if (snare.currentOffset + AUDIO_BUFFER_SIZE / 2 >= snare.fileLength) {
+			resetPlaying(&snare);
 		}
-		else{
-			for (uint16_t inc = 0; inc < AUDIO_BUFFER_SIZE/2; inc++){
+		else {
+			for (uint16_t inc = 0; inc < AUDIO_BUFFER_SIZE / 2; inc++) {
 				currentBuffer[inc] += snare.startAddress[snare.currentOffset + inc];
 			}
-			snare.currentOffset += AUDIO_BUFFER_SIZE /2;
+			snare.currentOffset += AUDIO_BUFFER_SIZE / 2;
 		}
 	}
-	memcpy(pBuffer, currentBuffer, AUDIO_BUFFER_SIZE/2);
+
+	if (kick.soundState == SOUND_PLAY) {
+		if (kick.currentOffset + AUDIO_BUFFER_SIZE / 2 >= kick.fileLength) {
+			resetPlaying(&kick);
+		}
+		else {
+			for (uint16_t inc = 0; inc < AUDIO_BUFFER_SIZE / 2; inc++) {
+				currentBuffer[inc] += kick.startAddress[kick.currentOffset + inc];
+			}
+			kick.currentOffset += AUDIO_BUFFER_SIZE / 2;
+		}
+	}
+
+	if (crash.soundState == SOUND_PLAY) {
+		if (crash.currentOffset + AUDIO_BUFFER_SIZE / 2 >= crash.fileLength) {
+			resetPlaying(&crash);
+		}
+		else {
+			for (uint16_t inc = 0; inc < AUDIO_BUFFER_SIZE / 2; inc++) {
+				currentBuffer[inc] += crash.startAddress[crash.currentOffset + inc];
+			}
+			crash.currentOffset += AUDIO_BUFFER_SIZE / 2;
+		}
+	}
+
+	memcpy(pBuffer, currentBuffer, AUDIO_BUFFER_SIZE / 2);
+}
+
+void resetPlaying(DrumSoundStruct *drum){
+	drum->soundState = SOUND_IDLE;
+	drum->currentOffset = sizeof(WAVE_FormatTypeDef);
 }
 
 void handleAudioStream(void) {
