@@ -52,6 +52,7 @@ DrumSoundStruct drumSet[NUMBER_OF_AUDIO_CHANNELS];
 
 static void updateBufferFromFile(uint8_t *pBuffer);
 static void resetPlaying(DrumSoundStruct *drum);
+static void mixingAudio(uint8_t mainBuffer[], const uint8_t addedSound[]);
 static void initSounds(void);
 
 void BSP_AUDIO_OUT_HalfTransfer_CallBack(void) {
@@ -157,9 +158,7 @@ static void updateBufferFromFile(uint8_t *pBuffer) {
 			resetPlaying(&snare);
 		}
 		else {
-			for (uint16_t inc = 0; inc < AUDIO_BUFFER_SIZE / 2; inc++) {
-				currentBuffer[inc] += snare.startAddress[snare.currentOffset + inc];
-			}
+			mixingAudio(currentBuffer, &snare.startAddress[snare.currentOffset]);
 			snare.currentOffset += AUDIO_BUFFER_SIZE / 2;
 		}
 	}
@@ -169,9 +168,7 @@ static void updateBufferFromFile(uint8_t *pBuffer) {
 			resetPlaying(&kick);
 		}
 		else {
-			for (uint16_t inc = 0; inc < AUDIO_BUFFER_SIZE / 2; inc++) {
-				currentBuffer[inc] += kick.startAddress[kick.currentOffset + inc];
-			}
+			mixingAudio(currentBuffer, &kick.startAddress[kick.currentOffset]);
 			kick.currentOffset += AUDIO_BUFFER_SIZE / 2;
 		}
 	}
@@ -181,14 +178,18 @@ static void updateBufferFromFile(uint8_t *pBuffer) {
 			resetPlaying(&crash);
 		}
 		else {
-			for (uint16_t inc = 0; inc < AUDIO_BUFFER_SIZE / 2; inc++) {
-				currentBuffer[inc] += crash.startAddress[crash.currentOffset + inc];
-			}
+			mixingAudio(currentBuffer, &crash.startAddress[crash.currentOffset]);
 			crash.currentOffset += AUDIO_BUFFER_SIZE / 2;
 		}
 	}
 
 	memcpy(pBuffer, currentBuffer, AUDIO_BUFFER_SIZE / 2);
+}
+
+void mixingAudio(uint8_t mainBuffer[], const uint8_t addedSound[]){
+	for (uint16_t inc = 0; inc < AUDIO_BUFFER_SIZE / 2; inc++) {
+		mainBuffer[inc] = mainBuffer[inc] + addedSound[inc];
+	}
 }
 
 void resetPlaying(DrumSoundStruct *drum){
