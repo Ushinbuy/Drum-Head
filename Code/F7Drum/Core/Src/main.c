@@ -141,7 +141,7 @@ int main(void)
   MX_ADC3_Init();
   MX_FMC_Init();
   MX_I2C3_Init();
-  MX_QUADSPI_Init();
+//  MX_QUADSPI_Init();
   MX_SAI2_Init();
   MX_SDMMC1_SD_Init();
   MX_TIM2_Init();
@@ -163,7 +163,7 @@ int main(void)
 #ifdef SDPLAY
 	searchAudioSd();
 #else
-	initSounds();
+	initAudioCore();
 #endif
   /* USER CODE END 2 */
 

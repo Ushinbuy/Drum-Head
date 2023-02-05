@@ -9,7 +9,7 @@
 #define ADDRESS_TOM		0x900D0000
 
 void drumPlaySound(void);
-void initSounds(void);
+void initAudioCore(void);
 void handleAudioStream(void);
 
 #endif
