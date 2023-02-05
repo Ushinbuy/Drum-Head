@@ -1,13 +1,17 @@
 #include "drumAudioCore.h"
+#include "drumCore.h"
 #include "wm8994.h"
 #include "stm32746g_discovery_audio.h"
+#include "stm32746g_discovery_qspi.h"
 #include "wavFile.h"
 #include "audio.h"
 #include <string.h>
 #include <stdio.h>
-#include "blockSample.h"
+
+extern char buffer_out[1000];
 
 #define AUDIO_BUFFER_SIZE 1024 	// must be equal to 20 ms * 48 kHz
+#define NUMBER_OF_AUDIO_CHANNELS NUMBER_OF_CHANNELS + 0 // can be more, because have alternate sounds - rim, ride bell, etc.
 
 typedef enum {
 	AUDIO_STATE_IDLE = 0, AUDIO_STATE_INIT, AUDIO_STATE_PLAYING,
@@ -32,13 +36,11 @@ typedef struct {
 	const uint8_t* startAddress;
 } DrumSoundStruct;
 
-
 static uint8_t audioBuffer[AUDIO_BUFFER_SIZE] = {0};
 static uint8_t *pBufferFirstHalf = &audioBuffer[0];
 static uint8_t *pBufferSecondHalf = &audioBuffer[AUDIO_BUFFER_SIZE / 2];
 static AUDIO_PLAYBACK_StateTypeDef audioState = AUDIO_STATE_IDLE;
 static BUFFER_StateTypeDef audioBufferOffset = BUFFER_OFFSET_NONE;
-
 
 DrumSoundStruct kick;
 DrumSoundStruct crash;
@@ -46,8 +48,10 @@ DrumSoundStruct cowbell;
 DrumSoundStruct hat;
 DrumSoundStruct snare;
 DrumSoundStruct tom;
+DrumSoundStruct drumSet[NUMBER_OF_AUDIO_CHANNELS];
 
 static void updateBufferFromFile(uint8_t *pBuffer);
+static void initSounds(void);
 
 void BSP_AUDIO_OUT_HalfTransfer_CallBack(void) {
 	if (audioState != AUDIO_STATE_PLAYING) {
@@ -65,16 +69,8 @@ void BSP_AUDIO_OUT_TransferComplete_CallBack(void) {
 //	BSP_AUDIO_OUT_ChangeBuffer(pBufferFirstHalf, AUDIO_BUFFER_SIZE / 2);
 }
 
-void initSounds(void){
+void initAudioCore(void){
 	audioState = AUDIO_STATE_INIT;
-
-	snare.soundState = SOUND_INIT;
-	snare.startAddress = &BLOCK_SAMPLE[0];
-	snare.currentOffset = sizeof(WAVE_FormatTypeDef);	// pass WAV header
-	snare.fileLength = sizeof(BLOCK_SAMPLE);
-
-	snare.soundState = SOUND_IDLE;
-
 
 	uint8_t uwVolume = 15;
 	if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_AUTO, uwVolume,
@@ -86,7 +82,38 @@ void initSounds(void){
 		return;
 	}
 
+	initSounds();
+
 	audioState = AUDIO_STATE_PLAYING;
+}
+
+void initSounds(void){
+	WAVE_FormatTypeDef *waveformat = NULL;
+	if(BSP_QSPI_Init() != QSPI_OK){
+		return;
+	}
+
+	BSP_QSPI_MemoryMappedMode();
+	WRITE_REG(QUADSPI->LPTR, 0xFFF);
+
+
+	drumSet[0] = kick;
+	drumSet[1] = crash;
+	drumSet[2] = cowbell;
+	drumSet[3] = hat;
+	drumSet[4] = snare;
+	drumSet[5] = tom;
+
+
+	snare.soundState = SOUND_INIT;
+	snare.startAddress = (uint8_t*) ADDRESS_CRASH;
+	snare.currentOffset = sizeof(WAVE_FormatTypeDef);	// pass WAV header
+
+	memcpy(waveformat, snare.startAddress, sizeof(WAVE_FormatTypeDef));
+
+	snare.fileLength = waveformat->FileSize - 4000;	// TODO 4000 - strange number
+	snare.soundState = SOUND_IDLE;
+
 }
 
 void drumPlaySound(void){
