@@ -110,30 +110,27 @@ void initSounds(void){
 	snare.soundState = SOUND_INIT;
 	snare.startAddress = (uint8_t*) ADDRESS_SNARE;
 	snare.currentOffset = sizeof(WAVE_FormatTypeDef);	// pass WAV header
-	snare.fileLength = waveformat->FileSize - 1000;	// TODO 4000 - strange number
-
 	memcpy(waveformat, snare.startAddress, sizeof(WAVE_FormatTypeDef));
 
+	snare.fileLength = waveformat->FileSize;	// TODO 4000 - strange number
 	snare.soundState = SOUND_IDLE;
 
 
 	kick.soundState = SOUND_INIT;
 	kick.startAddress = (uint8_t*) ADDRESS_KICK;
 	kick.currentOffset = sizeof(WAVE_FormatTypeDef);	// pass WAV header
-	kick.fileLength = waveformat->FileSize - 1000;	// TODO 4000 - strange number
-
 	memcpy(waveformat, kick.startAddress, sizeof(WAVE_FormatTypeDef));
 
+	kick.fileLength = waveformat->FileSize;	// TODO 4000 - strange number
 	kick.soundState = SOUND_IDLE;
 
 
 	crash.soundState = SOUND_INIT;
 	crash.startAddress = (uint8_t*) ADDRESS_CRASH;
 	crash.currentOffset = sizeof(WAVE_FormatTypeDef);	// pass WAV header
-	crash.fileLength = waveformat->FileSize - 1000;	// TODO 4000 - strange number
-
 	memcpy(waveformat, crash.startAddress, sizeof(WAVE_FormatTypeDef));
 
+	crash.fileLength = waveformat->FileSize;	// TODO 4000 - strange number
 	crash.soundState = SOUND_IDLE;
 }
 
@@ -187,8 +184,13 @@ static void updateBufferFromFile(uint8_t *pBuffer) {
 }
 
 void mixingAudio(uint8_t mainBuffer[], const uint8_t addedSound[]){
-	for (uint16_t inc = 0; inc < AUDIO_BUFFER_SIZE / 2; inc++) {
-		mainBuffer[inc] = mainBuffer[inc] + addedSound[inc];
+	for (uint16_t inc = 0; inc < AUDIO_BUFFER_SIZE / 2; inc += 2) {
+		uint16_t mainInt = (mainBuffer[inc+1] << 8) | mainBuffer[inc];
+		uint16_t addedInt = (addedSound[inc+1] << 8) | addedSound[inc];
+//		addedInt *= 0.5f;
+		uint16_t summ = mainInt + addedInt;
+		mainBuffer[inc] = summ & 0xFF;
+		mainBuffer[inc+1] = summ >> 8;
 	}
 }
 

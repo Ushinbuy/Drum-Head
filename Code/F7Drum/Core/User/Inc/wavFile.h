@@ -17,7 +17,7 @@ typedef struct WAVE_FormatTypeDef
   uint16_t   BitPerSample;  /* 34 	0x22 */
   uint32_t   SubChunk2ID;   /* 36 	0x24 */
   uint32_t   SubChunk2Size; /* 40 	0x28 */
-
+  // TODO waveheader may have different formats
 }WAVE_FormatTypeDef;
 
 #endif /* USER_INC_WAVFILE_H_ */
