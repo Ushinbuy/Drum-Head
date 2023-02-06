@@ -52,7 +52,7 @@ DrumSoundStruct drumSet[NUMBER_OF_AUDIO_CHANNELS];
 
 static void updateBufferFromFile(uint8_t *pBuffer);
 static void resetPlaying(DrumSoundStruct *drum);
-static void mixingAudio(uint8_t mainBuffer[], const uint8_t addedSound[]);
+static void mixingAudio(uint8_t mainBuffer[], const uint8_t addedSound[], float addedVolume);
 static void initSounds(void);
 
 void BSP_AUDIO_OUT_HalfTransfer_CallBack(void) {
@@ -112,7 +112,7 @@ void initSounds(void){
 	snare.currentOffset = sizeof(WAVE_FormatTypeDef);	// pass WAV header
 	memcpy(waveformat, snare.startAddress, sizeof(WAVE_FormatTypeDef));
 
-	snare.fileLength = waveformat->FileSize;	// TODO 4000 - strange number
+	snare.fileLength = waveformat->FileSize;
 	snare.soundState = SOUND_IDLE;
 
 
@@ -121,7 +121,7 @@ void initSounds(void){
 	kick.currentOffset = sizeof(WAVE_FormatTypeDef);	// pass WAV header
 	memcpy(waveformat, kick.startAddress, sizeof(WAVE_FormatTypeDef));
 
-	kick.fileLength = waveformat->FileSize;	// TODO 4000 - strange number
+	kick.fileLength = waveformat->FileSize;
 	kick.soundState = SOUND_IDLE;
 
 
@@ -130,7 +130,7 @@ void initSounds(void){
 	crash.currentOffset = sizeof(WAVE_FormatTypeDef);	// pass WAV header
 	memcpy(waveformat, crash.startAddress, sizeof(WAVE_FormatTypeDef));
 
-	crash.fileLength = waveformat->FileSize;	// TODO 4000 - strange number
+	crash.fileLength = waveformat->FileSize;
 	crash.soundState = SOUND_IDLE;
 }
 
@@ -155,7 +155,7 @@ static void updateBufferFromFile(uint8_t *pBuffer) {
 			resetPlaying(&snare);
 		}
 		else {
-			mixingAudio(currentBuffer, &snare.startAddress[snare.currentOffset]);
+			mixingAudio(currentBuffer, &snare.startAddress[snare.currentOffset], 0.7f);
 			snare.currentOffset += AUDIO_BUFFER_SIZE / 2;
 		}
 	}
@@ -165,7 +165,7 @@ static void updateBufferFromFile(uint8_t *pBuffer) {
 			resetPlaying(&kick);
 		}
 		else {
-			mixingAudio(currentBuffer, &kick.startAddress[kick.currentOffset]);
+			mixingAudio(currentBuffer, &kick.startAddress[kick.currentOffset], 1.0f);
 			kick.currentOffset += AUDIO_BUFFER_SIZE / 2;
 		}
 	}
@@ -175,7 +175,7 @@ static void updateBufferFromFile(uint8_t *pBuffer) {
 			resetPlaying(&crash);
 		}
 		else {
-			mixingAudio(currentBuffer, &crash.startAddress[crash.currentOffset]);
+			mixingAudio(currentBuffer, &crash.startAddress[crash.currentOffset], 0.4f);
 			crash.currentOffset += AUDIO_BUFFER_SIZE / 2;
 		}
 	}
@@ -183,12 +183,12 @@ static void updateBufferFromFile(uint8_t *pBuffer) {
 	memcpy(pBuffer, currentBuffer, AUDIO_BUFFER_SIZE / 2);
 }
 
-void mixingAudio(uint8_t mainBuffer[], const uint8_t addedSound[]){
+void mixingAudio(uint8_t mainBuffer[], const uint8_t addedSound[], float addedVolume){
 	for (uint16_t inc = 0; inc < AUDIO_BUFFER_SIZE / 2; inc += 2) {
-		uint16_t mainInt = (mainBuffer[inc+1] << 8) | mainBuffer[inc];
-		uint16_t addedInt = (addedSound[inc+1] << 8) | addedSound[inc];
+		int16_t mainInt = (mainBuffer[inc+1] << 8) | mainBuffer[inc];
+		int16_t addedInt = (addedSound[inc+1] << 8) | addedSound[inc];
 //		addedInt *= 0.5f;
-		uint16_t summ = mainInt + addedInt;
+		uint16_t summ = mainInt + (int16_t)(addedInt*addedVolume);
 		mainBuffer[inc] = summ & 0xFF;
 		mainBuffer[inc+1] = summ >> 8;
 	}
