@@ -191,6 +191,8 @@ void Error_Handler(void);
 #define VCP_TX_GPIO_Port GPIOA
 #define RCC_OSC32_OUT_Pin GPIO_PIN_15
 #define RCC_OSC32_OUT_GPIO_Port GPIOC
+#define BTN_Pin GPIO_PIN_11
+#define BTN_GPIO_Port GPIOI
 #define LCD_G6_Pin GPIO_PIN_1
 #define LCD_G6_GPIO_Port GPIOK
 #define LCD_G7_Pin GPIO_PIN_2
@@ -379,6 +381,8 @@ void Error_Handler(void);
 #define ARDUINO_MISO_D12_GPIO_Port GPIOB
 #define ARDUINO_MOSI_PWM_D11_Pin GPIO_PIN_15
 #define ARDUINO_MOSI_PWM_D11_GPIO_Port GPIOB
+void   MX_I2C3_Init(void);
+void   MX_QUADSPI_Init(void);
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

@@ -29,7 +29,12 @@
 #include "midi.h"
 #include "uartManage.h"
 //#include "audioExample.h"
+//#define SDPLAY
+#ifdef SDPLAY
 #include "audioFromSdCard.h"
+#else
+#include "drumAudioCore.h"
+#endif
 #include "drumCore.h"
 /* USER CODE END Includes */
 
@@ -55,10 +60,6 @@ uint8_t upd_active_sens = 0;	//flag for active sense, triggered every 300ms
 ADC_HandleTypeDef hadc3;
 DMA_HandleTypeDef hdma_adc3;
 
-I2C_HandleTypeDef hi2c3;
-
-QSPI_HandleTypeDef hqspi;
-
 SAI_HandleTypeDef hsai_BlockA2;
 DMA_HandleTypeDef hdma_sai2_a;
 
@@ -83,8 +84,6 @@ void PeriphCommonClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_ADC3_Init(void);
 static void MX_FMC_Init(void);
-static void MX_I2C3_Init(void);
-static void MX_QUADSPI_Init(void);
 static void MX_SAI2_Init(void);
 static void MX_SDMMC1_SD_Init(void);
 static void MX_TIM2_Init(void);
@@ -135,8 +134,6 @@ int main(void)
   MX_GPIO_Init();
   MX_ADC3_Init();
   MX_FMC_Init();
-  MX_I2C3_Init();
-  MX_QUADSPI_Init();
   MX_SAI2_Init();
   MX_SDMMC1_SD_Init();
   MX_TIM2_Init();
@@ -154,19 +151,31 @@ int main(void)
 	HAL_GPIO_WritePin(LCD_BL_CTRL_GPIO_Port, LCD_BL_CTRL_Pin, GPIO_PIN_RESET);	// shutdown display
 
 	initAndStartDrum();
-	sdCardTextExample();
 
+#ifdef SDPLAY
+	searchAudioSd();
+#else
+	initAudioCore();
+#endif
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1) {
-		handleAudioStream();
+#ifdef SDPLAY
+		handleAudioStreamSd();
+#else
+	handleAudioStream();
+	if(HAL_GPIO_ReadPin(BTN_GPIO_Port, BTN_Pin) == GPIO_PIN_SET){
+		drumPlaySound();
+	}
+#endif
 		handleConfigFromUart();
 		if(isUsbConfigured()){
 			sendMidiActiveSense(&upd_active_sens);
 		}
 		checkPiezoChannels();
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -338,87 +347,6 @@ static void MX_ADC3_Init(void)
   /* USER CODE BEGIN ADC3_Init 2 */
 
   /* USER CODE END ADC3_Init 2 */
-
-}
-
-/**
-  * @brief I2C3 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_I2C3_Init(void)
-{
-
-  /* USER CODE BEGIN I2C3_Init 0 */
-
-  /* USER CODE END I2C3_Init 0 */
-
-  /* USER CODE BEGIN I2C3_Init 1 */
-
-  /* USER CODE END I2C3_Init 1 */
-  hi2c3.Instance = I2C3;
-  hi2c3.Init.Timing = 0x00C0EAFF;
-  hi2c3.Init.OwnAddress1 = 0;
-  hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c3.Init.OwnAddress2 = 0;
-  hi2c3.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
-  hi2c3.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c3.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Configure Analogue filter
-  */
-  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c3, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Configure Digital filter
-  */
-  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c3, 0) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN I2C3_Init 2 */
-
-  /* USER CODE END I2C3_Init 2 */
-
-}
-
-/**
-  * @brief QUADSPI Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_QUADSPI_Init(void)
-{
-
-  /* USER CODE BEGIN QUADSPI_Init 0 */
-
-  /* USER CODE END QUADSPI_Init 0 */
-
-  /* USER CODE BEGIN QUADSPI_Init 1 */
-
-  /* USER CODE END QUADSPI_Init 1 */
-  /* QUADSPI parameter configuration*/
-  hqspi.Instance = QUADSPI;
-  hqspi.Init.ClockPrescaler = 1;
-  hqspi.Init.FifoThreshold = 4;
-  hqspi.Init.SampleShifting = QSPI_SAMPLE_SHIFTING_HALFCYCLE;
-  hqspi.Init.FlashSize = 24;
-  hqspi.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_6_CYCLE;
-  hqspi.Init.ClockMode = QSPI_CLOCK_MODE_0;
-  hqspi.Init.FlashID = QSPI_FLASH_ID_1;
-  hqspi.Init.DualFlash = QSPI_DUALFLASH_DISABLE;
-  if (HAL_QSPI_Init(&hqspi) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN QUADSPI_Init 2 */
-
-  /* USER CODE END QUADSPI_Init 2 */
 
 }
 
@@ -625,7 +553,7 @@ static void MX_DMA_Init(void)
   HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 2, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
   /* DMA2_Stream3_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 3, 0);
+  HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
   /* DMA2_Stream4_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream4_IRQn, 1, 0);
@@ -926,6 +854,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.Alternate = GPIO_AF2_TIM5;
   HAL_GPIO_Init(ARDUINO_PWM_CS_D5_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : BTN_Pin */
+  GPIO_InitStruct.Pin = BTN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(BTN_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : ARDUINO_PWM_D10_Pin */
   GPIO_InitStruct.Pin = ARDUINO_PWM_D10_Pin;

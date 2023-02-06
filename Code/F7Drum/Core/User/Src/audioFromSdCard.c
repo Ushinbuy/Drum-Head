@@ -10,16 +10,15 @@
 
 #define AUDIO_BUFFER_SIZE 1024 	// must be equal to 20 ms * 48 kHz
 
-uint8_t audioBuffer[AUDIO_BUFFER_SIZE];
+static uint8_t audioBuffer[AUDIO_BUFFER_SIZE];
 static uint32_t fileSize;
 static uint32_t offset;
 static FIL fil;
 
-// TODO to know difference between uint16_t and uint8_t for playing in SAI and i2S
-static uint16_t *pBufferFirstHalf = (uint16_t*) &audioBuffer[0];
-static uint16_t *pBufferSecondHalf = (uint16_t*) &audioBuffer[AUDIO_BUFFER_SIZE / 2];
+static uint8_t *pBufferFirstHalf = &audioBuffer[0];
+static uint8_t *pBufferSecondHalf = &audioBuffer[AUDIO_BUFFER_SIZE / 2];
 
-uint16_t updateBufferFromFile(uint16_t *pBuffer);
+static uint16_t updateBufferFromFile(uint8_t *pBuffer);
 void playAudioSd(FILINFO fno);
 void stopPlaying(void);
 
@@ -33,8 +32,8 @@ typedef enum {
 	PLAY_BUFFER_OFFSET_FULL,
 } BUFFER_StateTypeDef;
 
-BUFFER_StateTypeDef audioBufferOffset = BUFFER_OFFSET_NONE;
-AUDIO_PLAYBACK_StateTypeDef audioState = AUDIO_STATE_IDLE;
+static BUFFER_StateTypeDef audioBufferOffset = BUFFER_OFFSET_NONE;
+static AUDIO_PLAYBACK_StateTypeDef audioState = AUDIO_STATE_IDLE;
 
 void BSP_AUDIO_OUT_HalfTransfer_CallBack(void) {
 	if (audioState != AUDIO_STATE_PLAYING) {
@@ -55,7 +54,7 @@ void BSP_AUDIO_OUT_TransferComplete_CallBack(void) {
 /**
  * Place this method in main stream
  */
-void handleAudioStream(void) {
+void handleAudioStreamSd(void) {
 	uint16_t amountWasRead;
 	switch (audioBufferOffset) {
 	case PLAY_BUFFER_OFFSET_HALF:
@@ -76,7 +75,7 @@ void handleAudioStream(void) {
 extern char SDPath[4]; /* SD logical drive path */
 extern FATFS SDFatFS;
 
-void sdCardTextExample(void) {
+void searchAudioSd(void) {
 	FRESULT res;
 	DIR dir;
 	FILINFO fno;
@@ -150,7 +149,7 @@ void playAudioSd(FILINFO fno) {
 	sendUart("Header is read correctly \n\r");
 }
 
-uint16_t updateBufferFromFile(uint16_t *pBuffer) {
+uint16_t updateBufferFromFile(uint8_t *pBuffer) {
 	UINT bytesWasRead;
 	if (f_read(&fil, pBuffer, AUDIO_BUFFER_SIZE / 2, &bytesWasRead) != FR_OK) {
 		stopPlaying();
