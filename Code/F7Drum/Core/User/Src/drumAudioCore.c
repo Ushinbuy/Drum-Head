@@ -187,8 +187,7 @@ void mixingAudio(uint8_t mainBuffer[], const uint8_t addedSound[], float addedVo
 	for (uint16_t inc = 0; inc < AUDIO_BUFFER_SIZE / 2; inc += 2) {
 		int16_t mainInt = (mainBuffer[inc+1] << 8) | mainBuffer[inc];
 		int16_t addedInt = (addedSound[inc+1] << 8) | addedSound[inc];
-//		addedInt *= 0.5f;
-		uint16_t summ = mainInt + (int16_t)(addedInt*addedVolume);
+		int16_t summ = mainInt + (int16_t)(addedInt*addedVolume);
 		mainBuffer[inc] = summ & 0xFF;
 		mainBuffer[inc+1] = summ >> 8;
 	}
