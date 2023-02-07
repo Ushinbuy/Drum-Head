@@ -166,9 +166,9 @@ int main(void)
 		handleAudioStreamSd();
 #else
 	handleAudioStream();
-	if(HAL_GPIO_ReadPin(BTN_GPIO_Port, BTN_Pin) == GPIO_PIN_SET){
-		drumPlaySound();
-	}
+//	if(HAL_GPIO_ReadPin(BTN_GPIO_Port, BTN_Pin) == GPIO_PIN_SET){
+//		drumPlayDebugSounds();
+//	}
 #endif
 		handleConfigFromUart();
 		if(isUsbConfigured()){

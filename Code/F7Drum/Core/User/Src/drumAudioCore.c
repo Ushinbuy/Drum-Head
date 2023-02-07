@@ -6,7 +6,8 @@
 #include "wavFile.h"
 #include "audio.h"
 #include <string.h>
-#include <stdio.h>
+#include "velocityInDb.h"
+#include "dBinFloat.h"
 
 extern char buffer_out[1000];
 
@@ -23,19 +24,6 @@ typedef enum {
 	PLAY_BUFFER_OFFSET_FULL,
 } BUFFER_StateTypeDef;
 
-typedef enum{
-	SOUND_INIT = 0,
-	SOUND_IDLE,
-	SOUND_PLAY
-} SoundStateEnum;
-
-typedef struct {
-	uint32_t fileLength;
-	uint32_t currentOffset;
-	volatile SoundStateEnum soundState;
-	const uint8_t* startAddress;
-} DrumSoundStruct;
-
 static uint8_t audioBuffer[AUDIO_BUFFER_SIZE] = {0};
 static uint8_t *pBufferFirstHalf = &audioBuffer[0];
 static uint8_t *pBufferSecondHalf = &audioBuffer[AUDIO_BUFFER_SIZE / 2];
@@ -51,7 +39,7 @@ DrumSoundStruct tom;
 DrumSoundStruct drumSet[NUMBER_OF_AUDIO_CHANNELS];
 
 static void updateBufferFromFile(uint8_t *pBuffer);
-static void resetPlaying(DrumSoundStruct *drum);
+static void stopPlaying(DrumSoundStruct *drum);
 static void mixingAudio(uint8_t mainBuffer[], const uint8_t addedSound[], float addedVolume);
 static void initSounds(void);
 
@@ -113,6 +101,7 @@ void initSounds(void){
 	memcpy(waveformat, snare.startAddress, sizeof(WAVE_FormatTypeDef));
 
 	snare.fileLength = waveformat->FileSize;
+	snare.userVolumeDB = -6.0f;
 	snare.soundState = SOUND_IDLE;
 
 
@@ -122,6 +111,7 @@ void initSounds(void){
 	memcpy(waveformat, kick.startAddress, sizeof(WAVE_FormatTypeDef));
 
 	kick.fileLength = waveformat->FileSize;
+	kick.userVolumeDB = 3.0f;
 	kick.soundState = SOUND_IDLE;
 
 
@@ -131,51 +121,50 @@ void initSounds(void){
 	memcpy(waveformat, crash.startAddress, sizeof(WAVE_FormatTypeDef));
 
 	crash.fileLength = waveformat->FileSize;
+	crash.userVolumeDB = -3.0f;
 	crash.soundState = SOUND_IDLE;
 }
 
-void drumPlaySound(void){
-	if(snare.soundState == SOUND_IDLE){
-		snare.soundState = SOUND_PLAY;
-	}
+void drumPlayDebugSounds(void){
+	playSound(&snare, 100);
+	playSound(&kick, 120);
+	playSound(&crash, 50);
+}
 
-	if(kick.soundState == SOUND_IDLE){
-		kick.soundState = SOUND_PLAY;
-	}
-
-	if(crash.soundState == SOUND_IDLE){
-		crash.soundState = SOUND_PLAY;
-	}
+void playSound(DrumSoundStruct *drum, uint8_t velocity){
+	drum->currentVolumeFloat = convertDbInFloat(velToDb(velocity) + drum->userVolumeDB);
+	drum->currentOffset = sizeof(WAVE_FormatTypeDef);
+	drum->soundState = SOUND_PLAY;
 }
 
 static void updateBufferFromFile(uint8_t *pBuffer) {
 	uint8_t currentBuffer[AUDIO_BUFFER_SIZE / 2] = { 0 };
 	if (snare.soundState == SOUND_PLAY) {
 		if (snare.currentOffset + AUDIO_BUFFER_SIZE / 2 >= snare.fileLength) {
-			resetPlaying(&snare);
+			stopPlaying(&snare);
 		}
 		else {
-			mixingAudio(currentBuffer, &snare.startAddress[snare.currentOffset], 0.7f);
+			mixingAudio(currentBuffer, &snare.startAddress[snare.currentOffset], snare.currentVolumeFloat);
 			snare.currentOffset += AUDIO_BUFFER_SIZE / 2;
 		}
 	}
 
 	if (kick.soundState == SOUND_PLAY) {
 		if (kick.currentOffset + AUDIO_BUFFER_SIZE / 2 >= kick.fileLength) {
-			resetPlaying(&kick);
+			stopPlaying(&kick);
 		}
 		else {
-			mixingAudio(currentBuffer, &kick.startAddress[kick.currentOffset], 1.0f);
+			mixingAudio(currentBuffer, &kick.startAddress[kick.currentOffset], kick.currentVolumeFloat);
 			kick.currentOffset += AUDIO_BUFFER_SIZE / 2;
 		}
 	}
 
 	if (crash.soundState == SOUND_PLAY) {
 		if (crash.currentOffset + AUDIO_BUFFER_SIZE / 2 >= crash.fileLength) {
-			resetPlaying(&crash);
+			stopPlaying(&crash);
 		}
 		else {
-			mixingAudio(currentBuffer, &crash.startAddress[crash.currentOffset], 0.4f);
+			mixingAudio(currentBuffer, &crash.startAddress[crash.currentOffset], crash.currentVolumeFloat);
 			crash.currentOffset += AUDIO_BUFFER_SIZE / 2;
 		}
 	}
@@ -193,9 +182,13 @@ void mixingAudio(uint8_t mainBuffer[], const uint8_t addedSound[], float addedVo
 	}
 }
 
-void resetPlaying(DrumSoundStruct *drum){
+void stopPlaying(DrumSoundStruct *drum){
 	drum->soundState = SOUND_IDLE;
 	drum->currentOffset = sizeof(WAVE_FormatTypeDef);
+}
+
+void changeVolume(DrumSoundStruct *drum, float newVolumeDB){
+	drum->userVolumeDB = newVolumeDB;
 }
 
 void handleAudioStream(void) {

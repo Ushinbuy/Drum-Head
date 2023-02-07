@@ -8,8 +8,27 @@
 #define ADDRESS_SNARE	0x900C0000
 #define ADDRESS_TOM		0x900D0000
 
-void drumPlaySound(void);
+#include <stdio.h>
+
+typedef enum{
+	SOUND_INIT = 0,
+	SOUND_IDLE,
+	SOUND_PLAY
+} SoundStateEnum;
+
+typedef struct {
+	uint32_t fileLength;
+	uint32_t currentOffset;
+	float userVolumeDB;
+	float currentVolumeFloat;
+	const uint8_t* startAddress;
+	volatile SoundStateEnum soundState;
+} DrumSoundStruct;
+
+void drumPlayDebugSounds(void);
 void initAudioCore(void);
 void handleAudioStream(void);
+void changeVolume(DrumSoundStruct *drum, float newVolumeDB);
+void playSound(DrumSoundStruct *drum, uint8_t velocity);
 
 #endif

@@ -6,7 +6,7 @@
 
 //char buffer_out[1000];			// USB Buffers
 
-void setLinksUartDrums(DRUM extChannel[]);
+//void setLinksUartDrums(DRUM extChannel[]);
 void setLinkUart(UART_HandleTypeDef* globalUart);
 void initSettingsFromUart(void);
 void sendUart(char *_msg);
