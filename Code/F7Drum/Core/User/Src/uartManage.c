@@ -36,19 +36,19 @@ void sendDebug(uint8_t _ch, uint8_t _aux)
 		voice = channel[_ch].aux_voice;
 
 		sprintf(buffer_out, ">>>AUX %d: %X %d [%d %d]\n", _ch, voice,
-				channel[_ch].aux_rdy_state, channel[_ch].main_peaking,
+				channel[_ch].aux_previous_state, channel[_ch].main_peaking,
 				channel[_ch].aux_status);
 	} else {
 		if (channel[_ch].main_rdy_usealt)
 			voice = channel[_ch].alt_voice;
 		else
 			voice = channel[_ch].main_voice;
-		volume = channel[_ch].main_rdy_volume;
-		length = channel[_ch].main_rdy_length;
+		volume = channel[_ch].main_ready_volume;
+		length = channel[_ch].main_ready_length;
 		sprintf(buffer_out,
 				">>MAIN %d: voice %X (alt:%d), vol %d (%u/4096) t=%u; AUX = %d\n",
 				_ch, voice, channel[_ch].alt_voice, volume,
-				channel[_ch].main_rdy_height, length, channel[_ch].aux_status);
+				channel[_ch].main_ready_height, length, channel[_ch].aux_status);
 	}
 	sendUart(buffer_out);
 
@@ -119,9 +119,9 @@ static uint8_t UartConfigDialog(){
 	uint8_t chnl = 10;
 	while (chnl == 10){
 		  for (uint8_t ch = 0; ch < NUMBER_OF_CHANNELS; ch++)
-			  if ((channel[ch].main_rdy)||(channel[ch].aux_rdy)){
+			  if ((channel[ch].main_rdy)||(channel[ch].aux_ready)){
 				  channel[ch].main_rdy = 0;
-				  channel[ch].aux_rdy = 0;
+				  channel[ch].aux_ready = 0;
 				  chnl = ch;
 				  HAL_UART_AbortReceive(localUart);
 			  }

@@ -86,26 +86,20 @@ void checkPiezoChannels(void){
 			channel[ch].main_rdy = 0;
 
 			// custom volume calculation for mesh
-			if (channel[ch].chnl_type < 2) {
-				_volume = (int) (100.
-						* (float) (channel[ch].main_rdy_height - PEAK_THRESHOLD)
-						/ 4096. * 100. / (float) channel[ch].peak_volume_norm);
-				if ((channel[ch].chnl_type == MESH_RIM_AUTOAUX)
-						&& (channel[ch].main_rdy_usealt))
+			if (channel[ch].chnl_type == MESH_PAD_AUTOAUX | MESH_RIM_AUTOAUX) {
+				_volume = (int) (100.0* (float) (channel[ch].main_ready_height - PEAK_THRESHOLD) / 4096.0 * 100.0 / (float) channel[ch].peak_volume_norm);
+				if ((channel[ch].chnl_type == MESH_RIM_AUTOAUX) && (channel[ch].main_rdy_usealt))
 					_volume = _volume * 4;
 			} else {
 				//volume for cymbals
-				_volume = (int) (100.
-						* (float) (channel[ch].main_rdy_height - PEAK_THRESHOLD)
-						/ 4096. * 100. / (float) channel[ch].peak_volume_norm
-						* 2);
+				_volume = (int) (100.0 * (float) (channel[ch].main_ready_height - PEAK_THRESHOLD) / 4096.0 * 100.0 / (float) channel[ch].peak_volume_norm * 2);
 			}
 
 			if (_volume > 127)
 				_volume = 127;
 			if (_volume < 1)
 				_volume = 1;
-			channel[ch].main_rdy_volume = (uint8_t) _volume;
+			channel[ch].main_ready_volume = (uint8_t) _volume;
 
 			uint8_t vc;
 			if (channel[ch].main_rdy_usealt)
@@ -113,34 +107,33 @@ void checkPiezoChannels(void){
 			else
 				vc = channel[ch].main_voice;//	sendMidiGEN(channel[ch].main_voice,channel[ch].main_rdy_volume);
 
-			sendMidi(vc, channel[ch].main_rdy_volume);
+			sendMidi(vc, channel[ch].main_ready_volume);
 			channel[ch].main_last_on_voice = vc;
 			channel[ch].main_last_on_time = HAL_GetTick();
 
 #ifdef DEBUG
 			sendDebug(ch, 0);
-			playSound(&crash, channel[ch].main_rdy_volume);
+			playSound(&crash, channel[ch].main_ready_volume);
 #endif
 		}
 
-		if (channel[ch].aux_rdy) {
-			channel[ch].aux_rdy = 0;
+		if (channel[ch].aux_ready) {
+			channel[ch].aux_ready = 0;
 #ifdef DEBUG
 			sendDebug(ch, 1);
 #endif
 
 			switch (channel[ch].chnl_type) {
 			case CYMBAL_HIHAT:
-				if (channel[ch].aux_rdy_state == CHANNEL_PEDAL_PRESSED)
+				if (channel[ch].aux_previous_state == CHANNEL_PEDAL_PRESSED)
 					sendMidiHHPedalOn();
 				//				  else
 				//					  sendMidiGEN(channel[ch].main_voice, 5);
 				break;
 
 			case CYMBAL_MUTE:
-				if (channel[ch].aux_rdy_state == CHANNEL_PEDAL_PRESSED)
-					sendMidi2(channel[ch].main_voice, 1, channel[ch].main_voice,
-							0);
+				if (channel[ch].aux_previous_state == CHANNEL_PEDAL_PRESSED)
+					sendMidi2(channel[ch].main_voice, 1, channel[ch].main_voice, 0);
 				break;
 
 			case CYMBAL_2_ZONE:
@@ -154,9 +147,8 @@ void checkPiezoChannels(void){
 							0);
 				else { //PEDAL
 					   // PEDAL pressed
-					if (channel[ch].aux_rdy_state == CHANNEL_PEDAL_PRESSED)
-						sendMidi2(channel[ch].aux_voice, 100,
-								channel[ch].aux_voice, 0);
+					if (channel[ch].aux_previous_state == CHANNEL_PEDAL_PRESSED)
+						sendMidi2(channel[ch].aux_voice, 100, channel[ch].aux_voice, 0);
 					// PEDAL RELEASED... IN CASE
 					//					  else
 					//						  sendMidi2(channel[ch].aux_voice, 1, channel[ch].aux_voice,0);
@@ -165,8 +157,7 @@ void checkPiezoChannels(void){
 		}
 		// send off command if needed
 		if (channel[ch].main_last_on_voice > 0) {
-			if (HAL_GetTick()
-					> (channel[ch].main_last_on_time + OFF_DELAY_MS)) {
+			if (HAL_GetTick() > (channel[ch].main_last_on_time + OFF_DELAY_MS)) {
 				sendMidi(channel[ch].main_last_on_voice, 0);
 				channel[ch].main_last_on_voice = 0;
 			}

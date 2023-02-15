@@ -35,14 +35,14 @@ void initDrum(DRUM* _chnl, DRM_voice _main_voice, DRM_voice _aux_voice, DRM_type
 	_chnl->main_active_length	= 0;
 
 
-	_chnl->main_rdy_height 	 	= 0;
-	_chnl->main_rdy_time	 	= 0;
-	_chnl->main_rdy_volume	 	= 0;
-	_chnl->main_rdy_length	 	= 0;
+	_chnl->main_ready_height 	= 0;
+	_chnl->main_ready_time	 	= 0;
+	_chnl->main_ready_volume	= 0;
+	_chnl->main_ready_length	= 0;
 
 
-	_chnl->aux_rdy				= 0;
-	_chnl->aux_rdy_time			= 0;
+	_chnl->aux_ready			= 0;
+	_chnl->aux_peak_time		= 0;
 	_chnl->aux_active_time		= 0;
 
 	_chnl->aux_status 			= CHANNEL_STATUS_IDLE;
@@ -51,13 +51,13 @@ void initDrum(DRUM* _chnl, DRM_voice _main_voice, DRM_voice _aux_voice, DRM_type
 		// LOW state, pad input
 		_chnl->aux_type = AUX_TYPE_PAD;
 		_chnl->aux_active_state	= CHANNEL_PAD_IDLE;
-		_chnl->aux_rdy_state	= CHANNEL_PAD_IDLE;
+		_chnl->aux_previous_state	= CHANNEL_PAD_IDLE;
 	}
 	if ((_aux_state == GPIO_PIN_SET)||(_chnl_type == CYMBAL_HIHAT)||(_chnl_type == CYMBAL_MUTE)){
 		// HIGH state, pedal input
 		_chnl->aux_type = AUX_TYPE_PEDAL;
 		_chnl->aux_active_state	= CHANNEL_PEDAL_IDLE;
-		_chnl->aux_rdy_state	= CHANNEL_PEDAL_IDLE;
+		_chnl->aux_previous_state	= CHANNEL_PEDAL_IDLE;
 	}
 
 	_chnl->aux_last_state	= _aux_state;
@@ -82,10 +82,10 @@ uint8_t Update_channel(DRUM* _chnl, uint32_t _adc_reading, GPIO_PinState _aux_st
 			thresh = 1;
 		// until 50ms threshold = (2x max height)
 		else if ( _chnl->cooldown > (_chnl->peak2peak - 512) )
-			thresh = (_chnl->main_rdy_height<<1);
+			thresh = (_chnl->main_ready_height<<1);
 		// after 50ms, gradually lower the threshold from 75% until 0 after 150ms
 		else
-			thresh = (uint16_t)(_chnl->main_rdy_height>>5)*(uint16_t)(_chnl->cooldown>>6);
+			thresh = (uint16_t)(_chnl->main_ready_height>>5)*(uint16_t)(_chnl->cooldown>>6);
 	}
 
 
@@ -116,9 +116,9 @@ uint8_t Update_channel(DRUM* _chnl, uint32_t _adc_reading, GPIO_PinState _aux_st
 				if ((_chnl->chnl_type == MESH_RIM_AUTOAUX)){
 					_chnl->main_rdy 		= 1;
 					_chnl->main_rdy_usealt 	= 0;
-					_chnl->main_rdy_time	= STEP_TIME;
-					_chnl->main_rdy_height 	= _chnl->main_active_max;
-					_chnl->main_rdy_length	= _chnl->main_active_length;	//debug only
+					_chnl->main_ready_time	= STEP_TIME;
+					_chnl->main_ready_height 	= _chnl->main_active_max;
+					_chnl->main_ready_length	= _chnl->main_active_length;	//debug only
 					_chnl->main_rdy_usealt = 1;
 				}
 			// option 2. normal length peaks
@@ -126,9 +126,9 @@ uint8_t Update_channel(DRUM* _chnl, uint32_t _adc_reading, GPIO_PinState _aux_st
 					  && (_chnl->main_active_length <  _chnl->peak_max_length)) {
 				_chnl->main_rdy 		= 1;
 				_chnl->main_rdy_usealt 	= 0;
-				_chnl->main_rdy_time	= STEP_TIME;
-				_chnl->main_rdy_height 	= _chnl->main_active_max;
-				_chnl->main_rdy_length	= _chnl->main_active_length;	//debug only
+				_chnl->main_ready_time	= STEP_TIME;
+				_chnl->main_ready_height 	= _chnl->main_active_max;
+				_chnl->main_ready_length	= _chnl->main_active_length;	//debug only
 
 				// handle hihat case
 				if ((_chnl->chnl_type == CYMBAL_HIHAT) && (_chnl->aux_status == CHANNEL_STATUS_PRESSED))
@@ -137,7 +137,7 @@ uint8_t Update_channel(DRUM* _chnl, uint32_t _adc_reading, GPIO_PinState _aux_st
 			}else{
 //				if (_chnl->cooldown < (_chnl->peak2peak - 512)){
 					_chnl->cooldown = 0;
-					_chnl->main_rdy_height 	= 0;
+					_chnl->main_ready_height 	= 0;
 
 //				}
 			}
@@ -165,10 +165,10 @@ uint8_t Update_channel(DRUM* _chnl, uint32_t _adc_reading, GPIO_PinState _aux_st
 
 		// peak ended
 		if ((_chnl->aux_active_state == CHANNEL_PAD_IDLE) && (_chnl->aux_last_state == CHANNEL_PAD_TRIGGERED)){
-			if (STEP_TIME - _chnl->aux_rdy_time > AUX_PEAK2PEAK) {
-				_chnl->aux_rdy			 = 1;
-				_chnl->aux_rdy_time		 = STEP_TIME;
-				_chnl->aux_rdy_state	 = _chnl->aux_active_state ;
+			if (STEP_TIME - _chnl->aux_peak_time > AUX_PEAK2PEAK) {
+				_chnl->aux_ready			 = 1;
+				_chnl->aux_peak_time		 = STEP_TIME;
+				_chnl->aux_previous_state	 = _chnl->aux_active_state ;
 			}
 			_chnl->aux_status		 = CHANNEL_STATUS_IDLE;
 		}
@@ -184,29 +184,29 @@ uint8_t Update_channel(DRUM* _chnl, uint32_t _adc_reading, GPIO_PinState _aux_st
 
 		// pedal pressed
 		if ((_chnl->aux_active_state == CHANNEL_PEDAL_PRESSED) && (_chnl->aux_last_state == CHANNEL_PEDAL_IDLE)){
-			if (STEP_TIME - _chnl->aux_rdy_time > AUX_PEAK2PEAK) {
-				_chnl->aux_rdy			 = 1;
-				_chnl->aux_rdy_time		 = STEP_TIME;
+			if (STEP_TIME - _chnl->aux_peak_time > AUX_PEAK2PEAK) {
+				_chnl->aux_ready			 = 1;
+				_chnl->aux_peak_time		 = STEP_TIME;
 			}
-			_chnl->aux_rdy_state	 = _chnl->aux_active_state ;
+			_chnl->aux_previous_state	 = _chnl->aux_active_state ;
 			_chnl->aux_status		 = CHANNEL_STATUS_PRESSED;
 
 		}
 
 		// pedal released
 		if ((_chnl->aux_active_state == CHANNEL_PEDAL_IDLE) && (_chnl->aux_last_state == CHANNEL_PEDAL_PRESSED)){
-			if (STEP_TIME - _chnl->aux_rdy_time > AUX_PEAK2PEAK) {
-				_chnl->aux_rdy			 = 1;
-				_chnl->aux_rdy_time		 = STEP_TIME;
+			if (STEP_TIME - _chnl->aux_peak_time > AUX_PEAK2PEAK) {
+				_chnl->aux_ready			 = 1;
+				_chnl->aux_peak_time		 = STEP_TIME;
 			}
-			_chnl->aux_rdy_state	 = _chnl->aux_active_state ;
+			_chnl->aux_previous_state	 = _chnl->aux_active_state ;
 			_chnl->aux_status		 = CHANNEL_STATUS_IDLE;
 		}
 		_chnl->aux_last_state = _chnl->aux_active_state;
 	}
 
 	// for fun return 1 if there is data to report
-	return (_chnl->main_rdy | _chnl->aux_rdy);
+	return (_chnl->main_rdy | _chnl->aux_ready);
 }
 
 

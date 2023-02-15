@@ -113,16 +113,16 @@ typedef struct _drum
 	DRM_status aux_status;			// indicates current status of the aux channel
 
 	// data to send to PC
-	uint16_t main_rdy_height;		// ready peak height
-	uint32_t main_rdy_time;			// ready peak time, DEBUG ONLY
-	uint8_t  main_rdy_volume;		// calculated midi volume
-	uint16_t main_rdy_length;		// ready peak duration, DEBUG ONLY
+	uint16_t main_ready_height;		// ready peak height
+	uint32_t main_ready_time;			// ready peak time, DEBUG ONLY
+	uint8_t  main_ready_volume;		// calculated midi volume
+	uint16_t main_ready_length;		// ready peak duration, DEBUG ONLY
 
 
-	uint8_t  aux_rdy;				// flag for aux event ready
+	uint8_t  aux_ready;				// flag for aux event ready
 	// aux input
-	uint32_t aux_rdy_time;			// variable with active peak time
-	DRM_aux_state aux_rdy_state;	// previous state of the aux
+	uint32_t aux_peak_time;			// variable with active peak time
+	DRM_aux_state aux_previous_state;	// previous state of the aux
 
 	uint32_t aux_active_time;		// last detected peak time
 	DRM_aux_state aux_active_state;	// active state of the aux
