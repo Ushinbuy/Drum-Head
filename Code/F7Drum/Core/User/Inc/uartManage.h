@@ -9,7 +9,7 @@
 //void setLinksUartDrums(DRUM extChannel[]);
 void setLinkUart(UART_HandleTypeDef* globalUart);
 void initSettingsFromUart(void);
-void sendUart(char *_msg);
+void sendUart(const char *_msg);
 void handleConfigFromUart(void);
 void sendDebug(uint8_t _ch, uint8_t _aux);
 

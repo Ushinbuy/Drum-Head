@@ -22,7 +22,7 @@ void setLinkUart(UART_HandleTypeDef* globalUart){
 	localUart = globalUart;
 }
 
-void sendUart (char *_msg){
+void sendUart (const char *_msg){
 	HAL_UART_Transmit_DMA(localUart, (uint8_t*) _msg, strlen((char const*) _msg));
 }
 
