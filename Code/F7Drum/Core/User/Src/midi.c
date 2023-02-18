@@ -2,10 +2,11 @@
 #include "drumidy.h"
 
 #define TAB 0x09		// to know what is TAB
-#define MIDI_CHANNEL 0x9
-#define NOTE_ON	0x90 + MIDI_CHANNEL
-#define NOTE_OFF 0x80 + MIDI_CHANNEL
-#define KEY_PRESSURE 0xA0 + MIDI_CHANNEL
+#define MIDI_CHANNEL 	0x9
+#define NOTE_ON			0x90 + MIDI_CHANNEL
+#define NOTE_OFF 		0x80 + MIDI_CHANNEL
+#define KEY_PRESSURE 	0xA0 + MIDI_CHANNEL // AfterTouch
+#define CONTROL_CHANGE	0xB0 + MIDI_CHANNEL
 
 void sendMidiActiveSense(uint8_t* _upd_active_sens){
 	if (*_upd_active_sens) {
@@ -75,4 +76,10 @@ void sendMidiHHPedalOn(){
 void sendMidiHHPedalOff(){
   uint8_t bff[4] = { TAB,  KEY_PRESSURE, HHPEDAL , 0x3F};
   tx_midi((uint8_t *)bff,4);
+}
+
+void sendMidiControlChange(uint8_t controlNumber, uint8_t controlValue) {
+	// TODO check correction of this message. It can be checked from arduino
+	uint8_t bff[4] = { TAB, controlNumber, controlValue, MIDI_CHANNEL };
+	tx_midi((uint8_t*) bff, 4);
 }

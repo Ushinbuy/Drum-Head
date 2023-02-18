@@ -25,6 +25,8 @@ void sendMidiHHPedalOn();
 // pedal aftertouch for hihat
 void sendMidiHHPedalOff();
 
+void sendMidiControlChange(uint8_t controlNumber, uint8_t controlValue);
+
 #ifdef __cplusplus
 }
 #endif
