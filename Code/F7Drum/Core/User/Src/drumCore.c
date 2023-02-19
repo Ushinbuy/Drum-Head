@@ -86,7 +86,7 @@ void checkPiezoChannels(void){
 			channel[ch].main_rdy = 0;
 
 			// custom volume calculation for mesh
-			if (channel[ch].chnl_type == MESH_PAD_AUTOAUX | MESH_RIM_AUTOAUX) {
+			if ((channel[ch].chnl_type == MESH_PAD_AUTOAUX) || (channel[ch].chnl_type == MESH_RIM_AUTOAUX)) {
 				_volume = (int) (100.0* (float) (channel[ch].main_ready_height - PEAK_THRESHOLD) / 4096.0 * 100.0 / (float) channel[ch].peak_volume_norm);
 				if ((channel[ch].chnl_type == MESH_RIM_AUTOAUX) && (channel[ch].main_rdy_usealt))
 					_volume = _volume * 4;
