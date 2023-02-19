@@ -36,6 +36,7 @@
 #include "drumAudioCore.h"
 #endif
 #include "drumCore.h"
+#include "stm32746g_discovery_qspi.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -143,6 +144,32 @@ int main(void)
   MX_DMA_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
+//  uint8_t readBuff[4] = {0};
+//
+//  extern char buffer_out[1000];
+//
+//	BSP_QSPI_Init();
+//	if (BSP_QSPI_Read(readBuff, 0xC0000, 4) != QSPI_OK) {
+//		sendUart("qspi can't read");
+//	} else {
+//		sprintf(buffer_out, "read from qspi %X %X %X %X", readBuff[0],
+//				readBuff[1], readBuff[2], readBuff[3]);
+//		sendUart(buffer_out);
+//		readBuff[3] = 0x44;
+//		if (BSP_QSPI_Write(readBuff, 0xC0000, 4) != QSPI_OK) {
+//			sendUart("qspi can't write");
+//		} else {
+//			readBuff[0] = 0;
+//			BSP_QSPI_Read(readBuff, 0xC0000, 4);
+//			sprintf(buffer_out, "read from qspi %X %X %X %X", readBuff[0],
+//					readBuff[1], readBuff[2], readBuff[3]);
+//			sendUart(buffer_out);
+//			HAL_Delay(10);
+//		}
+//	}
+//
+//  BSP_QSPI_DeInit();
+
 #define MY_DEBUG
 #ifdef MY_DEBUG
 	DBGMCU->APB1FZ |= DBGMCU_APB1_FZ_DBG_TIM6_STOP;		// shutdown TIM6 on debug
