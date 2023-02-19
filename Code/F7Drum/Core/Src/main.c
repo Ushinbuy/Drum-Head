@@ -36,6 +36,7 @@
 #include "drumAudioCore.h"
 #endif
 #include "drumCore.h"
+#include "quadspi.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -143,6 +144,43 @@ int main(void)
   MX_DMA_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
+  MX_QUADSPI_Init();
+  if (CSP_QUADSPI_Init() != HAL_OK)
+  {
+	  sendUart("qspi init error");
+	  Error_Handler();
+  }
+
+  extern char buffer_out[1000];
+  uint8_t tempBuff[] = {0x7, 0x8, 0x9, 0xA};
+  uint8_t readBuff[] = {0, 0, 0, 0};
+
+  if (CSP_QSPI_Read(readBuff, 0x40000, 4) != HAL_OK)
+     {
+  	  sendUart("qspi read 1 error");
+   	  Error_Handler();
+     }
+
+    sprintf(buffer_out, "\n we are read %X %X %X %X", readBuff[0], readBuff[1], readBuff[2], readBuff[3]);
+    sendUart(buffer_out);
+    HAL_Delay(100);
+
+
+//  if (CSP_QSPI_Write(tempBuff, 0x100000, 4) != HAL_OK)
+//  {
+//	  sendUart("qspi write error");
+//	  Error_Handler();
+//  }
+
+  if (CSP_QSPI_Read(readBuff, 0x40000, 4) != HAL_OK)
+   {
+	  sendUart("qspi read 2 error");
+ 	  Error_Handler();
+   }
+
+  sprintf(buffer_out, "\n we are read %X %X %X %X", readBuff[0], readBuff[1], readBuff[2], readBuff[3]);
+  sendUart(buffer_out);
+
 #define MY_DEBUG
 #ifdef MY_DEBUG
 	DBGMCU->APB1FZ |= DBGMCU_APB1_FZ_DBG_TIM6_STOP;		// shutdown TIM6 on debug
