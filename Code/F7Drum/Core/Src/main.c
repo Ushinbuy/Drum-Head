@@ -163,7 +163,7 @@ int main(void)
 
     sprintf(buffer_out, "\n we are read %X %X %X %X", readBuff[0], readBuff[1], readBuff[2], readBuff[3]);
     sendUart(buffer_out);
-    HAL_Delay(10);
+    HAL_Delay(100);
 
 
 //  if (CSP_QSPI_Write(tempBuff, 0x100000, 4) != HAL_OK)
@@ -180,7 +180,6 @@ int main(void)
 
   sprintf(buffer_out, "\n we are read %X %X %X %X", readBuff[0], readBuff[1], readBuff[2], readBuff[3]);
   sendUart(buffer_out);
-  HAL_Delay(10);
 
 #define MY_DEBUG
 #ifdef MY_DEBUG
