@@ -31,7 +31,7 @@ extern "C" {
 
 /* USER CODE END Includes */
 
-extern QSPI_HandleTypeDef hqspi;
+//extern QSPI_HandleTypeDef hqspi;
 
 /* USER CODE BEGIN Private defines */
 

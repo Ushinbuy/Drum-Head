@@ -32,7 +32,7 @@ static uint8_t QSPI_ResetChip(void);
 
 /* USER CODE END 0 */
 
-QSPI_HandleTypeDef hqspi;
+static QSPI_HandleTypeDef hqspi;
 
 /* QUADSPI init function */
 void MX_QUADSPI_Init(void)

@@ -1,6 +1,7 @@
 #ifndef USER_INC_DRUMAUDIOCORE_H_
 #define USER_INC_DRUMAUDIOCORE_H_
 
+#define ADDRESS_START	0x90000000
 #define ADDRESS_CRASH	0x90000000
 #define ADDRESS_COWBELL	0x90040000
 #define ADDRESS_HAT		0x90060000
@@ -18,10 +19,10 @@ typedef enum{
 
 typedef struct {
 	uint32_t fileLength;
-	uint32_t currentOffset;
+	uint32_t startAddress;
+	uint32_t currentAddress;
 	float userVolumeDB;
 	float currentVolumeFloat;
-	const uint8_t* startAddress;
 	volatile SoundStateEnum soundState;
 } DrumSoundStruct;
 
