@@ -1,57 +1,39 @@
 #include <hellodrum.hpp>
 #include "drumManager.h"
 #include "midi.h"
+#include "stm32746g_discovery_qspi.h"
+
+void Error_Handler(void);
+void sendUart(const char *_msg);
 
 /**
  * This method for creating space in memory
  */
 void firstInitMem(void) {
-	// TODO add check if mem not inititalize
+	uint8_t numBytesForCheck = 8;
+	uint8_t readBuff[numBytesForCheck] = { 0 };
 
-	HelloDrum pad_0(0);
-	HelloDrum pad_1(1);
-	HelloDrum pad_2(2);
-	HelloDrum pad_3(3);
-	HelloDrum pad_4(4);
-	HelloDrum pad_5(5);
-	HelloDrum pad_6(6);
-	HelloDrum pad_7(7);
-	HelloDrum pad_8(8);
-	HelloDrum pad_9(9);
-	HelloDrum pad_10(10);
-	HelloDrum pad_11(11);
-	HelloDrum pad_12(12);
-	HelloDrum pad_13(13);
-	HelloDrum pad_14(14);
-	HelloDrum pad_15(15);
+	BSP_QSPI_Init();
 
-	//if you have more pads, just add code like this
-	//HelloDrum pad_16(16);
-	//HelloDrum pad_17(17);
-	//HelloDrum pad_18(18);
+	bool isMemoryInitBefore = true;
+	if (BSP_QSPI_Read(readBuff, 0x0, numBytesForCheck) != QSPI_OK) {
+		sendUart("qspi can't read");
+		Error_Handler();
+	}
+	for(uint8_t i = 0; i < numBytesForCheck; i++){
+		isMemoryInitBefore &= (readBuff[i] == 0xFF);
+	}
+	if(isMemoryInitBefore){
+		BSP_QSPI_DeInit();
+		return;
+	}
 
-	//Initialize
-	pad_0.initMemory();
-	pad_1.initMemory();
-	pad_2.initMemory();
-	pad_3.initMemory();
-	pad_4.initMemory();
-	pad_5.initMemory();
-	pad_6.initMemory();
-	pad_7.initMemory();
-	pad_8.initMemory();
-	pad_9.initMemory();
-	pad_10.initMemory();
-	pad_11.initMemory();
-	pad_12.initMemory();
-	pad_13.initMemory();
-	pad_14.initMemory();
-	pad_15.initMemory();
+	for(uint8_t i = 0; i < NUMBER_OF_PADS; i++){
+		HelloDrum pad(i);
+		pad.initMemory();
+	}
 
-	//if you have more pads, just add code like this
-	//pad_16.initMemory();
-	//pad_17.initMemory();
-	//pad_18.initMemory();
+	BSP_QSPI_DeInit();
 }
 
 static HelloDrum kick(0);

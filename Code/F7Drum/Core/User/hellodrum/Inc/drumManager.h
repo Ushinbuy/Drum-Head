@@ -3,6 +3,8 @@
 
 #include  <stdint.h>
 
+#define NUMBER_OF_PADS 6
+
 void initHelloDrums(void);
 void requestPiezo(void);
 void checkHelloDrums(void);

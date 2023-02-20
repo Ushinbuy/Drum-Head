@@ -77,6 +77,12 @@ void initAudioCore(void){
 	audioState = AUDIO_STATE_PLAYING;
 }
 
+void stopAudioCore(){
+	audioState = AUDIO_STATE_IDLE;
+	BSP_AUDIO_OUT_Stop(CODEC_PDWN_SW);
+	// TODO maybe here need just only pause?
+}
+
 void initSounds(void){
 	WAVE_FormatTypeDef *waveformat = NULL;
 	if(BSP_QSPI_Init() != QSPI_OK){
@@ -192,6 +198,8 @@ void changeVolume(DrumSoundStruct *drum, float newVolumeDB){
 }
 
 void handleAudioStream(void) {
+	if (audioState != AUDIO_STATE_PLAYING)
+		return;
 	switch (audioBufferOffset) {
 	case PLAY_BUFFER_OFFSET_HALF:
 		updateBufferFromFile(pBufferFirstHalf);
