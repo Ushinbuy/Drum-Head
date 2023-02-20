@@ -54,7 +54,7 @@ uint8_t upd_active_sens = 0;	//flag for active sense, triggered every 300ms
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+extern USBD_HandleTypeDef hUsbDeviceFS;
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -198,7 +198,7 @@ int main(void)
 //	}
 #endif
 		handleConfigFromUart();
-		if(isUsbConfigured()){
+		if(hUsbDeviceFS.dev_state == USBD_STATE_CONFIGURED){
 			sendMidiActiveSense(&upd_active_sens);
 		}
 		checkPiezoChannels();
@@ -991,15 +991,10 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 void tx_midi(uint8_t *_buffer, uint16_t len) {
-	if(!isUsbConfigured()){
+	if(hUsbDeviceFS.dev_state != USBD_STATE_CONFIGURED)
 		return;
-	}
-//	uint8_t rt = USBD_BUSY;
-//	while (rt == USBD_BUSY) {
-//		rt = CDC_Transmit_FS(_buffer, len);
-//	};
-	CDC_Transmit_FS(_buffer, len);
 
+	CDC_Transmit_FS(_buffer, len);
 	TIM2->CNT = 0; // restart active sense timer
 }
 

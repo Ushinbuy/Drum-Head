@@ -54,9 +54,7 @@ USBD_HandleTypeDef hUsbDeviceFS;
  * -- Insert your external function declaration here --
  */
 /* USER CODE BEGIN 1 */
-uint8_t isUsbConfigured(void){
-	return hUsbDeviceFS.dev_state == USBD_STATE_CONFIGURED;
-}
+
 /* USER CODE END 1 */
 
 /**
