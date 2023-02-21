@@ -12,6 +12,7 @@
 #include <hellodrum.hpp>
 #include <math.h>
 #include <stdio.h>
+#include "drumManager.h"
 
 extern "C" void sendUart(const char *_msg);
 extern char buffer_out[1000];
@@ -19,6 +20,19 @@ extern char buffer_out[1000];
 //#include "Arduino.h"
 //#include "EEPROM.h"
 
+struct sPadMemory{
+public:
+	  byte sensitivity = 100;   //0
+	  byte threshold1 = 10;     //1
+	  byte scantime = 10;       //2
+	  byte masktime = 30;       //3
+	  byte rimSensitivity = 20; //4 edgeThreshold
+	  byte rimThreshold = 3;    //5 cupThreshold
+	  byte curvetype = 0;       //6
+	  byte note = 38;           //7
+	  byte noteRim = 39;        //8
+	  byte noteCup = 40;        //9
+};
 
 //Pad with a sensor.
 HelloDrum::HelloDrum(byte pin1)
@@ -1369,7 +1383,30 @@ void HelloDrum::settingName(const char *instrumentName)
 void HelloDrum::loadMemory()
 {
   //Read values from EEPROM.
-	// TODO
+
+	sPadMemory currentPad;
+	uint32_t currentPadAddress = PAD_ADDRESS_START + padNum * sizeof(sPadMemory);
+	readFromExternalFlash((uint8_t *) &currentPad, currentPadAddress, sizeof(sPadMemory));
+
+	sensitivity = currentPad.sensitivity;
+	threshold1 = currentPad.threshold1;
+	scantime = currentPad.scantime;
+	masktime = currentPad.masktime;
+	rimSensitivity = currentPad.rimSensitivity;
+	rimThreshold = currentPad.rimThreshold;
+	curvetype = currentPad.curvetype;
+	note = currentPad.note;
+	noteOpen = 			note;
+	noteRim = currentPad.noteRim;
+	noteEdge = 			noteRim;
+	noteClose = 		noteRim;
+	noteOpenEdge = 		noteRim;
+	noteCup = currentPad.noteCup;
+	noteCloseEdge = 	noteCup;
+	noteCross = 		noteCup;
+
+	// TODO Remove duplicates of parameters.
+
 //  sensitivity = EEPROM.read((padNum * 10));
 //  threshold1 = EEPROM.read((padNum * 10) + 1);
 //  scantime = EEPROM.read((padNum * 10) + 2);
@@ -1391,17 +1428,10 @@ void HelloDrum::loadMemory()
 void HelloDrum::initMemory()
 {
   //Write initial value to EEPROM.
-	// TODO
-//  EEPROM.write(padNum * 10, sensitivity);
-//  EEPROM.write((padNum * 10) + 1, threshold1);
-//  EEPROM.write((padNum * 10) + 2, scantime);
-//  EEPROM.write((padNum * 10) + 3, masktime);
-//  EEPROM.write((padNum * 10) + 4, rimSensitivity);
-//  EEPROM.write((padNum * 10) + 5, rimThreshold);
-//  EEPROM.write((padNum * 10) + 6, curvetype);
-//  EEPROM.write((padNum * 10) + 7, note);
-//  EEPROM.write((padNum * 10) + 8, noteRim);
-//  EEPROM.write((padNum * 10) + 9, noteCup);
+
+	sPadMemory currentPad;
+	uint32_t currentPadAddress = PAD_ADDRESS_START + padNum * sizeof(sPadMemory);
+	writeToExternalFlash((uint8_t *) &currentPad, currentPadAddress, sizeof(sPadMemory));
 }
 
 ///////////////////// 7. BUTONN //////////////////////////

@@ -34,6 +34,8 @@ void firstInitMem(void) {
 	}
 
 	BSP_QSPI_DeInit();
+	// reboot mcu
+	NVIC_SystemReset();
 }
 
 static HelloDrum kick(0);
@@ -131,3 +133,18 @@ void checkHelloDrums(void){
 		sendMidiAT(ride.noteCup, 0);
 	}
 }
+
+void writeToExternalFlash(uint8_t* pData, uint32_t WriteAddr, uint32_t Size){
+	if(BSP_QSPI_Write(pData, WriteAddr, Size) != QSPI_OK){
+		sendUart("QSPI can't writeToExternalFlash");
+		Error_Handler();
+	}
+}
+
+void readFromExternalFlash(uint8_t* pData, uint32_t ReadAddr, uint32_t Size){
+	if(BSP_QSPI_Read(pData, ReadAddr, Size) != QSPI_OK){
+		sendUart("QSPI can't writeToExternalFlash");
+		Error_Handler();
+	}
+}
+

@@ -242,7 +242,7 @@ public:
   byte noteCloseEdge;
   byte noteCross;
   byte threshold1;
-  byte threshold2;
+//  byte threshold2; // TODO can't find this variable in code
   byte scantime;
   byte masktime;
   byte sensitivity;
