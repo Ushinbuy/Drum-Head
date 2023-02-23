@@ -13,13 +13,8 @@
 using namespace std;
 
 int main(int ac, char** av) {
-	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
-
-	eraseSector();
-
-	initMemory(0);
-
-	changeValueInFlash();
+//	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
+	mainWork();
 
 	return 0;
 
