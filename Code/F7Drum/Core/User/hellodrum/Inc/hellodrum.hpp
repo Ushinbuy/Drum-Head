@@ -246,9 +246,7 @@ public:
   byte value;
   byte padNum;
 
-
   PadMemory settings;
-
 
   // this was changed by PadMemory structure
 //  byte note;
