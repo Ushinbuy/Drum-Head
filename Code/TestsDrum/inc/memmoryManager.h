@@ -5,17 +5,9 @@
 #include <stdio.h>
 
 void eraseSector(void);
-void initMemory(uint8_t padNum);
+void initMemory(void);
 
-class TestClass{
-public:
-	uint8_t simpleVal = 9;
-	uint8_t someAnother = 32;
-
-	void printString(void){
-		printf("Hello this is test class");
-	}
-};
+void mainWork(void);
 
 void changeValueInFlash(void);
 

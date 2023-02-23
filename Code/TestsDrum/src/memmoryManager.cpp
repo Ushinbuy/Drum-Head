@@ -4,15 +4,16 @@
 
 #define SECTOR_SIZE 0x10000
 #define PAD_ADDRESS_START 0x0
+#define ADDRESS_SYSTEM_START 0x0
 
 typedef uint8_t byte;
 
 uint8_t pageAddress[SECTOR_SIZE];
 #define PADS_NUMBER 6
-
-extern "C" void	*memset(void *__b, int __c, size_t __len);
+#define MAX_SOUNDS 256
 
 static void writeToExternalFlash(uint8_t* pData, uint32_t WriteAddr, uint32_t Size);
+void filFFvalues(uint64_t *pData, uint32_t size);
 
 struct sPadMemory{
 public:
@@ -26,19 +27,18 @@ public:
 	  byte note = 38;           //7
 	  byte noteRim = 39;        //8
 	  byte noteCup = 40;        //9
-	  uint32_t noteSoundAddress;	//false TODO check the struct fields 10-13
+	  byte soundAddressItem;	//10 this field show which item from soundsAdresses
 };
 
-struct sMemorySystem{
+struct MemorySystem{
 	uint8_t numberOfTotalPads = PADS_NUMBER;
-	uint64_t sPadOffset[PADS_NUMBER];
+	uint8_t soundsNumber;
+	uint64_t padSavingsOffsets[PADS_NUMBER];
+	uint32_t soundsAdresses[MAX_SOUNDS];
 };
 
 void eraseSector(void) {
 	memset(pageAddress, 0xFF, SECTOR_SIZE);
-
-//	printf("\nmassive is filled 0x%X, 0x%X, 0x%X, 0x%X", pageAddress[0],
-//			pageAddress[1], pageAddress[2], pageAddress[3]);
 }
 
 void writeToExternalFlash(uint8_t* pData, uint32_t WriteAddr, uint32_t Size){
@@ -47,41 +47,36 @@ void writeToExternalFlash(uint8_t* pData, uint32_t WriteAddr, uint32_t Size){
 		pageAddress[WriteAddr + i] &= pData[i];
 	}
 
-	printf("\n value of noteCup %d", pageAddress[WriteAddr]);
-	printf("\n description before address is 0x%X 0x%X",
-			pageAddress[WriteAddr + 1], pageAddress[WriteAddr + 2]);
-	printf("\n massive is copy 0x%X, 0x%X, 0x%X, 0x%X",
-			pageAddress[WriteAddr + 3], pageAddress[WriteAddr + 4],
-			pageAddress[WriteAddr + 5], pageAddress[WriteAddr + 6]);
-//
-//	uint32_t currentAddress = (pageAddress[WriteAddr + 15] << 8 * 3)
-//			+ (pageAddress[WriteAddr + 14] << 8 * 2)
-//			+ (pageAddress[WriteAddr + 13] << 8)
-//			+ pageAddress[WriteAddr + 12];
-//	printf("\n with address 0x%X", currentAddress);
-//
-//	printf("\n values after struct 0x%X 0x%X",
-//				pageAddress[WriteAddr + 16], pageAddress[WriteAddr + 17]);
+	for(int i = 2; i < 100; i++){
+		printf ("\n%3d - 0x%X", i, pageAddress[WriteAddr + i]);
+	}
 }
 
-void setPadsNumber(uint8_t padsNumbers){
-	TestClass test;
-	writeToExternalFlash((uint8_t *) &test, PAD_ADDRESS_START, sizeof(TestClass));
+void initMemmorySystem(void){
+	MemorySystem _memSyst;
+	_memSyst.numberOfTotalPads = PADS_NUMBER;
+	_memSyst.soundsNumber = 2;
+
+	filFFvalues(_memSyst.padSavingsOffsets, PADS_NUMBER);
+
+	_memSyst.soundsAdresses[0] = 0x10;
+	_memSyst.soundsAdresses[1] = 0x20;
+	_memSyst.soundsAdresses[2] = 0x30;
+	_memSyst.soundsAdresses[3] = 0x44;
+	_memSyst.soundsAdresses[4] = 0x55;
+	_memSyst.soundsAdresses[5] = 0x66;
+
+	writeToExternalFlash((uint8_t *) & _memSyst, ADDRESS_SYSTEM_START, sizeof(MemorySystem));
 }
 
-void initMemory(uint8_t padNum)
+void filFFvalues(uint64_t *pData, uint32_t size){
+	for(uint32_t i = 0; i < size; i++){
+		pData[i] = 0xFFFFFFFFFFFFFFFF;
+	}
+}
+
+void mainWork(void)
 {
-  //Write initial value to EEPROM.
-
-//	sPadMemory currentPad;
-//	currentPad.noteSoundAddress = 0x87654321;
-//	printf("\nPad number %d is initialize", padNum);
-//
-//	uint32_t currentPadAddress = PAD_ADDRESS_START + padNum * sizeof(sPadMemory);
-//	writeToExternalFlash((uint8_t *) &currentPad, currentPadAddress, sizeof(sPadMemory));
-}
-
-void changeValueInFlash(void){
-	TestClass test;
-	writeToExternalFlash((uint8_t *) &test, PAD_ADDRESS_START, sizeof(TestClass));
+	eraseSector();
+	initMemmorySystem();
 }
