@@ -114,6 +114,12 @@ void readMemorySystem(void){
 	readFromExternalFlash((uint8_t *)&mainMemSyst, ADDRESS_SYSTEM_START, sizeof(MemorySystem));
 }
 
+void overwritePad(PadMemory _pad, uint8_t padNum){
+	mainMemSyst.padSavingsOffsets[padNum] >>= 1;
+	writeToExternalFlash((uint8_t *) &mainMemSyst, ADDRESS_SYSTEM_START, sizeof(MemorySystem));
+	writeToExternalFlash((uint8_t*)&_pad, calcPadAddress(padNum), sizeof(PadMemory));
+}
+
 void mainWork(void)
 {
 	eraseSector();
@@ -127,4 +133,17 @@ void mainWork(void)
 	for(int i = calcPadAddress(0); i < calcPadAddress(0) + 11; i++){
 		printf ("\naddress %d has value %d", i, pageAddress[i]);
 	}
+
+	PadMemory tempPad;
+	readFromExternalFlash((uint8_t *)&tempPad, calcPadAddress(0), sizeof(tempPad));
+
+	printf ("\nCHECK %d", tempPad.curvetype);
+
+	tempPad.masktime = 99;
+
+	overwritePad(tempPad, 0);
+
+	PadMemory updatedPad;
+	readFromExternalFlash((uint8_t *)&updatedPad, calcPadAddress(0), sizeof(tempPad));
+	printf ("\nCHECK %d", updatedPad.masktime);
 }
