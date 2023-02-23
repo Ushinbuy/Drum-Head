@@ -154,6 +154,20 @@ static int rawValue[16]; //2 * 8chanel Mux
 static int rawValue[64]; //8 * 8chanel Mux
 #endif
 
+struct PadMemory{
+public:
+	  byte sensitivity = 100;   //0
+	  byte threshold1 = 10;     //1
+	  byte scantime = 10;       //2
+	  byte masktime = 30;       //3
+	  byte rimSensitivity = 20; //4 edgeThreshold
+	  byte rimThreshold = 3;    //5 cupThreshold
+	  byte curvetype = 0;       //6
+	  byte note = 38;           //7
+	  byte noteRim = 39;        //8
+	  byte noteCup = 40;        //9
+};
+
 class HelloDrum
 {
 public:
@@ -232,23 +246,28 @@ public:
   byte value;
   byte padNum;
 
-  byte note;
-  byte noteRim;
-  byte noteCup;
+
+  PadMemory settings;
+
+
+  // this was changed by PadMemory structure
+//  byte note;
+//  byte noteRim;
+//  byte noteCup;
   byte noteEdge;
   byte noteOpen;
   byte noteClose;
   byte noteOpenEdge;
   byte noteCloseEdge;
   byte noteCross;
-  byte threshold1;
+//  byte threshold1;
 //  byte threshold2; // TODO can't find this variable in code
-  byte scantime;
-  byte masktime;
-  byte sensitivity;
-  byte curvetype;
-  byte rimThreshold;
-  byte rimSensitivity;
+//  byte scantime;
+//  byte masktime;
+//  byte sensitivity;
+//  byte curvetype;
+//  byte rimThreshold;
+//  byte rimSensitivity;
 
 private:
   byte pin_1;

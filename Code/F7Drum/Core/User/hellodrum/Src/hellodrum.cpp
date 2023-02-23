@@ -20,36 +20,22 @@ extern char buffer_out[1000];
 //#include "Arduino.h"
 //#include "EEPROM.h"
 
-struct sPadMemory{
-public:
-	  byte sensitivity = 100;   //0
-	  byte threshold1 = 10;     //1
-	  byte scantime = 10;       //2
-	  byte masktime = 30;       //3
-	  byte rimSensitivity = 20; //4 edgeThreshold
-	  byte rimThreshold = 3;    //5 cupThreshold
-	  byte curvetype = 0;       //6
-	  byte note = 38;           //7
-	  byte noteRim = 39;        //8
-	  byte noteCup = 40;        //9
-};
-
 //Pad with a sensor.
 HelloDrum::HelloDrum(byte pin1)
 {
   pin_1 = pin1;
 
-  //initial EEPROM value
-  sensitivity = 100;   //0
-  threshold1 = 10;     //1
-  scantime = 10;       //2
-  masktime = 30;       //3
-  rimSensitivity = 20; //4 edgeThreshold
-  rimThreshold = 3;    //5 cupThreshold
-  curvetype = 0;       //6
-  note = 38;           //7
-  noteRim = 39;        //8
-  noteCup = 40;        //9
+//  //initial EEPROM value
+//  settings.sensitivity = 100;   //0
+//  settings.threshold1 = 10;     //1
+//  settings.scantime = 10;       //2
+//  param.masktime = 30;       //3
+//  param.rimSensitivity = 20; //4 edgeThreshold
+//  param.rimThreshold = 3;    //5 cupThreshold
+//  param.curvetype = 0;       //6
+//  param.note = 38;           //7
+//  param.noteRim = 39;        //8
+//  param.noteCup = 40;        //9
 
   //Give the instance a pad number.
   padNum = padIndex;
@@ -62,17 +48,17 @@ HelloDrum::HelloDrum(byte pin1, byte pin2)
   pin_1 = pin1;
   pin_2 = pin2;
 
-  //initial value
-  sensitivity = 100;   //0
-  threshold1 = 10;     //1
-  scantime = 10;       //2
-  masktime = 30;       //3
-  rimSensitivity = 20; //4 edgeThreshold
-  rimThreshold = 3;    //5 cupThreshold
-  curvetype = 0;       //6
-  note = 38;           //7
-  noteRim = 39;        //8
-  noteCup = 40;        //9
+//  //initial value
+//  sensitivity = 100;   //0
+//  threshold1 = 10;     //1
+//  scantime = 10;       //2
+//  masktime = 30;       //3
+//  rimSensitivity = 20; //4 edgeThreshold
+//  rimThreshold = 3;    //5 cupThreshold
+//  curvetype = 0;       //6
+//  note = 38;           //7
+//  noteRim = 39;        //8
+//  noteCup = 40;        //9
 
   //Give the instance a pad number.
   padNum = padIndex;
@@ -192,7 +178,7 @@ void HelloDrum::singlePiezoSensing(byte sens, byte thre, byte scanTime, byte mas
       int prevVel = velocity;
 #endif
 
-      velocity = curve(velocity, Threshold, Sensitivity, curvetype); //apply the curve at the velocity
+      velocity = curve(velocity, Threshold, Sensitivity, settings.curvetype); //apply the curve at the velocity
       hit = true;                                                    //mark as hit
       time_end = millis();
 
@@ -276,8 +262,8 @@ void HelloDrum::dualPiezoSensing(byte sens, byte thre, byte scanTime, byte maskT
       if ((velocity - velocityRim < RimSensitivity) && (velocityRim > RimThreshold))
       {
 
-        velocity = curve(velocity, Threshold, Sensitivity, curvetype);
-        velocityRim = curve(velocityRim, Threshold, Sensitivity, curvetype);
+        velocity = curve(velocity, Threshold, Sensitivity, settings.curvetype);
+        velocityRim = curve(velocityRim, Threshold, Sensitivity, settings.curvetype);
 
 #ifdef DEBUG_DRUM
         sprintf(buffer_out, "[HitRim] velocity : %d , velocity rim : %d (raw value : %d, %d, head - rim : %d), loopTimes : %d, ScanTime(ms) : %ld",
@@ -297,8 +283,8 @@ void HelloDrum::dualPiezoSensing(byte sens, byte thre, byte scanTime, byte maskT
       else
       {
 
-        velocity = curve(velocity, Threshold, Sensitivity, curvetype);
-        velocityRim = curve(velocityRim, Threshold, Sensitivity, curvetype);
+        velocity = curve(velocity, Threshold, Sensitivity, settings.curvetype);
+        velocityRim = curve(velocityRim, Threshold, Sensitivity, settings.curvetype);
 
 #ifdef DEBUG_DRUM
         sprintf(buffer_out, "[HitRim] velocity : %d , velocity rim : %d (raw value : %d, %d, d : %d), loopTimes : %d, ScanTime(ms) : %ld",
@@ -388,7 +374,7 @@ void HelloDrum::cymbal2zoneSensing(byte sens, byte thre, byte scanTime, byte mas
       //bow
       if (firstSensorValue < edgeThreshold && lastSensorValue < edgeThreshold)
       {
-        velocity = curve(velocity, Threshold, Sensitivity, curvetype);
+        velocity = curve(velocity, Threshold, Sensitivity, settings.curvetype);
 
 #ifdef DEBUG_DRUM
 		sprintf(buffer_out, "[Hit Bow] velocity : %d, (raw value : %d, firstSensorValue : %d, lastSensorValue : %d), loopTimes : %d, ScanTime(ms) : %ld",
@@ -410,7 +396,7 @@ void HelloDrum::cymbal2zoneSensing(byte sens, byte thre, byte scanTime, byte mas
       //edge
       else if (velocity > Threshold && firstSensorValue > edgeThreshold && firstSensorValue > lastSensorValue)
       {
-        velocity = curve(velocity, Threshold, Sensitivity, curvetype);
+        velocity = curve(velocity, Threshold, Sensitivity, settings.curvetype);
 
 #ifdef DEBUG_DRUM
 		sprintf(buffer_out, "[Hit Edge] velocity : %d, (raw value : %d, firstSensorValue : %d, lastSensorValue : %d), loopTimes : %d, ScanTime(ms) : %ld",
@@ -516,7 +502,7 @@ void HelloDrum::cymbal3zoneSensing(byte sens, byte thre, byte scanTime, byte mas
       //bow
       if (velocity > Threshold && firstSensorValue < edgeThreshold && lastSensorValue < edgeThreshold)
       {
-        velocity = curve(velocity, Threshold, Sensitivity, curvetype);
+        velocity = curve(velocity, Threshold, Sensitivity, settings.curvetype);
 #ifdef DEBUG_DRUM
 		sprintf(buffer_out, "[Hit Bow] velocity : %d, (raw value : %d, firstSensorValue : %d, lastSensorValue : %d), loopTimes : %d, ScanTime(ms) : %ld",
 			  velocity,
@@ -536,7 +522,7 @@ void HelloDrum::cymbal3zoneSensing(byte sens, byte thre, byte scanTime, byte mas
       //edge
       else if (velocity > Threshold && firstSensorValue > edgeThreshold && firstSensorValue < cupThreshold && firstSensorValue > lastSensorValue)
       {
-        velocity = curve(velocity, Threshold, Sensitivity, curvetype);
+        velocity = curve(velocity, Threshold, Sensitivity, settings.curvetype);
 #ifdef DEBUG_DRUM
 		sprintf(buffer_out, "[Hit Edge] velocity : %d, (raw value : %d, firstSensorValue : %d, lastSensorValue : %d), loopTimes : %d, ScanTime(ms) : %ld",
 			  velocity,
@@ -556,7 +542,7 @@ void HelloDrum::cymbal3zoneSensing(byte sens, byte thre, byte scanTime, byte mas
       //cup
       else if (velocity > Threshold && firstSensorValue > cupThreshold && lastSensorValue < edgeThreshold)
       {
-        velocity = curve(velocity, Threshold, Sensitivity, curvetype);
+        velocity = curve(velocity, Threshold, Sensitivity, settings.curvetype);
 #ifdef DEBUG_DRUM
 		sprintf(buffer_out, "[Hit Cup] velocity : %d, (raw value : %d, firstSensorValue : %d, lastSensorValue : %d), loopTimes : %d, ScanTime(ms) : %ld",
 			  velocity,
@@ -652,7 +638,7 @@ void HelloDrum::TCRT5000Sensing(byte sens, byte thre1, byte thre2, byte scanTime
 
   //Pedal CC
   //TCRT = map(TCRT, thre1Raw, sensRaw, 0, 127);
-  TCRT = curve(TCRT, thre1Raw, sensRaw, curvetype);
+  TCRT = curve(TCRT, thre1Raw, sensRaw, settings.curvetype);
 
   if (TCRT < 20)
   {
@@ -778,7 +764,7 @@ void HelloDrum::FSRSensing(byte sens, byte thre, byte scanStart, byte scanEnd, b
   }
 
   //Pedal CC
-  fsr = curve(fsr, thre1Raw, sensRaw, curvetype);
+  fsr = curve(fsr, thre1Raw, sensRaw, settings.curvetype);
 
   if (fsr < 20)
   {
@@ -952,7 +938,7 @@ int HelloDrum::curve(int velocityRaw, int threshold, int sensRaw, byte curveType
 
 void HelloDrum::setCurve(byte curveType)
 {
-  curvetype = curveType;
+	settings.curvetype = curveType;
 }
 
 ///////////////////// 2. PAD without EEPROM //////////////////////////
@@ -1030,7 +1016,7 @@ void HelloDrum::singlePiezo()
 {
   padType[padNum] = Snum;
   piezoValue = analogRead(pin_1);
-  singlePiezoSensing(sensitivity, threshold1, scantime, masktime);
+  singlePiezoSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime);
 }
 
 void HelloDrum::dualPiezo()
@@ -1038,14 +1024,14 @@ void HelloDrum::dualPiezo()
   padType[padNum] = Dnum;
   piezoValue = analogRead(pin_1);
   RimPiezoValue = analogRead(pin_2);
-  dualPiezoSensing(sensitivity, threshold1, scantime, masktime, rimSensitivity, rimThreshold);
+  dualPiezoSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime, settings.rimSensitivity, settings.rimThreshold);
 }
 
 void HelloDrum::HH()
 {
   padType[padNum] = HHnum;
   piezoValue = analogRead(pin_1);
-  singlePiezoSensing(sensitivity, threshold1, scantime, masktime);
+  singlePiezoSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime);
 }
 
 void HelloDrum::HH2zone()
@@ -1053,7 +1039,7 @@ void HelloDrum::HH2zone()
   padType[padNum] = HH2num;
   piezoValue = analogRead(pin_1);
   sensorValue = analogRead(pin_2);
-  cymbal2zoneSensing(sensitivity, threshold1, scantime, masktime, rimSensitivity);
+  cymbal2zoneSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime, settings.rimSensitivity);
 }
 
 void HelloDrum::cymbal2zone()
@@ -1061,7 +1047,7 @@ void HelloDrum::cymbal2zone()
   padType[padNum] = CY2num;
   piezoValue = analogRead(pin_1);
   sensorValue = analogRead(pin_2);
-  cymbal2zoneSensing(sensitivity, threshold1, scantime, masktime, rimSensitivity);
+  cymbal2zoneSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime, settings.rimSensitivity);
 }
 
 void HelloDrum::cymbal3zone()
@@ -1069,28 +1055,28 @@ void HelloDrum::cymbal3zone()
   padType[padNum] = CY3num;
   piezoValue = analogRead(pin_1);
   sensorValue = analogRead(pin_2);
-  cymbal3zoneSensing(sensitivity, threshold1, scantime, masktime, rimSensitivity, rimThreshold);
+  cymbal3zoneSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime, settings.rimSensitivity, settings.rimThreshold);
 }
 
 void HelloDrum::TCRT5000()
 {
   padType[padNum] = HHCnum;
   TCRT = analogRead(pin_1);
-  TCRT5000Sensing(sensitivity, threshold1, masktime, scantime);
+  TCRT5000Sensing(settings.sensitivity, settings.threshold1, settings.masktime, settings.scantime);
 }
 
 void HelloDrum::FSR()
 {
   padType[padNum] = HHCnum;
   fsr = analogRead(pin_1);
-  FSRSensing(sensitivity, threshold1, scantime, masktime, rimSensitivity);
+  FSRSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime, settings.rimSensitivity);
 }
 
 void HelloDrum::hihatControl()
 {
   padType[padNum] = HHCnum;
   fsr = analogRead(pin_1);
-  FSRSensing(sensitivity, threshold1, scantime, masktime, rimSensitivity);
+  FSRSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime, settings.rimSensitivity);
 }
 
 //////////////////////////// 6. EEPROM SETTING  //////////////////////////////
@@ -1109,99 +1095,99 @@ void HelloDrum::settingEnable()
       switch (itemNumber)
       {
       case 0:
-        sensitivity = sensitivity + UP[itemNumber];
-        if (sensitivity > 100)
+    	  settings.sensitivity = settings.sensitivity + UP[itemNumber];
+        if (settings.sensitivity > 100)
         {
-          sensitivity = 1;
+        	settings.sensitivity = 1;
         }
 //        EEPROM.write(padNum * 8, sensitivity); // TODO
         break;
 
       case 1:
-        threshold1 = threshold1 + UP[itemNumber];
-        if (threshold1 > 100)
+    	  settings.threshold1 = settings.threshold1 + UP[itemNumber];
+        if (settings.threshold1 > 100)
         {
-          threshold1 = 1;
+        	settings.threshold1 = 1;
         }
 //        EEPROM.write((padNum * 10) + 1, threshold1); // TODO
         break;
 
       case 2:
-        scantime = scantime + UP[itemNumber];
-        if (scantime > 100)
+    	  settings.scantime = settings.scantime + UP[itemNumber];
+        if (settings.scantime > 100)
         {
-          scantime = 1;
+        	settings.scantime = 1;
         }
 //        EEPROM.write((padNum * 10) + 2, scantime); // TODO
         break;
 
       case 3:
-        masktime = masktime + UP[itemNumber];
-        if (masktime > 100)
+    	  settings.masktime = settings.masktime + UP[itemNumber];
+        if (settings.masktime > 100)
         {
-          masktime = 1;
+        	settings.masktime = 1;
         }
 //        EEPROM.write((padNum * 10) + 3, masktime); // TODO
         break;
 
       case 4:
-        rimSensitivity = rimSensitivity + UP[itemNumber];
-        if (rimSensitivity > 100)
+    	  settings.rimSensitivity = settings.rimSensitivity + UP[itemNumber];
+        if (settings.rimSensitivity > 100)
         {
-          rimSensitivity = 1;
+        	settings.rimSensitivity = 1;
         }
 //        EEPROM.write((padNum * 10) + 4, rimSensitivity); // TODO
         break;
 
       case 5:
-        rimThreshold = rimThreshold + UP[itemNumber];
-        if (rimThreshold > 100)
+    	  settings.rimThreshold = settings.rimThreshold + UP[itemNumber];
+        if (settings.rimThreshold > 100)
         {
-          rimThreshold = 1;
+        	settings.rimThreshold = 1;
         }
 //        EEPROM.write((padNum * 10) + 5, rimThreshold); // TODO
         break;
 
       case 6:
-        curvetype = curvetype + UP[itemNumber];
-        if (curvetype > 4)
+    	  settings.curvetype = settings.curvetype + UP[itemNumber];
+        if (settings.curvetype > 4)
         {
-          curvetype = 0;
+        	settings.curvetype = 0;
         }
 //        EEPROM.write((padNum * 10) + 6, curvetype); // TODO
         break;
 
       case 7:
-        note = note + UP[itemNumber];
-        if (note > 127)
+    	  settings.note = settings.note + UP[itemNumber];
+        if (settings.note > 127)
         {
-          note = 0;
+        	settings.note = 0;
         }
 //        EEPROM.write((padNum * 10) + 7, note); // TODO
-        noteOpen = note;
+        noteOpen = settings.note;
         break;
 
       case 8:
-        noteRim = noteRim + UP[itemNumber];
-        if (noteRim > 127)
+    	  settings.noteRim = settings.noteRim + UP[itemNumber];
+        if (settings.noteRim > 127)
         {
-          noteRim = 0;
+        	settings.noteRim = 0;
         }
 //        EEPROM.write((padNum * 10) + 8, noteRim); // TODO
-        noteEdge = noteRim;
-        noteClose = noteRim;
-        noteOpenEdge = noteRim;
+        noteEdge = settings.noteRim;
+        noteClose = settings.noteRim;
+        noteOpenEdge = settings.noteRim;
         break;
 
       case 9:
-        noteCup = noteCup + UP[itemNumber];
-        if (noteCup > 127)
+    	  settings.noteCup = settings.noteCup + UP[itemNumber];
+        if (settings.noteCup > 127)
         {
-          noteCup = 0;
+        	settings.noteCup = 0;
         }
 //        EEPROM.write((padNum * 10) + 9, noteCup); // TODO
-        noteCloseEdge = noteCup;
-        noteCross = noteCup;
+        noteCloseEdge = settings.noteCup;
+        noteCross = settings.noteCup;
         break;
       }
       change = true;
@@ -1217,99 +1203,99 @@ void HelloDrum::settingEnable()
       switch (itemNumber)
       {
       case 0:
-        sensitivity = sensitivity - UP[itemNumber];
-        if (sensitivity < 1)
+    	  settings.sensitivity = settings.sensitivity - UP[itemNumber];
+        if (settings.sensitivity < 1)
         {
-          sensitivity = 100;
+        	settings.sensitivity = 100;
         }
 //        EEPROM.write(padNum * 10, sensitivity); // TODO
         break;
 
       case 1:
-        threshold1 = threshold1 - UP[itemNumber];
-        if (threshold1 < 1)
+    	  settings.threshold1 = settings.threshold1 - UP[itemNumber];
+        if (settings.threshold1 < 1)
         {
-          threshold1 = 100;
+        	settings.threshold1 = 100;
         }
 //        EEPROM.write((padNum * 10) + 1, threshold1); // TODO
         break;
 
       case 2:
-        scantime = scantime - UP[itemNumber];
-        if (scantime < 1)
+    	  settings.scantime = settings.scantime - UP[itemNumber];
+        if (settings.scantime < 1)
         {
-          scantime = 100;
+        	settings.scantime = 100;
         }
 //        EEPROM.write((padNum * 10) + 2, scantime); // TODO
         break;
 
       case 3:
-        masktime = masktime - UP[itemNumber];
-        if (masktime < 1)
+    	  settings.masktime = settings.masktime - UP[itemNumber];
+        if (settings.masktime < 1)
         {
-          masktime = 100;
+        	settings.masktime = 100;
         }
 //        EEPROM.write((padNum * 10) + 3, masktime); // TODO
         break;
 
       case 4:
-        rimSensitivity = rimSensitivity - UP[itemNumber];
-        if (rimSensitivity < 1)
+    	  settings.rimSensitivity = settings.rimSensitivity - UP[itemNumber];
+        if (settings.rimSensitivity < 1)
         {
-          rimSensitivity = 100;
+        	settings.rimSensitivity = 100;
         }
 //        EEPROM.write((padNum * 10) + 4, rimSensitivity); // TODO
         break;
 
       case 5:
-        rimThreshold = rimThreshold - UP[itemNumber];
-        if (rimThreshold < 1)
+    	  settings.rimThreshold = settings.rimThreshold - UP[itemNumber];
+        if (settings.rimThreshold < 1)
         {
-          rimThreshold = 100;
+        	settings.rimThreshold = 100;
         }
 //        EEPROM.write((padNum * 10) + 5, rimThreshold); // TODO
         break;
 
       case 6:
-        curvetype = curvetype - UP[itemNumber];
-        if (curvetype == 255)
+    	  settings.curvetype = settings.curvetype - UP[itemNumber];
+        if (settings.curvetype == 255)
         {
-          curvetype = 4;
+        	settings.curvetype = 4;
         }
 //        EEPROM.write((padNum * 10) + 6, curvetype); // TODO
         break;
 
       case 7:
-        note = note - UP[itemNumber];
-        if (note == 255)
+    	  settings.note = settings.note - UP[itemNumber];
+        if (settings.note == 255)
         {
-          note = 127;
+        	settings.note = 127;
         }
 //        EEPROM.write((padNum * 10) + 7, note); // TODO
-        noteOpen = note;
+        noteOpen = settings.note;
         break;
 
       case 8:
-        noteRim = noteRim - UP[itemNumber];
-        if (noteRim == 255)
+    	  settings.noteRim = settings.noteRim - UP[itemNumber];
+        if (settings.noteRim == 255)
         {
-          noteRim = 127;
+        	settings.noteRim = 127;
         }
 //        EEPROM.write((padNum * 10) + 8, noteRim); // TODO
-        noteEdge = noteRim;
-        noteClose = noteRim;
-        noteOpenEdge = noteRim;
+        noteEdge = settings.noteRim;
+        noteClose = settings.noteRim;
+        noteOpenEdge = settings.noteRim;
         break;
 
       case 9:
-        noteCup = noteCup - UP[itemNumber];
-        if (noteCup == 255)
+    	  settings.noteCup = settings.noteCup - UP[itemNumber];
+        if (settings.noteCup == 255)
         {
-          noteCup = 127;
+        	settings.noteCup = 127;
         }
 //        EEPROM.write((padNum * 10) + 9, noteCup); // TODO
-        noteCloseEdge = noteCup;
-        noteCross = noteCup;
+        noteCloseEdge = settings.noteCup;
+        noteCross = settings.noteCup;
         break;
       }
       change = true;
@@ -1320,52 +1306,52 @@ void HelloDrum::settingEnable()
 
     if (itemNumber == 0)
     {
-      value = sensitivity;
+      value = settings.sensitivity;
     }
 
     else if (itemNumber == 1)
     {
-      value = threshold1;
+      value = settings.threshold1;
     }
 
     else if (itemNumber == 2)
     {
-      value = scantime;
+      value = settings.scantime;
     }
 
     else if (itemNumber == 3)
     {
-      value = masktime;
+      value = settings.masktime;
     }
 
     else if (itemNumber == 4)
     {
-      value = rimSensitivity;
+      value = settings.rimSensitivity;
     }
 
     else if (itemNumber == 5)
     {
-      value = rimThreshold;
+      value = settings.rimThreshold;
     }
 
     else if (itemNumber == 6)
     {
-      value = curvetype;
+      value = settings.curvetype;
     }
 
     else if (itemNumber == 7)
     {
-      value = note;
+      value = settings.note;
     }
 
     else if (itemNumber == 8)
     {
-      value = noteRim;
+      value = settings.noteRim;
     }
 
     else if (itemNumber == 9)
     {
-      value = noteCup;
+      value = settings.noteCup;
     }
 
     showValue = value;
@@ -1383,27 +1369,15 @@ void HelloDrum::settingName(const char *instrumentName)
 void HelloDrum::loadMemory()
 {
   //Read values from EEPROM.
+	uint32_t currentPadAddress = PAD_ADDRESS_START + padNum * sizeof(PadMemory);
+	readFromExternalFlash((uint8_t *) &settings, currentPadAddress, sizeof(PadMemory));
 
-	sPadMemory currentPad;
-	uint32_t currentPadAddress = PAD_ADDRESS_START + padNum * sizeof(sPadMemory);
-	readFromExternalFlash((uint8_t *) &currentPad, currentPadAddress, sizeof(sPadMemory));
-
-	sensitivity = currentPad.sensitivity;
-	threshold1 = currentPad.threshold1;
-	scantime = currentPad.scantime;
-	masktime = currentPad.masktime;
-	rimSensitivity = currentPad.rimSensitivity;
-	rimThreshold = currentPad.rimThreshold;
-	curvetype = currentPad.curvetype;
-	note = currentPad.note;
-	noteOpen = 			note;
-	noteRim = currentPad.noteRim;
-	noteEdge = 			noteRim;
-	noteClose = 		noteRim;
-	noteOpenEdge = 		noteRim;
-	noteCup = currentPad.noteCup;
-	noteCloseEdge = 	noteCup;
-	noteCross = 		noteCup;
+	noteOpen = 			settings.note;
+	noteEdge = 			settings.noteRim;
+	noteClose = 		settings.noteRim;
+	noteOpenEdge = 		settings.noteRim;
+	noteCloseEdge = 	settings.noteCup;
+	noteCross = 		settings.noteCup;
 
 	// TODO Remove duplicates of parameters.
 
@@ -1429,9 +1403,9 @@ void HelloDrum::initMemory()
 {
   //Write initial value to EEPROM.
 
-	sPadMemory currentPad;
-	uint32_t currentPadAddress = PAD_ADDRESS_START + padNum * sizeof(sPadMemory);
-	writeToExternalFlash((uint8_t *) &currentPad, currentPadAddress, sizeof(sPadMemory));
+	PadMemory currentPad;
+	uint32_t currentPadAddress = PAD_ADDRESS_START + padNum * sizeof(PadMemory);
+	writeToExternalFlash((uint8_t *) &currentPad, currentPadAddress, sizeof(PadMemory));
 }
 
 ///////////////////// 7. BUTONN //////////////////////////
