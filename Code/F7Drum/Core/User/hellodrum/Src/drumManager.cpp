@@ -75,12 +75,12 @@ void checkHelloDrums(void){
 
 	//KICK//
 	if (kick.hit == true) {
-		sendMidiGEN(kick.note, kick.velocity);
+		sendMidiGEN(kick.settings.note, kick.velocity);
 	}
 
 	//SNARE//
 	if (snare.hit == true) {
-		sendMidiGEN(snare.note, snare.velocity);
+		sendMidiGEN(snare.settings.note, snare.velocity);
 	}
 
 	//HIHAT//
@@ -99,7 +99,7 @@ void checkHelloDrums(void){
 	//HIHAT CONTROLLER//
 	//when hihat is closed
 	if (hihatPedal.hit == true) {
-		sendMidiGEN(hihatPedal.note, hihatPedal.velocity);
+		sendMidiGEN(hihatPedal.settings.note, hihatPedal.velocity);
 	}
 
 	//sending state of pedal with controll change
@@ -110,27 +110,27 @@ void checkHelloDrums(void){
 	//RIDE//
 	//1.bow
 	if (ride.hit == true) {
-		sendMidiGEN(ride.note, ride.velocity); //(note, velocity, channel)
+		sendMidiGEN(ride.settings.note, ride.velocity); //(note, velocity, channel)
 	}
 
 	//2.edge
 	else if (ride.hitRim == true) {
-		sendMidiGEN(ride.noteRim, ride.velocity); //(note, velocity, channel)
+		sendMidiGEN(ride.settings.noteRim, ride.velocity); //(note, velocity, channel)
 	}
 
 	//3.cup
 	else if (ride.hitCup == true) {
-		sendMidiGEN(ride.noteCup, ride.velocity); //(note, velocity, channel)
+		sendMidiGEN(ride.settings.noteCup, ride.velocity); //(note, velocity, channel)
 	}
 
 	//4.choke
 	if (ride.choke == true) {
-		sendMidiAT(ride.note, 127);
-		sendMidiAT(ride.noteRim, 127);
-		sendMidiAT(ride.noteCup, 127);
-		sendMidiAT(ride.note, 0);
-		sendMidiAT(ride.noteRim, 0);
-		sendMidiAT(ride.noteCup, 0);
+		sendMidiAT(ride.settings.note, 127);
+		sendMidiAT(ride.settings.noteRim, 127);
+		sendMidiAT(ride.settings.noteCup, 127);
+		sendMidiAT(ride.settings.note, 0);
+		sendMidiAT(ride.settings.noteRim, 0);
+		sendMidiAT(ride.settings.noteCup, 0);
 	}
 }
 
