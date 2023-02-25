@@ -6,14 +6,16 @@
 // Description : Hello World in C++, Ansi-style
 //============================================================================
 
+#include <MemmorySystem.h>
 #include <iostream>
 #include "CppUTest/CommandLineTestRunner.h"
-#include "memmoryManager.h"
 
 using namespace std;
 
 int main(int ac, char** av) {
 //	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
+	MemmorySystem::getInstance()->test();
+
 	mainWork();
 
 	return 0;
