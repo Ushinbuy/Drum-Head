@@ -45,8 +45,8 @@ public:
 	}
 
     void eraseSector(void);
-    void readPadInfo(PadMemory* pad, uint8_t padNum);
-    void readMemorySystem(void);
+    void getPadInfo(PadMemory* padToWhereRead, uint8_t padNum);
+    void getMemorySystem(void);
     void overridePad(PadMemory _pad, uint8_t padNum);
     void writePadFirstTime(PadMemory pad, uint8_t padNum);
     void showPageAddress(uint32_t startAddress, uint32_t stopAddress);

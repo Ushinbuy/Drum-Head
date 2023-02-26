@@ -5,10 +5,6 @@
 #define PAD_ADDRESS_START 0x0
 #define ADDRESS_SYSTEM_START 0x0
 
-// this structure do not be used in main project
-
-void showPadInfo(PadMemory pad);
-
 MemmorySystem::MemmorySystem() { }
 
 void MemmorySystem::eraseSector(void) {
@@ -55,8 +51,8 @@ void MemmorySystem::writePadFirstTime(PadMemory pad, uint8_t padNum){
 	}
 }
 
-void MemmorySystem::readPadInfo(PadMemory* pad, uint8_t padNum){
-	readFromExternalFlash((uint8_t *) pad, calcPadAddress(padNum), sizeof(PadMemory));
+void MemmorySystem::getPadInfo(PadMemory* padToWhereRead, uint8_t padNum){
+	readFromExternalFlash((uint8_t *) padToWhereRead, calcPadAddress(padNum), sizeof(PadMemory));
 }
 
 uint32_t MemmorySystem::calcPadAddress(uint8_t padNum){
@@ -79,7 +75,7 @@ void MemmorySystem::filFFvalues(uint64_t *pData, uint32_t size){
 	}
 }
 
-void MemmorySystem::readMemorySystem(void){
+void MemmorySystem::getMemorySystem(void){
 	readFromExternalFlash((uint8_t *)&mainMemSpace, ADDRESS_SYSTEM_START, sizeof(MemmorySpace));
 }
 
@@ -95,7 +91,7 @@ void MemmorySystem::overridePad(PadMemory _pad, uint8_t padNum){
 				tempBuffer[i] = _pad;
 			}
 			else{
-				MemmorySystem::getInstance()->readPadInfo(&tempBuffer[i], i);
+				MemmorySystem::getInstance()->getPadInfo(&tempBuffer[i], i);
 			}
 		}
 		printf("\nStart erasing sector\n");
@@ -140,7 +136,7 @@ void mainWork(void)
 {
 	MemmorySystem::getInstance()->eraseSector();
 	MemmorySystem::getInstance()->initMemmorySystem();
-	MemmorySystem::getInstance()->readMemorySystem();
+	MemmorySystem::getInstance()->getMemorySystem();
 
 	printf("Address of Pad(0) is 0x%02x\n\n", (uint32_t) sizeof(MemmorySpace));
 
@@ -148,12 +144,9 @@ void mainWork(void)
 	for(uint8_t i = 0; i < PADS_NUMBER; i++){
 		MemmorySystem::getInstance()->writePadFirstTime(defaultPad, i);
 	}
-//	for(int i = calcPadAddress(0); i < calcPadAddress(0) + 11; i++){
-//		printf ("\naddress %d has value %d", i, pageAddress[i]);
-//	}
 
 	PadMemory tempPad;
-	MemmorySystem::getInstance()->readPadInfo(&tempPad, 0);
+	MemmorySystem::getInstance()->getPadInfo(&tempPad, 0);
 
 	tempPad.masktime = 0x22;
 
@@ -175,6 +168,6 @@ void mainWork(void)
 	MemmorySystem::getInstance()->showPageAddress(0, 0xc0);
 
 	PadMemory newPad;
-	MemmorySystem::getInstance()->readPadInfo(&newPad, 0);
+	MemmorySystem::getInstance()->getPadInfo(&newPad, 0);
 	showPadInfo(newPad);
 }
