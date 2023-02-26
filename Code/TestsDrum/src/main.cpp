@@ -14,7 +14,6 @@ using namespace std;
 
 int main(int ac, char** av) {
 //	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
-	MemmorySystem::getInstance()->test();
 
 	mainWork();
 
