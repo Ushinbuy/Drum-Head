@@ -134,40 +134,41 @@ void showPadInfo(PadMemory pad){
 
 void mainWork(void)
 {
-	MemmorySystem::getInstance()->eraseSector();
-	MemmorySystem::getInstance()->initMemmorySystem();
-	MemmorySystem::getInstance()->getMemorySystem();
+	MemmorySystem *memPointer = MemmorySystem::getInstance();
+	memPointer->eraseSector();
+	memPointer->initMemmorySystem();
+	memPointer->getMemorySystem();
 
 	printf("Address of Pad(0) is 0x%02x\n\n", (uint32_t) sizeof(MemmorySpace));
 
 	PadMemory defaultPad;
 	for(uint8_t i = 0; i < PADS_NUMBER; i++){
-		MemmorySystem::getInstance()->writePadFirstTime(defaultPad, i);
+		memPointer->writePadFirstTime(defaultPad, i);
 	}
 
 	PadMemory tempPad;
-	MemmorySystem::getInstance()->getPadInfo(&tempPad, 0);
+	memPointer->getPadInfo(&tempPad, 0);
 
 	tempPad.masktime = 0x22;
 
-	MemmorySystem::getInstance()->overridePad(tempPad, 0);
+	memPointer->overridePad(tempPad, 0);
 
 	printf("Try to override 64 times");
 
 	printf("\n\nLet's look for memory before overriding\n");
 
-	MemmorySystem::getInstance()->showPageAddress(0, 0xc0);
+	memPointer->showPageAddress(0, 0xc0);
 
 	for (uint8_t i = 0; i < 64; i++) {
 		tempPad.masktime = i;
-		MemmorySystem::getInstance()->overridePad(tempPad, 0);
+		memPointer->overridePad(tempPad, 0);
 	}
 
 	printf("\n\nLet's look for memory after overriding 0x%x\n", tempPad.masktime);
 
-	MemmorySystem::getInstance()->showPageAddress(0, 0xc0);
+	memPointer->showPageAddress(0, 0xc0);
 
 	PadMemory newPad;
-	MemmorySystem::getInstance()->getPadInfo(&newPad, 0);
+	memPointer->getPadInfo(&newPad, 0);
 	showPadInfo(newPad);
 }
