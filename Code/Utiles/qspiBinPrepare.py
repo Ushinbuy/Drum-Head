@@ -1,6 +1,7 @@
 from ctypes import *
 import re
 
+MAX_FLASH_SIZE_KB = 0x1000000 / 0x400
 SECTOR_SIZE = 0x10000
 START_ADDRESS = 0x90000000
 START_WAV_ADDRESS = START_ADDRESS + SECTOR_SIZE
@@ -105,24 +106,14 @@ class PadMemory(Structure):
                                         soundCupAddressId)
         
     def setHeadWavFile(self, filename:str):
-        self.soundHeadAddressId = self._setWavFile(filename)
+        self.soundHeadAddressId = addWavFileToBinImage(filename)
         
     def setRimWavFile(self, filename:str):
-        self.soundRimAddressId = self._setWavFile(filename)
+        self.soundRimAddressId = addWavFileToBinImage(filename)
         
     def setCupWavFile(self, filename:str):
-        self.soundCupAddressId = self._setWavFile(filename)
-        
-    def _setWavFile(self, filename:str) -> c_uint8:
-        PadMemory._list_ofWavFiles.append(filename)
-        parameter = len(PadMemory._list_ofWavFiles) - 1
-        with open(filename, 'rb') as file_to_read:
-            content = file_to_read.read()
-            
-        PadMemory.bytes_array_wav_files += content
-        PadMemory.list_wav_addresses.append(len(PadMemory.bytes_array_wav_files) + START_WAV_ADDRESS)
-        return parameter    
-
+        self.soundCupAddressId = addWavFileToBinImage(filename)
+          
 
 class QspiGenerate:
     _num_of_pads = 0x6
@@ -131,6 +122,7 @@ class QspiGenerate:
         self.mem_sys_sector = MemmorySpace()
         
     def generatePads(self) -> bytearray:
+        # All wav files must be stereo in 48 kHz.
         kick = PadMemory(noteHead=Notes.kick)
         kick.setHeadWavFile("kick.wav")
         snare = PadMemory(noteHead=Notes.snare_head, noteRim=Notes.snare_rim)
@@ -157,8 +149,10 @@ class QspiGenerate:
         
         tempToOut += PadMemory.bytes_array_wav_files
     
-        print("bin size is " + str(len(tempToOut)/1024 )+ " KB")
-        printByes(tempToOut[:0x100])
+        bin_size = len(tempToOut)/0x400
+        assert (bin_size + 16) < MAX_FLASH_SIZE_KB, "Bin size is very big, please decrease wav volume"
+        print("bin size is " + str(bin_size)+ " KB")
+        # printByes(tempToOut[:0x100])
         return tempToOut
             
     def fill_pads_offsets(self):
@@ -177,10 +171,11 @@ class QspiGenerate:
         input += bytes([0xFF])* (SECTOR_SIZE - len(input))
         return input
 
-def writeByteArrayToFile(bin: bytearray):
-    file_to_write = open("qspi.bin", 'wb')
+def writeByteArrayToFile(bin: bytearray, filename = "qspi.bin"):
+    file_to_write = open(filename, 'wb')
     file_to_write.write(bin)
     file_to_write.close()
+    print("Bin image was writed success in file " + filename)
 
 def printByes(buffer: bytearray):
     buffer += bytes(0x10) # this show last string if using re.compile("(.{80})")
@@ -190,11 +185,22 @@ def printByes(buffer: bytearray):
     for i in p .finditer(bytesInHex):
         print(format(int(i.start()/5), '#06x'), i.group())
 
+
+def addWavFileToBinImage(filename:str) -> c_uint8:
+    PadMemory._list_ofWavFiles.append(filename)
+    parameter = len(PadMemory._list_ofWavFiles) - 1
+    with open(filename, 'rb') as file_to_read:
+        content = file_to_read.read()
+        
+    PadMemory.bytes_array_wav_files += content
+    PadMemory.list_wav_addresses.append(len(PadMemory.bytes_array_wav_files) + START_WAV_ADDRESS)
+    return parameter  
+
 gen = QspiGenerate()
 binImage = gen.create_mem_sys_sector()
 writeByteArrayToFile(binImage)
 
 
-print("wav addresses is")
-for i in range(len(PadMemory.list_wav_addresses)):
-    print(str(hex(PadMemory.list_wav_addresses[i])))
+# print("wav addresses is")
+# for i in range(len(PadMemory.list_wav_addresses)):
+#     print(str(hex(PadMemory.list_wav_addresses[i])))
