@@ -1,2 +1,10 @@
+# Sources files
 *.wav
 *.txt
+
+# Result of output
+*.bin
+
+# VSCode created files
+/.vscode
+tempCodeRunnerFile.py
