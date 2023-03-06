@@ -7,8 +7,8 @@ START_ADDRESS = 0x90000000
 START_WAV_ADDRESS = START_ADDRESS + SECTOR_SIZE
 
 # this value can't be changing without changes in MCU struct format
-PADS_MAX = 3
-MAX_SOUNDS = 0x10
+PADS_MAX = 20
+MAX_SOUNDS = 0x255
 
 class Notes:
     kick = 0x24
@@ -74,7 +74,10 @@ class PadMemory(Structure):
                 ('noteCup', c_uint8),            # 9
                 ('soundHeadAddressId', c_uint8), # 10
                 ('soundRimAddressId', c_uint8),  # 11
-                ('soundCupAddressId', c_uint8))  # 12
+                ('soundCupAddressId', c_uint8),  # 12
+                ('soundHeadVolumeDb', c_float),
+                ('soundRimVolumeDb', c_float),
+                ('soundCupVolumeDb', c_float))  
 
     def __init__(self,
                  sensitivity=100,
@@ -89,8 +92,12 @@ class PadMemory(Structure):
                  noteCup=91,
                  soundHeadAddressId=0xFF,
                  soundRimAddressId = 0xFF,
-                 soundCupAddressId = 0xFF): 
+                 soundCupAddressId = 0xFF,
+                 soundHeadVolumeDb = -3.0,
+                 soundRimVolumeDb = -3.0,
+                 soundCupVolumeDb = -3.0): 
         PadMemory.pads_counter += 1
+        assert PadMemory.pads_counter < 20, "Reached maximum of pads"
         super(PadMemory, self).__init__(sensitivity,
                                         threshold1,
                                         scantime,
@@ -103,7 +110,10 @@ class PadMemory(Structure):
                                         noteCup,
                                         soundHeadAddressId,
                                         soundRimAddressId,
-                                        soundCupAddressId)
+                                        soundCupAddressId,
+                                        soundHeadVolumeDb,
+                                        soundRimVolumeDb,
+                                        soundCupVolumeDb)
         
     def setHeadWavFile(self, filename:str):
         self.soundHeadAddressId = addWavFileToBinImage(filename)
@@ -152,7 +162,7 @@ class QspiGenerate:
         bin_size = len(tempToOut)/0x400
         assert (bin_size + 16) < MAX_FLASH_SIZE_KB, "Bin size is very big, please decrease wav volume"
         print("bin size is " + str(bin_size)+ " KB")
-        # printByes(tempToOut[:0x100])
+        printByes(tempToOut[:0x100])
         return tempToOut
             
     def fill_pads_offsets(self):
