@@ -7,8 +7,8 @@ START_ADDRESS = 0x90000000
 START_WAV_ADDRESS = START_ADDRESS + SECTOR_SIZE
 
 # this value can't be changing without changes in MCU struct format
-PADS_MAX = 20
-MAX_SOUNDS = 0x255
+PADS_MAX = 3
+MAX_SOUNDS = 0x10
 
 class Notes:
     kick = 0x24

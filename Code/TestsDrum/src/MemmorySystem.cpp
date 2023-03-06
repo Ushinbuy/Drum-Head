@@ -94,7 +94,6 @@ void MemmorySystem::overridePad(PadMemory _pad, uint8_t padNum){
 				MemmorySystem::getInstance()->getPadInfo(&tempBuffer[i], i);
 			}
 		}
-		printf("\nStart erasing sector\n");
 		overrideMainMemSector();
 		for (int i = 0; i < PADS_NUMBER; i++) {
 			writePadFirstTime(tempBuffer[i], i);
