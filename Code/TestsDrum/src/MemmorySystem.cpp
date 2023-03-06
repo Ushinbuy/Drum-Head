@@ -65,7 +65,7 @@ uint32_t MemmorySystem::calcPadAddress(uint8_t padNum){
 	}
 	numOfOverwrites = 64 - numOfOverwrites;
 
-	return ADDRESS_SYSTEM_START + sizeof(MemmorySpace) + (padNum + numOfOverwrites * PADS_NUMBER) * sizeof(PadMemory) +1;
+	return ADDRESS_SYSTEM_START + sizeof(MemmorySpace) + (padNum + numOfOverwrites * PADS_NUMBER) * sizeof(PadMemory);
 }
 
 void MemmorySystem::filFFvalues(uint64_t *pData, uint32_t size){
@@ -112,9 +112,8 @@ void MemmorySystem::showPageAddress(uint32_t startAddress, uint32_t stopAddress)
 	for (uint32_t i = startAddress; i < stopAddress; i++) {
 		if (i % 0x10 == 0) {
 			printf("\n0x%03x : ", i);
-		} else {
-			printf("0x%02X ", pageAddress[i]);
 		}
+		printf("0x%02X ", pageAddress[i]);
 	}
 }
 
@@ -129,7 +128,7 @@ void showPadInfo(PadMemory pad){
 	printf("\n note = 0x%X", pad.note);           //7
 	printf("\n noteRim = 0x%X", pad.noteRim);        //8
 	printf("\n noteCup = 0x%X", pad.noteCup);        //9
-	printf("\n soundAddressId = 0x%X", pad.soundAddressId);	//10 this field show which item from soundsAdresses
+	printf("\n soundAddressId = 0x%X", pad.soundHeadAddressId);	//10 this field show which item from soundsAdresses
 }
 
 void mainWork(void)

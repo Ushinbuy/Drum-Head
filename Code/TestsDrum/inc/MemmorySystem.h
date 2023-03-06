@@ -26,7 +26,12 @@ public:
 	  byte note = 0x18;           //7
 	  byte noteRim = 0x19;        //8
 	  byte noteCup = 0x20;        //9
-	  byte soundAddressId = 0x21;	//10 this field show which item from soundsAdresses
+	  byte soundHeadAddressId = 0x21;	//10 this field show which item from soundsAdresses
+	  byte soundRimAddressId = 0x22;	//11
+	  byte soundCupAddressId = 0x23;	//12
+	  float soundHeadVolumeDb = -3.0;
+	  float soundRimVolumeDb = -3.0;
+	  float soundCupVolumeDb = -3.0;
 };
 
 struct MemmorySpace{
