@@ -1,7 +1,6 @@
 #include <MemmorySystem.h>
 #include <string.h>
 
-#define SECTOR_SIZE 0x10000
 #define PAD_ADDRESS_START 0x0
 #define ADDRESS_SYSTEM_START 0x0
 
