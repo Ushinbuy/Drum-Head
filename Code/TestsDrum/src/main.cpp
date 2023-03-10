@@ -6,6 +6,7 @@
 // Description : Hello World in C++, Ansi-style
 //============================================================================
 
+#include <eepromManager.h>
 #include <MemmorySystem.h>
 #include <iostream>
 #include "CppUTest/CommandLineTestRunner.h"
@@ -15,8 +16,9 @@ using namespace std;
 int main(int ac, char** av) {
 //	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
 
-	mainWork();
+//	mainWork();
 
+	eeprom_work();
 	return 0;
 
 	// for tests uncomment this
