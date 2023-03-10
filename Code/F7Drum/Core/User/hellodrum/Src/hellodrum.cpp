@@ -13,6 +13,8 @@
 #include <math.h>
 #include <stdio.h>
 #include "drumManager.h"
+#include "eepromManager.h"
+//#include "eepromSettings.h" TODO remove this file later from code
 
 extern "C" void sendUart(const char *_msg);
 extern char buffer_out[1000];

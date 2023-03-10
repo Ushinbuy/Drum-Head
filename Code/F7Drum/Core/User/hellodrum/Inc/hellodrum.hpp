@@ -156,16 +156,22 @@ static int rawValue[64]; //8 * 8chanel Mux
 
 struct PadMemory{
 public:
-	  byte sensitivity = 100;   //0
-	  byte threshold1 = 10;     //1
-	  byte scantime = 10;       //2
-	  byte masktime = 30;       //3
-	  byte rimSensitivity = 20; //4 edgeThreshold
-	  byte rimThreshold = 3;    //5 cupThreshold
-	  byte curvetype = 0;       //6
-	  byte note = 38;           //7
-	  byte noteRim = 39;        //8
-	  byte noteCup = 40;        //9
+	  byte sensitivity = 0x11;   //0
+	  byte threshold1 = 0x12;     //1
+	  byte scantime = 0x13;       //2
+	  byte masktime = 0x14;       //3
+	  byte rimSensitivity = 0x15; //4 edgeThreshold
+	  byte rimThreshold = 0x16;    //5 cupThreshold
+	  byte curvetype = 0x17;       //6
+	  byte note = 0x18;           //7
+	  byte noteRim = 0x19;        //8
+	  byte noteCup = 0x20;        //9
+	  byte soundHeadAddressId = 0x21;	//10 this field show which item from soundsAdresses
+	  byte soundRimAddressId = 0x22;	//11
+	  byte soundCupAddressId = 0x23;	//12
+	  float soundHeadVolumeDb = -3.0;
+	  float soundRimVolumeDb = -3.0;
+	  float soundCupVolumeDb = -3.0;
 };
 
 class HelloDrum
