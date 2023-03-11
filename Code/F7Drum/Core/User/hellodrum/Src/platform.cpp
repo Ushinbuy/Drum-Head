@@ -1,10 +1,10 @@
 #include "platform.h"
+#include "main.h"
 
 uint16_t audioBuffer[NUMBER_OF_CHANELS] = { 0 };
 
 uint32_t millis(void){
-	// TODO add SysTick()
-	return 8;
+	return HAL_GetTick();
 }
 
 uint16_t analogRead(byte currentPin){
@@ -17,5 +17,5 @@ short map(short x, short in_min, short in_max, short out_min, short out_max){
 }
 
 void delay(uint32_t Delay){
-	// TODO add HAL_Delay or uOsDelay
+	HAL_Delay(Delay);
 }
