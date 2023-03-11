@@ -14,7 +14,6 @@
 #include <stdio.h>
 #include "drumManager.h"
 #include "eepromManager.h"
-//#include "eepromSettings.h" TODO remove this file later from code
 
 extern "C" void sendUart(const char *_msg);
 extern char buffer_out[1000];
@@ -1085,7 +1084,7 @@ void HelloDrum::hihatControl()
 
 void HelloDrum::settingEnable()
 {
-
+	// TODO Override this function to save one time when you get out
   //When EDIT button pushed
   if (padNum == nameIndex)
   {
@@ -1102,7 +1101,7 @@ void HelloDrum::settingEnable()
         {
         	settings.sensitivity = 1;
         }
-//        EEPROM.write(padNum * 8, sensitivity); // TODO
+//        EEPROM.write(padNum * 8, sensitivity);
         break;
 
       case 1:
@@ -1111,7 +1110,7 @@ void HelloDrum::settingEnable()
         {
         	settings.threshold1 = 1;
         }
-//        EEPROM.write((padNum * 10) + 1, threshold1); // TODO
+//        EEPROM.write((padNum * 10) + 1, threshold1);
         break;
 
       case 2:
@@ -1120,7 +1119,7 @@ void HelloDrum::settingEnable()
         {
         	settings.scantime = 1;
         }
-//        EEPROM.write((padNum * 10) + 2, scantime); // TODO
+//        EEPROM.write((padNum * 10) + 2, scantime);
         break;
 
       case 3:
@@ -1129,7 +1128,7 @@ void HelloDrum::settingEnable()
         {
         	settings.masktime = 1;
         }
-//        EEPROM.write((padNum * 10) + 3, masktime); // TODO
+//        EEPROM.write((padNum * 10) + 3, masktime);
         break;
 
       case 4:
@@ -1138,7 +1137,7 @@ void HelloDrum::settingEnable()
         {
         	settings.rimSensitivity = 1;
         }
-//        EEPROM.write((padNum * 10) + 4, rimSensitivity); // TODO
+//        EEPROM.write((padNum * 10) + 4, rimSensitivity);
         break;
 
       case 5:
@@ -1147,7 +1146,7 @@ void HelloDrum::settingEnable()
         {
         	settings.rimThreshold = 1;
         }
-//        EEPROM.write((padNum * 10) + 5, rimThreshold); // TODO
+//        EEPROM.write((padNum * 10) + 5, rimThreshold);
         break;
 
       case 6:
@@ -1156,7 +1155,7 @@ void HelloDrum::settingEnable()
         {
         	settings.curvetype = 0;
         }
-//        EEPROM.write((padNum * 10) + 6, curvetype); // TODO
+//        EEPROM.write((padNum * 10) + 6, curvetype);
         break;
 
       case 7:
@@ -1165,7 +1164,7 @@ void HelloDrum::settingEnable()
         {
         	settings.note = 0;
         }
-//        EEPROM.write((padNum * 10) + 7, note); // TODO
+//        EEPROM.write((padNum * 10) + 7, note);
         noteOpen = settings.note;
         break;
 
@@ -1175,7 +1174,7 @@ void HelloDrum::settingEnable()
         {
         	settings.noteRim = 0;
         }
-//        EEPROM.write((padNum * 10) + 8, noteRim); // TODO
+//        EEPROM.write((padNum * 10) + 8, noteRim);
         noteEdge = settings.noteRim;
         noteClose = settings.noteRim;
         noteOpenEdge = settings.noteRim;
@@ -1187,7 +1186,7 @@ void HelloDrum::settingEnable()
         {
         	settings.noteCup = 0;
         }
-//        EEPROM.write((padNum * 10) + 9, noteCup); // TODO
+//        EEPROM.write((padNum * 10) + 9, noteCup);
         noteCloseEdge = settings.noteCup;
         noteCross = settings.noteCup;
         break;
@@ -1210,7 +1209,7 @@ void HelloDrum::settingEnable()
         {
         	settings.sensitivity = 100;
         }
-//        EEPROM.write(padNum * 10, sensitivity); // TODO
+//        EEPROM.write(padNum * 10, sensitivity);
         break;
 
       case 1:
@@ -1219,7 +1218,7 @@ void HelloDrum::settingEnable()
         {
         	settings.threshold1 = 100;
         }
-//        EEPROM.write((padNum * 10) + 1, threshold1); // TODO
+//        EEPROM.write((padNum * 10) + 1, threshold1);
         break;
 
       case 2:
@@ -1228,7 +1227,7 @@ void HelloDrum::settingEnable()
         {
         	settings.scantime = 100;
         }
-//        EEPROM.write((padNum * 10) + 2, scantime); // TODO
+//        EEPROM.write((padNum * 10) + 2, scantime);
         break;
 
       case 3:
@@ -1237,7 +1236,7 @@ void HelloDrum::settingEnable()
         {
         	settings.masktime = 100;
         }
-//        EEPROM.write((padNum * 10) + 3, masktime); // TODO
+//        EEPROM.write((padNum * 10) + 3, masktime);
         break;
 
       case 4:
@@ -1246,7 +1245,7 @@ void HelloDrum::settingEnable()
         {
         	settings.rimSensitivity = 100;
         }
-//        EEPROM.write((padNum * 10) + 4, rimSensitivity); // TODO
+//        EEPROM.write((padNum * 10) + 4, rimSensitivity);
         break;
 
       case 5:
@@ -1255,7 +1254,7 @@ void HelloDrum::settingEnable()
         {
         	settings.rimThreshold = 100;
         }
-//        EEPROM.write((padNum * 10) + 5, rimThreshold); // TODO
+//        EEPROM.write((padNum * 10) + 5, rimThreshold);
         break;
 
       case 6:
@@ -1264,7 +1263,7 @@ void HelloDrum::settingEnable()
         {
         	settings.curvetype = 4;
         }
-//        EEPROM.write((padNum * 10) + 6, curvetype); // TODO
+//        EEPROM.write((padNum * 10) + 6, curvetype);
         break;
 
       case 7:
@@ -1273,7 +1272,7 @@ void HelloDrum::settingEnable()
         {
         	settings.note = 127;
         }
-//        EEPROM.write((padNum * 10) + 7, note); // TODO
+//        EEPROM.write((padNum * 10) + 7, note);
         noteOpen = settings.note;
         break;
 
@@ -1283,7 +1282,7 @@ void HelloDrum::settingEnable()
         {
         	settings.noteRim = 127;
         }
-//        EEPROM.write((padNum * 10) + 8, noteRim); // TODO
+//        EEPROM.write((padNum * 10) + 8, noteRim);
         noteEdge = settings.noteRim;
         noteClose = settings.noteRim;
         noteOpenEdge = settings.noteRim;
@@ -1295,7 +1294,7 @@ void HelloDrum::settingEnable()
         {
         	settings.noteCup = 127;
         }
-//        EEPROM.write((padNum * 10) + 9, noteCup); // TODO
+//        EEPROM.write((padNum * 10) + 9, noteCup);
         noteCloseEdge = settings.noteCup;
         noteCross = settings.noteCup;
         break;
@@ -1371,8 +1370,8 @@ void HelloDrum::settingName(const char *instrumentName)
 void HelloDrum::loadMemory()
 {
   //Read values from EEPROM.
-	uint32_t currentPadAddress = PAD_ADDRESS_START + padNum * sizeof(PadMemory);
-	readFromExternalFlash((uint8_t *) &settings, currentPadAddress, sizeof(PadMemory));
+	PadInEeprom tempStruct = EepromManager::getInstance()->readPad(padNum);
+	settings = tempStruct.pad;
 
 	noteOpen = 			settings.note;
 	noteEdge = 			settings.noteRim;
@@ -1403,11 +1402,13 @@ void HelloDrum::loadMemory()
 
 void HelloDrum::initMemory()
 {
+	// this function is deprecated
+
   //Write initial value to EEPROM.
 
-	PadMemory currentPad;
-	uint32_t currentPadAddress = PAD_ADDRESS_START + padNum * sizeof(PadMemory);
-	writeToExternalFlash((uint8_t *) &currentPad, currentPadAddress, sizeof(PadMemory));
+//	PadMemory currentPad;
+//	uint32_t currentPadAddress = PAD_ADDRESS_START + padNum * sizeof(PadMemory);
+//	writeToExternalFlash((uint8_t *) &currentPad, currentPadAddress, sizeof(PadMemory));
 }
 
 ///////////////////// 7. BUTONN //////////////////////////
