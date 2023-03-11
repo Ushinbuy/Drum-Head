@@ -13,7 +13,6 @@
 //#include "Arduino.h"
 //#include "EEPROM.h"
 
-
 #include "platform.h"
 
 const static char *item[] = {
@@ -265,7 +264,7 @@ public:
   byte noteCloseEdge;
   byte noteCross;
 //  byte threshold1;
-//  byte threshold2; // TODO can't find this variable in code
+//  byte threshold2;
 //  byte scantime;
 //  byte masktime;
 //  byte sensitivity;
