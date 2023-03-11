@@ -35,8 +35,10 @@
 #else
 #include "drumAudioCore.h"
 #endif
+
 #include "drumCore.h"
 #include "stm32746g_discovery_qspi.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
