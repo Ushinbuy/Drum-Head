@@ -1,42 +1,7 @@
 #include <hellodrum.hpp>
 #include "drumManager.h"
 #include "midi.h"
-#include "stm32746g_discovery_qspi.h"
-
-void Error_Handler(void);
-void sendUart(const char *_msg);
-
-/**
- * This method for creating space in memory
- */
-void firstInitMem(void) {
-	uint8_t numBytesForCheck = 8;
-	uint8_t readBuff[numBytesForCheck] = { 0 };
-
-	BSP_QSPI_Init();
-
-	bool isMemoryInitBefore = true;
-	if (BSP_QSPI_Read(readBuff, 0x0, numBytesForCheck) != QSPI_OK) {
-		sendUart("qspi can't read");
-		Error_Handler();
-	}
-	for(uint8_t i = 0; i < numBytesForCheck; i++){
-		isMemoryInitBefore &= (readBuff[i] == 0xFF);
-	}
-	if(isMemoryInitBefore){
-		BSP_QSPI_DeInit();
-		return;
-	}
-
-	for(uint8_t i = 0; i < NUMBER_OF_PADS; i++){
-		HelloDrum pad(i);
-		pad.initMemory();
-	}
-
-	BSP_QSPI_DeInit();
-	// reboot mcu
-	NVIC_SystemReset();
-}
+#include "eepromManager.h"
 
 static HelloDrum kick(0);
 static HelloDrum snare(1);
@@ -54,6 +19,9 @@ void initHelloDrums(void) {
 
 	//Load settings from EEPROM.
 	//It is necessary to make the order in exactly the same order as you named the pad first.
+	EepromManager *eeprom = EepromManager::getInstance();
+	eeprom->loadInfoSector();
+
 	kick.loadMemory();
 	snare.loadMemory();
 	hihat.loadMemory();
@@ -131,20 +99,6 @@ void checkHelloDrums(void){
 		sendMidiAT(ride.settings.note, 0);
 		sendMidiAT(ride.settings.noteRim, 0);
 		sendMidiAT(ride.settings.noteCup, 0);
-	}
-}
-
-void writeToExternalFlash(uint8_t* pData, uint32_t WriteAddr, uint32_t Size){
-	if(BSP_QSPI_Write(pData, WriteAddr, Size) != QSPI_OK){
-		sendUart("QSPI can't writeToExternalFlash");
-		Error_Handler();
-	}
-}
-
-void readFromExternalFlash(uint8_t* pData, uint32_t ReadAddr, uint32_t Size){
-	if(BSP_QSPI_Read(pData, ReadAddr, Size) != QSPI_OK){
-		sendUart("QSPI can't writeToExternalFlash");
-		Error_Handler();
 	}
 }
 
