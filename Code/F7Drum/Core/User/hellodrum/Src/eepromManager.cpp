@@ -9,40 +9,11 @@ EepromManager::EepromManager(){}
 void EepromManager::erasePage(void) {
 	// this imitate function
 //	memset(pageAddress, 0xFF, SECTOR_SIZE);
+	BSP_QSPI_DeInit();
+	BSP_QSPI_Init();
 	BSP_QSPI_Erase_Block(0);
+	BSP_QSPI_DeInit();
 }
-
-//void EepromManager::showPageAddress(uint32_t startAddress, uint32_t stopAddress){
-//	for (uint32_t i = startAddress; i < stopAddress; i++) {
-//		if (i % 0x10 == 0) {
-//			printf("\n0x%03x : ", i);
-//		}
-//		printf("0x%02X ", pageAddress[i]);
-//	}
-//	printf("\n");
-//}
-
-//void EepromManager::init(void){
-//	// this imitate function
-//// /*
-//	InfoSector _memSyst;
-//
-//	_memSyst.numberOfTotalPads = PADS_NUMBER;
-//	_memSyst.soundsNumber = 2;
-//
-//	erasePage();
-//
-//	_memSyst.soundsAdresses[0] = 0x10;
-//	_memSyst.soundsAdresses[1] = 0x20;
-//	_memSyst.soundsAdresses[2] = 0x30;
-//	_memSyst.soundsAdresses[3] = 0x44;
-//	_memSyst.soundsAdresses[4] = 0x55;
-//	_memSyst.soundsAdresses[5] = 0x66;
-//
-//	writeToExternalFlash((uint8_t *) & _memSyst, ADDRESS_SYSTEM_START, sizeof(InfoSector));
-//// */
-//
-//}
 
 void EepromManager::loadInfoSector(void){
 	readFromExternalFlash((uint8_t *)&infoSector, ADDRESS_SYSTEM_START, sizeof(InfoSector));
@@ -52,7 +23,10 @@ void EepromManager::writeToExternalFlash(uint8_t* pData, uint32_t WriteAddr, uin
 //	for(uint32_t i = 0; i < Size; i++){
 //		pageAddress[WriteAddr + i] &= pData[i];
 //	}
+	BSP_QSPI_DeInit();
+	BSP_QSPI_Init();
 	BSP_QSPI_Write(pData, WriteAddr, Size);
+	BSP_QSPI_DeInit();
 }
 
 void EepromManager::writePad(PadInEeprom _pad){
@@ -174,38 +148,3 @@ PadInEeprom * EepromManager::findAllPads(void){
 	} while (!isEmptyField);
 	return padsArray;
 }
-
-//void eeprom_work(void){
-//	EepromManager *eeprom = EepromManager::getInstance();
-//	eeprom->init();
-//	eeprom->loadInfoSector();
-//	PadInEeprom newPad;
-//
-//	newPad.id = 0;
-//	newPad.pad.curvetype = 0x5;
-//	eeprom->writePad(newPad);
-//
-//	PadInEeprom secondPad;
-//	secondPad.id = 1;
-//	secondPad.pad.curvetype = 0x6;
-//	eeprom->writePad(secondPad);
-//
-//	PadInEeprom checkNewPad;
-//
-//	checkNewPad = eeprom->readPad(0);
-//	PadInEeprom thirdPad;
-//	thirdPad = eeprom->readPad(4);
-//
-//
-//	PadInEeprom renewPad;
-//	renewPad.id = 0;
-//	renewPad.pad.curvetype = 0x10;
-//	eeprom->writePad(renewPad);
-//
-//	for(int i = 0; i < 0x15; i++){
-//		printf("\nCURRENT OVERRIDE IS %d", i);
-//		newPad.pad.note = i + 0x20;
-//		eeprom->writePad(newPad);
-//		eeprom->showPageAddress(0, 0x100);
-//	}
-//}
