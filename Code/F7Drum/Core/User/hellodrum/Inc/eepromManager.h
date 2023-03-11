@@ -4,44 +4,23 @@
 #include "hellodrum.hpp"
 #include <stdint.h>
 #include <stdio.h>
+#include "n25q128a.h"
 
 void eeprom_work(void); // remove this in release
 
-#define MAX_SOUNDS 63 //256 - 1	// minus 1 mean that one sector of flash reserved by MemorySystem
-#define SECTOR_SIZE 0x1000 // this must be taken from header QSPI
+#define MAX_SOUNDS 63 // this value optimize for 0x10
+#define SECTOR_SIZE N25Q128A_SECTOR_SIZE // this must be taken from header QSPI
 #define PADS_NUMBER 4
 
-typedef uint8_t byte;
-
-//struct PadMemory{
-//public:
-//	  byte sensitivity = 0x11;   //0
-//	  byte threshold1 = 0x12;     //1
-//	  byte scantime = 0x13;       //2
-//	  byte masktime = 0x14;       //3
-//	  byte rimSensitivity = 0x15; //4 edgeThreshold
-//	  byte rimThreshold = 0x16;    //5 cupThreshold
-//	  byte curvetype = 0x17;       //6
-//	  byte note = 0x18;           //7
-//	  byte noteRim = 0x19;        //8
-//	  byte noteCup = 0x20;        //9
-//	  byte soundHeadAddressId = 0x21;	//10 this field show which item from soundsAdresses
-//	  byte soundRimAddressId = 0x22;	//11
-//	  byte soundCupAddressId = 0x23;	//12
-//	  float soundHeadVolumeDb = -3.0;
-//	  float soundRimVolumeDb = -3.0;
-//	  float soundCupVolumeDb = -3.0;
-//};
-
-struct PadInEeprom{
-	byte id;
-	PadMemory pad;
-};
-
-struct InfoSector{
+struct InfoSector {
 	uint8_t numberOfTotalPads;
 	uint8_t soundsNumber;
 	uint32_t soundsAdresses[MAX_SOUNDS];
+};
+
+struct PadInEeprom {
+	uint8_t id;
+	PadMemory pad;
 };
 
 class EepromManager {
