@@ -184,7 +184,7 @@ int main(void)
 #ifdef SDPLAY
 	searchAudioSd();
 #else
-	initAudioCore();
+//	initAudioCore(); todo
 #endif
   /* USER CODE END 2 */
 
@@ -194,7 +194,7 @@ int main(void)
 #ifdef SDPLAY
 		handleAudioStreamSd();
 #else
-	handleAudioStream();
+//	handleAudioStream(); todo
 //	if(HAL_GPIO_ReadPin(BTN_GPIO_Port, BTN_Pin) == GPIO_PIN_SET){
 //		drumPlayDebugSounds();
 //	}
