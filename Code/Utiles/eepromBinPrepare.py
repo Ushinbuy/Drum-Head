@@ -30,6 +30,7 @@ class Notes:
     ride_bow = 0x33
     ride_bell = 0x35
     ride_edge = 0x3B
+    ride_mute_hit = 83
     
     crash_bow = 0x31
     crash_edge = 0x37
@@ -141,12 +142,17 @@ class QspiGenerate:
         snare = PadInEeprom(pad = PadMemory(noteHead=Notes.snare_head, noteRim=Notes.snare_rim))
         snare.pad.setHeadWavFile("snare.wav")
         
-        tom1 = PadInEeprom(pad = PadMemory(noteHead=Notes.tom1_head, noteRim=Notes.tom1_rim))
-        tom1.pad.setHeadWavFile("tomF.wav")
+        # tom1 = PadInEeprom(pad = PadMemory(noteHead=Notes.tom1_head, noteRim=Notes.tom1_rim))
+        # tom1.pad.setHeadWavFile("tomF.wav")
+        hihat = PadInEeprom(pad=PadMemory(noteHead=Notes.hi_hat_open, noteRim=Notes.hi_hat_closed))
+        hihat.pad.setHeadWavFile("hi-hat-open.wav")
+        hihat.pad.setRimWavFile("hi-hat-closed.wav")
+        
+        hihatPedal = PadInEeprom(pad=PadMemory(noteHead=Notes.hi_hat_pedal_chick))
         
         ride = PadInEeprom(pad = PadMemory(noteHead=Notes.ride_bow, noteRim=Notes.ride_edge, noteCup=Notes.ride_bell))
-        ride.pad.setHeadWavFile("crash.wav")
-        return bytes(kick) + bytes(snare) + bytes(tom1) + bytes(ride)
+        ride.pad.setHeadWavFile("rideBow.wav")
+        return bytes(kick) + bytes(snare) + bytes(hihat) + bytes(hihatPedal) + bytes(ride)
                 
 
     def create_mem_sys_sector(self) -> bytearray:

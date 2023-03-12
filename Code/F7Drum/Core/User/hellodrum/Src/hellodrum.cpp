@@ -1381,23 +1381,6 @@ void HelloDrum::loadMemory()
 	noteCross = 		settings.noteCup;
 
 	// TODO Remove duplicates of parameters.
-
-//  sensitivity = EEPROM.read((padNum * 10));
-//  threshold1 = EEPROM.read((padNum * 10) + 1);
-//  scantime = EEPROM.read((padNum * 10) + 2);
-//  masktime = EEPROM.read((padNum * 10) + 3);
-//  rimSensitivity = EEPROM.read((padNum * 10) + 4);
-//  rimThreshold = EEPROM.read((padNum * 10) + 5);
-//  curvetype = EEPROM.read((padNum * 10) + 6);
-//  note = EEPROM.read((padNum * 10) + 7);
-//  noteOpen = EEPROM.read((padNum * 10) + 7);
-//  noteRim = EEPROM.read((padNum * 10) + 8);
-//  noteEdge = EEPROM.read((padNum * 10) + 8);
-//  noteClose = EEPROM.read((padNum * 10) + 8);
-//  noteOpenEdge = EEPROM.read((padNum * 10) + 8);
-//  noteCup = EEPROM.read((padNum * 10) + 9);
-//  noteCloseEdge = EEPROM.read((padNum * 10) + 9);
-//  noteCross = EEPROM.read((padNum * 10) + 9);
 }
 
 void HelloDrum::initMemory()
@@ -1405,10 +1388,6 @@ void HelloDrum::initMemory()
 	// this function is deprecated
 
   //Write initial value to EEPROM.
-
-//	PadMemory currentPad;
-//	uint32_t currentPadAddress = PAD_ADDRESS_START + padNum * sizeof(PadMemory);
-//	writeToExternalFlash((uint8_t *) &currentPad, currentPadAddress, sizeof(PadMemory));
 }
 
 ///////////////////// 7. BUTONN //////////////////////////
