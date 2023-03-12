@@ -4,10 +4,10 @@
 #include "eepromManager.h"
 
 static HelloDrum kick(0);
-static HelloDrum snare(1);
-static HelloDrum hihat(2);
-static HelloDrum hihatPedal(3);
-static HelloDrum ride(4, 5);
+static HelloDrum snare(1, 2);
+static HelloDrum hihat(3);
+static HelloDrum hihatPedal(4);
+static HelloDrum ride(5);
 
 void initHelloDrums(void) {
 	//It is necessary to make the order in exactly the same order as you named the pad first.
@@ -50,6 +50,9 @@ void checkHelloDrums(void){
 	if (snare.hit == true) {
 		sendMidiGEN(snare.settings.note, snare.velocity);
 	}
+	else if(snare.hitRim == true){
+		sendMidiGEN(snare.settings.noteRim, snare.velocity);
+	}
 
 	//HIHAT//
 	if (hihat.hit == true) {
@@ -80,25 +83,25 @@ void checkHelloDrums(void){
 	if (ride.hit == true) {
 		sendMidiGEN(ride.settings.note, ride.velocity); //(note, velocity, channel)
 	}
-
-	//2.edge
-	else if (ride.hitRim == true) {
-		sendMidiGEN(ride.settings.noteRim, ride.velocity); //(note, velocity, channel)
-	}
-
-	//3.cup
-	else if (ride.hitCup == true) {
-		sendMidiGEN(ride.settings.noteCup, ride.velocity); //(note, velocity, channel)
-	}
-
-	//4.choke
-	if (ride.choke == true) {
-		sendMidiAT(ride.settings.note, 127);
-		sendMidiAT(ride.settings.noteRim, 127);
-		sendMidiAT(ride.settings.noteCup, 127);
-		sendMidiAT(ride.settings.note, 0);
-		sendMidiAT(ride.settings.noteRim, 0);
-		sendMidiAT(ride.settings.noteCup, 0);
-	}
+//
+//	//2.edge
+//	else if (ride.hitRim == true) {
+//		sendMidiGEN(ride.settings.noteRim, ride.velocity); //(note, velocity, channel)
+//	}
+//
+//	//3.cup
+//	else if (ride.hitCup == true) {
+//		sendMidiGEN(ride.settings.noteCup, ride.velocity); //(note, velocity, channel)
+//	}
+//
+//	//4.choke
+//	if (ride.choke == true) {
+//		sendMidiAT(ride.settings.note, 127);
+//		sendMidiAT(ride.settings.noteRim, 127);
+//		sendMidiAT(ride.settings.noteCup, 127);
+//		sendMidiAT(ride.settings.note, 0);
+//		sendMidiAT(ride.settings.noteRim, 0);
+//		sendMidiAT(ride.settings.noteCup, 0);
+//	}
 }
 
