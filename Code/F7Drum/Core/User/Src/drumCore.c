@@ -2,7 +2,6 @@
 #include "uartManage.h"
 #include "midi.h"
 #include "eepromSettings.h"
-#include "drumAudioCore.h"
 
 #define OFF_DELAY_MS 200
 
@@ -17,7 +16,6 @@ static ADC_HandleTypeDef* adcLocal;
 static TIM_HandleTypeDef* timActiveSense;
 static TIM_HandleTypeDef* timPiezoAsk;
 extern char buffer_out[1000];
-extern DrumSoundStruct kick;
 
 static void getAuxState(GPIO_PinState *_state);
 
@@ -113,7 +111,7 @@ void checkPiezoChannels(void){
 
 #ifdef DEBUG
 			sendDebug(ch, 0);
-			playSound(&kick, channel[ch].main_ready_volume);
+//			playSound(&kick, channel[ch].main_ready_volume);
 #endif
 		}
 
