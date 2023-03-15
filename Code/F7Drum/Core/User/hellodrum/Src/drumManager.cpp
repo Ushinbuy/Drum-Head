@@ -28,14 +28,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 			adc_val[i] = adc_buf[i];
 		}
 		adcState = ADC_READY;
-
-//		getAuxState(aux_current_state);
-
-//		setStepTime(HAL_GetTick());
-
-//		for (uint8_t i = 0; i < HelloDrum::getChannelsAmount(); i++) {
-//			Update_channel(&channel[i], adc_val[i], aux_current_state[i]);
-//		}
 	}
 }
 
@@ -172,4 +164,8 @@ void setLinksDrumCore(ADC_HandleTypeDef *adcGlobal,
 uint16_t analogRead(uint8_t currentPin){
 	// currentPin is offset for audioBuffer in stm massive
 	return adc_val[currentPin];
+}
+
+void callAudioStreamHandle(void){
+	DrumSound::handleAudioStream();
 }

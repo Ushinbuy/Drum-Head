@@ -22,6 +22,7 @@ public:
 	void stopPlaying(void);
 	void updateBuffer(uint8_t *mainBuffer);
 	void static initAudioCore(void);
+	void static handleAudioStream(void);
 
 private:
 	float currentVolumeFloat;

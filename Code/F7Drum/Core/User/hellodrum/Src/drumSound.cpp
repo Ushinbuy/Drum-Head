@@ -86,6 +86,9 @@ void mixingAudio(uint8_t mainBuffer[], const uint8_t addedSound[], float addedVo
 		mainBuffer[inc] = summ & 0xFF;
 		mainBuffer[inc+1] = summ >> 8;
 	}
+//	char buffSymbols[40];
+//	sprintf(buffSymbols, "0x%X 0x%X 0x%X 0x%X ", mainBuffer[0], mainBuffer[1], mainBuffer[2], mainBuffer[3]);
+//	sendUart(buffSymbols);
 }
 
 void updateAudioBuffer(uint8_t *pBuffer){
@@ -97,7 +100,7 @@ void updateAudioBuffer(uint8_t *pBuffer){
 	memcpy(pBuffer, currentBuffer, AUDIO_BUFFER_SIZE / 2);
 }
 
-void handleAudioStream(void) {
+void DrumSound::handleAudioStream(void) {
 	if (audioState != AUDIO_STATE_PLAYING)
 		return;
 	switch (audioBufferOffset) {

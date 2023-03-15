@@ -147,32 +147,6 @@ int main(void)
   MX_DMA_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
-//  uint8_t readBuff[4] = {0};
-//
-//  extern char buffer_out[1000];
-//
-//	BSP_QSPI_Init();
-//	if (BSP_QSPI_Read(readBuff, 0xC0000, 4) != QSPI_OK) {
-//		sendUart("qspi can't read");
-//	} else {
-//		sprintf(buffer_out, "read from qspi %X %X %X %X", readBuff[0],
-//				readBuff[1], readBuff[2], readBuff[3]);
-//		sendUart(buffer_out);
-//		readBuff[3] = 0x44;
-//		if (BSP_QSPI_Write(readBuff, 0xC0000, 4) != QSPI_OK) {
-//			sendUart("qspi can't write");
-//		} else {
-//			readBuff[0] = 0;
-//			BSP_QSPI_Read(readBuff, 0xC0000, 4);
-//			sprintf(buffer_out, "read from qspi %X %X %X %X", readBuff[0],
-//					readBuff[1], readBuff[2], readBuff[3]);
-//			sendUart(buffer_out);
-//			HAL_Delay(10);
-//		}
-//	}
-//
-//  BSP_QSPI_DeInit();
-
 #define MY_DEBUG
 #ifdef MY_DEBUG
 	DBGMCU->APB1FZ |= DBGMCU_APB1_FZ_DBG_TIM6_STOP;		// shutdown TIM6 on debug
@@ -180,34 +154,18 @@ int main(void)
 #endif
 	HAL_GPIO_WritePin(LCD_BL_CTRL_GPIO_Port, LCD_BL_CTRL_Pin, GPIO_PIN_RESET);	// shutdown display
 
-//	initAndStartDrum();
 	initHelloDrums();
-
-
-#ifdef SDPLAY
-	searchAudioSd();
-#else
-//	initAudioCore(); todo
-#endif
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1) {
-#ifdef SDPLAY
-		handleAudioStreamSd();
-#else
-//	handleAudioStream(); todo
-//	if(HAL_GPIO_ReadPin(BTN_GPIO_Port, BTN_Pin) == GPIO_PIN_SET){
-//		drumPlayDebugSounds();
-//	}
-#endif
-//		handleConfigFromUart();
+		callAudioStreamHandle();
+		checkHelloDrums();
+
 		if(hUsbDeviceFS.dev_state == USBD_STATE_CONFIGURED){
 			sendMidiActiveSense(&upd_active_sens);
 		}
-//		checkPiezoChannels();
-		checkHelloDrums();
 
     /* USER CODE END WHILE */
 
