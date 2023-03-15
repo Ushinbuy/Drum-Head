@@ -33,9 +33,13 @@
 #ifdef SDPLAY
 #include "audioFromSdCard.h"
 #else
-#include "drumAudioCore.h"
+//#include "drumAudioCore.h"
 #endif
-#include "drumCore.h"
+
+//#include "drumCore.h"
+#include "stm32746g_discovery_qspi.h"
+#include "drumManager.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,7 +57,7 @@ uint8_t upd_active_sens = 0;	//flag for active sense, triggered every 300ms
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+extern USBD_HandleTypeDef hUsbDeviceFS;
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -150,31 +154,18 @@ int main(void)
 #endif
 	HAL_GPIO_WritePin(LCD_BL_CTRL_GPIO_Port, LCD_BL_CTRL_Pin, GPIO_PIN_RESET);	// shutdown display
 
-	initAndStartDrum();
-
-#ifdef SDPLAY
-	searchAudioSd();
-#else
-	initAudioCore();
-#endif
+	initHelloDrums();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1) {
-#ifdef SDPLAY
-		handleAudioStreamSd();
-#else
-	handleAudioStream();
-	if(HAL_GPIO_ReadPin(BTN_GPIO_Port, BTN_Pin) == GPIO_PIN_SET){
-		drumPlaySound();
-	}
-#endif
-		handleConfigFromUart();
-		if(isUsbConfigured()){
+		callAudioStreamHandle();
+		checkHelloDrums();
+
+		if(hUsbDeviceFS.dev_state == USBD_STATE_CONFIGURED){
 			sendMidiActiveSense(&upd_active_sens);
 		}
-		checkPiezoChannels();
 
     /* USER CODE END WHILE */
 
@@ -480,7 +471,7 @@ static void MX_TIM4_Init(void)
   htim4.Instance = TIM4;
   htim4.Init.Prescaler = 0;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 20000;
+  htim4.Init.Period = 10000;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
@@ -964,15 +955,10 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 void tx_midi(uint8_t *_buffer, uint16_t len) {
-	if(!isUsbConfigured()){
+	if(hUsbDeviceFS.dev_state != USBD_STATE_CONFIGURED)
 		return;
-	}
-//	uint8_t rt = USBD_BUSY;
-//	while (rt == USBD_BUSY) {
-//		rt = CDC_Transmit_FS(_buffer, len);
-//	};
-	CDC_Transmit_FS(_buffer, len);
 
+	CDC_Transmit_FS(_buffer, len);
 	TIM2->CNT = 0; // restart active sense timer
 }
 
@@ -997,7 +983,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* USER CODE BEGIN Callback 1 */
 	// 10kHz trigger, 0.1ms
 	if (htim->Instance == htim4.Instance) {
-		requestPiezoAdc();
+		requestPiezo();
 	}
 
 	// 3.33Hz active sensing, 300ms
