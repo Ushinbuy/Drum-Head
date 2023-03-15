@@ -4,6 +4,7 @@
 #include "eepromSettings.h"
 
 #define OFF_DELAY_MS 200
+#define NUMBER_OF_CHANNELS 6
 
 DRUM channel[NUMBER_OF_CHANNELS];	// array of drums
 static GPIO_PinState aux_current_state[NUMBER_OF_CHANNELS];
@@ -33,29 +34,29 @@ char ASCIILOGO[] = "\n"\
 "    / | \\|  | /`~-_-~'X.\\ //| \\ \n\n"\
 "= Send any char for configuration =\n";
 
-void setLinksDrumCore(ADC_HandleTypeDef *adcGlobal,
-		TIM_HandleTypeDef *timGlobalPiezoAsk,
-		TIM_HandleTypeDef *timGlobalActiveSense) {
-	adcLocal = adcGlobal;
-	timActiveSense = timGlobalActiveSense;
-	timPiezoAsk = timGlobalPiezoAsk;
-}
+//void setLinksDrumCore(ADC_HandleTypeDef *adcGlobal,
+//		TIM_HandleTypeDef *timGlobalPiezoAsk,
+//		TIM_HandleTypeDef *timGlobalActiveSense) {
+//	adcLocal = adcGlobal;
+//	timActiveSense = timGlobalActiveSense;
+//	timPiezoAsk = timGlobalPiezoAsk;
+//}
 
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
-	if (hadc->Instance == (*adcLocal).Instance) {
-		for (uint8_t i = 0; i < NUMBER_OF_CHANNELS; i++) {
-			adc_val[i] = adc_buf[i];
-		}
-
-		getAuxState(aux_current_state);
-
-		setStepTime(HAL_GetTick());
-
-		for (uint8_t i = 0; i < NUMBER_OF_CHANNELS; i++) {
-			Update_channel(&channel[i], adc_val[i], aux_current_state[i]);
-		}
-	}
-}
+//void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
+//	if (hadc->Instance == (*adcLocal).Instance) {
+//		for (uint8_t i = 0; i < NUMBER_OF_CHANNELS; i++) {
+//			adc_val[i] = adc_buf[i];
+//		}
+//
+//		getAuxState(aux_current_state);
+//
+//		setStepTime(HAL_GetTick());
+//
+//		for (uint8_t i = 0; i < NUMBER_OF_CHANNELS; i++) {
+//			Update_channel(&channel[i], adc_val[i], aux_current_state[i]);
+//		}
+//	}
+//}
 
 static void getAuxState (GPIO_PinState *_state){
 	_state[0] = HAL_GPIO_ReadPin(ARDUINO_RX_D0_GPIO_Port, ARDUINO_RX_D0_Pin);
@@ -110,7 +111,7 @@ void checkPiezoChannels(void){
 			channel[ch].main_last_on_time = HAL_GetTick();
 
 #ifdef DEBUG
-			sendDebug(ch, 0);
+//			sendDebug(ch, 0);
 //			playSound(&kick, channel[ch].main_ready_volume);
 #endif
 		}
@@ -118,7 +119,7 @@ void checkPiezoChannels(void){
 		if (channel[ch].aux_ready) {
 			channel[ch].aux_ready = 0;
 #ifdef DEBUG
-			sendDebug(ch, 1);
+//			sendDebug(ch, 1);
 #endif
 
 			switch (channel[ch].chnl_type) {
