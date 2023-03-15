@@ -18,7 +18,7 @@
 extern "C" void sendUart(const char *_msg);
 extern char buffer_out[1000];
 
-//#define DEBUG_DRUM
+#define DEBUG_DRUM
 
 //#include "Arduino.h"
 //#include "EEPROM.h"
