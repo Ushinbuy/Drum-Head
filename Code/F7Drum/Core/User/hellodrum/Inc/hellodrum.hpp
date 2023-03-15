@@ -14,6 +14,7 @@
 //#include "EEPROM.h"
 
 #include "platform.h"
+#include "drumSound.hpp"
 
 const static char *item[] = {
     "SENSITIVITY", //0 0
@@ -122,6 +123,7 @@ static byte nameIndex;
 static byte nameIndexMax;
 static byte showValue = 0;
 static byte padIndex = 0;
+static byte channelsAmount = 0;
 //static byte muxIndex = 0;
 static byte Snum = 1; //pad type number
 static byte Dnum = 2;
@@ -165,9 +167,9 @@ public:
 	  byte note = 0x18;           //7
 	  byte noteRim = 0x19;        //8
 	  byte noteCup = 0x20;        //9
-	  byte soundHeadAddressId = 0x21;	//10 this field show which item from soundsAdresses
-	  byte soundRimAddressId = 0x22;	//11
-	  byte soundCupAddressId = 0x23;	//12
+	  byte soundHeadAddressId = 0xFF;	//10 this field show which item from soundsAdresses
+	  byte soundRimAddressId = 0xFF;	//11
+	  byte soundCupAddressId = 0xFF;	//12
 	  float soundHeadVolumeDb = -3.0;
 	  float soundRimVolumeDb = -3.0;
 	  float soundCupVolumeDb = -3.0;
@@ -178,6 +180,7 @@ class HelloDrum
 public:
   HelloDrum(byte pin1, byte pin2);
   HelloDrum(byte pin1);
+  static uint8_t getChannelsAmount(void);
 
 //  void singlePiezoMUX(byte sens, byte thre, byte scan, byte mask);
 //  void singlePiezoMUX();
@@ -224,10 +227,11 @@ public:
 
   void loadMemory();
   void initMemory();
+  void initSounds();
 
   int velocity;
-  int velocityRim;
-  int velocityCup;
+  int velocityRim;	// todo does it using anywhere?!?! Look in example
+  int velocityCup;	// todo does it using anywhere?!?! Look in example
   byte pedalCC;
 
   //  int exValue;
@@ -252,6 +256,9 @@ public:
   byte padNum;
 
   PadMemory settings;
+  DrumSound* noteHeadSound;
+  DrumSound* noteRimSound;
+  DrumSound* noteCupSound;
 
   // this was changed by PadMemory structure
 //  byte note;

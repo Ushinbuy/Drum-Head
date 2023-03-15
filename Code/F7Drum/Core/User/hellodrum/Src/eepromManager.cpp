@@ -117,7 +117,10 @@ bool EepromManager::isAddressEmpty(uint8_t* bytesToCheck, uint32_t size){
 
 void EepromManager::readFromExternalFlash(uint8_t* pData, uint32_t ReadAddr, uint32_t Size){
 //	memcpy(pData, &pageAddress[ReadAddr], Size);
+	BSP_QSPI_DeInit();
+	BSP_QSPI_Init();
 	BSP_QSPI_Read(pData, ReadAddr, Size);
+	BSP_QSPI_DeInit();
 }
 
 PadInEeprom * EepromManager::findAllPads(void){

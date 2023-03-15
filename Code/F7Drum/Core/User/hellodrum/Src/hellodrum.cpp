@@ -18,6 +18,8 @@
 extern "C" void sendUart(const char *_msg);
 extern char buffer_out[1000];
 
+#define DEBUG_DRUM
+
 //#include "Arduino.h"
 //#include "EEPROM.h"
 
@@ -41,6 +43,7 @@ HelloDrum::HelloDrum(byte pin1)
   //Give the instance a pad number.
   padNum = padIndex;
   padIndex++;
+  channelsAmount++;
 }
 
 //Pad with 2 sensors.
@@ -64,6 +67,7 @@ HelloDrum::HelloDrum(byte pin1, byte pin2)
   //Give the instance a pad number.
   padNum = padIndex;
   padIndex++;
+  channelsAmount += 2;
 }
 
 ////MUX(4051) pin define
@@ -116,6 +120,10 @@ HelloDrumButton::HelloDrumButton(byte pin1, byte pin2, byte pin3, byte pin4, byt
   pin_3 = pin3; //DOWN
   pin_4 = pin4; //NEXT
   pin_5 = pin5; //BACK
+}
+
+uint8_t HelloDrum::getChannelsAmount(void){
+	return channelsAmount;
 }
 
 //control button
@@ -1381,6 +1389,23 @@ void HelloDrum::loadMemory()
 	noteCross = 		settings.noteCup;
 
 	// TODO Remove duplicates of parameters.
+}
+
+void HelloDrum::initSounds(){
+	uint32_t address = 0;
+	float volumeDb = 0.0;
+	if(settings.soundHeadAddressId != 0xff){
+		address = EepromManager::getInstance()->infoSector.soundsAdresses[settings.soundHeadAddressId];
+		noteHeadSound = new DrumSound(address, settings.soundHeadVolumeDb);
+	}
+	if(settings.soundRimAddressId != 0xff){
+		address = EepromManager::getInstance()->infoSector.soundsAdresses[settings.soundRimAddressId];
+		noteRimSound = new DrumSound(address, settings.soundRimVolumeDb);
+	}
+	if(settings.soundCupAddressId != 0xff){
+		address = EepromManager::getInstance()->infoSector.soundsAdresses[settings.soundCupAddressId];
+		noteCupSound = new DrumSound(address, settings.soundCupVolumeDb);
+	}
 }
 
 void HelloDrum::initMemory()

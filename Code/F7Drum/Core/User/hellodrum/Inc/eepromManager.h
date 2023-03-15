@@ -10,7 +10,6 @@ void eeprom_work(void); // remove this in release
 
 #define MAX_SOUNDS 63 // this value optimize for 0x10
 #define SECTOR_SIZE N25Q128A_SECTOR_SIZE // this must be taken from header QSPI
-#define PADS_NUMBER 4
 
 struct InfoSector {
 	uint8_t numberOfTotalPads;
@@ -36,11 +35,11 @@ public:
 //	void showPageAddress(uint32_t startAddress, uint32_t stopAddress);
 	void writePad(PadInEeprom _pad);
 	PadInEeprom readPad(uint8_t idPad);
+	InfoSector infoSector;
 
 private:
 	EepromManager();
 
-	InfoSector infoSector;
 //	uint8_t pageAddress[SECTOR_SIZE]; // THIS MUST BE CHANGE
 
 	void erasePage(void);

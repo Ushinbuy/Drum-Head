@@ -129,7 +129,7 @@ void BSP_AUDIO_OUT_TransferComplete_CallBack(void) {
 //	BSP_AUDIO_OUT_ChangeBuffer(pBufferFirstHalf, AUDIO_BUFFER_SIZE / 2);
 }
 
-void initAudioCore(void){
+void DrumSound::initAudioCore(void){
 	audioState = AUDIO_STATE_INIT;
 
 	uint8_t uwVolume = 15;
@@ -142,7 +142,6 @@ void initAudioCore(void){
 		return;
 	}
 
-//	initSounds();
 	if(BSP_QSPI_Init() != QSPI_OK){
 		return;
 	}

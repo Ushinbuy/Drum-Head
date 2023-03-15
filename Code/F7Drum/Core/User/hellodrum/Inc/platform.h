@@ -9,7 +9,6 @@
 
 using byte = uint8_t;
 uint32_t millis(void);
-uint16_t analogRead(byte currentPin);
 short map(short x, short in_min, short in_max, short out_min, short out_max);
 void delay(uint32_t Delay);
 

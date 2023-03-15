@@ -21,6 +21,7 @@ public:
 	void playSound(uint8_t velocity);
 	void stopPlaying(void);
 	void updateBuffer(uint8_t *mainBuffer);
+	void static initAudioCore(void);
 
 private:
 	float currentVolumeFloat;

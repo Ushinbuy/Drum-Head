@@ -33,11 +33,12 @@
 #ifdef SDPLAY
 #include "audioFromSdCard.h"
 #else
-#include "drumAudioCore.h"
+//#include "drumAudioCore.h"
 #endif
 
-#include "drumCore.h"
+//#include "drumCore.h"
 #include "stm32746g_discovery_qspi.h"
+#include "drumManager.h"
 
 /* USER CODE END Includes */
 
@@ -179,7 +180,9 @@ int main(void)
 #endif
 	HAL_GPIO_WritePin(LCD_BL_CTRL_GPIO_Port, LCD_BL_CTRL_Pin, GPIO_PIN_RESET);	// shutdown display
 
-	initAndStartDrum();
+//	initAndStartDrum();
+	initHelloDrums();
+
 
 #ifdef SDPLAY
 	searchAudioSd();
@@ -199,11 +202,12 @@ int main(void)
 //		drumPlayDebugSounds();
 //	}
 #endif
-		handleConfigFromUart();
+//		handleConfigFromUart();
 		if(hUsbDeviceFS.dev_state == USBD_STATE_CONFIGURED){
 			sendMidiActiveSense(&upd_active_sens);
 		}
-		checkPiezoChannels();
+//		checkPiezoChannels();
+		checkHelloDrums();
 
     /* USER CODE END WHILE */
 
@@ -1021,7 +1025,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* USER CODE BEGIN Callback 1 */
 	// 10kHz trigger, 0.1ms
 	if (htim->Instance == htim4.Instance) {
-		requestPiezoAdc();
+		requestPiezo();
 	}
 
 	// 3.33Hz active sensing, 300ms
