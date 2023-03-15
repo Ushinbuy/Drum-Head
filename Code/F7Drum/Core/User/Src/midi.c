@@ -1,6 +1,6 @@
 #include "midi.h"
 
-#define TAB 0x09		// TODO to know what is TAB
+#define TAB 0x09
 #define MIDI_CHANNEL 	0x9
 #define NOTE_ON			0x90 + MIDI_CHANNEL
 #define NOTE_OFF 		0x80 + MIDI_CHANNEL
