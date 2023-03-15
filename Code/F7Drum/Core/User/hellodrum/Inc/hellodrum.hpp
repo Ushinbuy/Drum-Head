@@ -149,11 +149,11 @@ static bool button_next;
 static bool button_back;
 static byte UP[10] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 
-#ifdef __AVR_ATmega328P__
-static int rawValue[16]; //2 * 8chanel Mux
-#else
-static int rawValue[64]; //8 * 8chanel Mux
-#endif
+//#ifdef __AVR_ATmega328P__
+//static int rawValue[16]; //2 * 8chanel Mux
+//#else
+//static int rawValue[64]; //8 * 8chanel Mux
+//#endif
 
 struct PadMemory{
 public:

@@ -21,9 +21,9 @@ void sendMidiAT(uint8_t note, uint8_t vel);
 // MIDI generic ON message
 void sendMidi2(uint8_t note1, uint8_t vel1,uint8_t note2, uint8_t vel2);
 // MIDI HiHat pedal press message
-void sendMidiHHPedalOn();
+//void sendMidiHHPedalOn();
 // pedal aftertouch for hihat
-void sendMidiHHPedalOff();
+//void sendMidiHHPedalOff();
 
 void sendMidiControlChange(uint8_t controlNumber, uint8_t controlValue);
 
