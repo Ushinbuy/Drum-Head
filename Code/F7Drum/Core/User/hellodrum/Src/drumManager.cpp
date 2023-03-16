@@ -6,9 +6,9 @@
 
 static HelloDrum kick(0);
 static HelloDrum snare(1, 2);
-static HelloDrum hihat(3);
-static HelloDrum hihatPedal(4);
-static HelloDrum ride(5);
+//static HelloDrum hihat(3);
+static HelloDrum hihatPedal(3);
+static HelloDrum ride(4, 5);
 
 static ADC_HandleTypeDef* adcLocal;
 static TIM_HandleTypeDef* timActiveSense;
@@ -35,9 +35,9 @@ void initHelloDrums(void) {
 	//It is necessary to make the order in exactly the same order as you named the pad first.
 	kick.settingName("KICK");
 	snare.settingName("SNARE");
-	hihat.settingName("HIHAT");
+//	hihat.settingName("HIHAT");
 	hihatPedal.settingName("HIHAT PEDAL");
-//	ride.settingName("RIDE");
+	ride.settingName("RIDE");
 
 	//Load settings from EEPROM.
 	//It is necessary to make the order in exactly the same order as you named the pad first.
@@ -46,17 +46,17 @@ void initHelloDrums(void) {
 
 	kick.loadMemory();
 	snare.loadMemory();
-	hihat.loadMemory();
+//	hihat.loadMemory();
 	hihatPedal.loadMemory();
-//	ride.loadMemory();
+	ride.loadMemory();
 
 	DrumSound::initAudioCore();
 
 	kick.initSounds();
 	snare.initSounds();
-	hihat.initSounds();
+//	hihat.initSounds();
 	hihatPedal.initSounds();
-//	ride.initSounds();
+	ride.initSounds();
 
 	adc_buf = new uint32_t[HelloDrum::getChannelsAmount()];
 	adc_val = new uint16_t[HelloDrum::getChannelsAmount()];
@@ -78,9 +78,9 @@ void checkHelloDrums(void){
 
 	kick.singlePiezo();
 	snare.dualPiezo();
-	hihat.HH();
+//	hihat.HH();
 	hihatPedal.hihatControl();
-//	ride.cymbal3zone();
+	ride.cymbal3zone();
 
 	//KICK//
 	if (kick.hit == true) {
@@ -99,19 +99,19 @@ void checkHelloDrums(void){
 	}
 
 	//HIHAT//
-	if (hihat.hit == true) {
-		//check open or close
-		//1.open
-		if (hihatPedal.openHH == true) {
-			sendMidiGEN(hihat.noteOpen, hihat.velocity);
-			hihat.noteHeadSound->playSound(hihat.velocity);
-		}
-		//2.close
-		else if (hihatPedal.closeHH == true) {
-			sendMidiGEN(hihat.noteClose, hihat.velocity);
-			hihat.noteRimSound->playSound(hihat.velocity);
-		}
-	}
+//	if (hihat.hit == true) {
+//		//check open or close
+//		//1.open
+//		if (hihatPedal.openHH == true) {
+//			sendMidiGEN(hihat.noteOpen, hihat.velocity);
+//			hihat.noteHeadSound->playSound(hihat.velocity);
+//		}
+//		//2.close
+//		else if (hihatPedal.closeHH == true) {
+//			sendMidiGEN(hihat.noteClose, hihat.velocity);
+//			hihat.noteRimSound->playSound(hihat.velocity);
+//		}
+//	}
 
 	//HIHAT CONTROLLER//
 	//when hihat is closed
@@ -127,30 +127,30 @@ void checkHelloDrums(void){
 
 	//RIDE//
 	//1.bow
-//	if (ride.hit == true) {
-//		sendMidiGEN(ride.settings.note, ride.velocity); //(note, velocity, channel)
-//		ride.noteHeadSound->playSound(ride.velocity);
-//	}
-//
-//	//2.edge
-//	else if (ride.hitRim == true) {
-//		sendMidiGEN(ride.settings.noteRim, ride.velocity); //(note, velocity, channel)
-//	}
-//
-//	//3.cup
-//	else if (ride.hitCup == true) {
-//		sendMidiGEN(ride.settings.noteCup, ride.velocity); //(note, velocity, channel)
-//	}
-//
-//	//4.choke
-//	if (ride.choke == true) {
-//		sendMidiAT(ride.settings.note, 127);
-//		sendMidiAT(ride.settings.noteRim, 127);
-//		sendMidiAT(ride.settings.noteCup, 127);
-//		sendMidiAT(ride.settings.note, 0);
-//		sendMidiAT(ride.settings.noteRim, 0);
-//		sendMidiAT(ride.settings.noteCup, 0);
-//	}
+	if (ride.hit == true) {
+		sendMidiGEN(ride.settings.note, ride.velocity); //(note, velocity, channel)
+		ride.noteHeadSound->playSound(ride.velocity);
+	}
+
+	//2.edge
+	else if (ride.hitRim == true) {
+		sendMidiGEN(ride.settings.noteRim, ride.velocity); //(note, velocity, channel)
+	}
+
+	//3.cup
+	else if (ride.hitCup == true) {
+		sendMidiGEN(ride.settings.noteCup, ride.velocity); //(note, velocity, channel)
+	}
+
+	//4.choke
+	if (ride.choke == true) {
+		sendMidiAT(ride.settings.note, 127);
+		sendMidiAT(ride.settings.noteRim, 127);
+		sendMidiAT(ride.settings.noteCup, 127);
+		sendMidiAT(ride.settings.note, 0);
+		sendMidiAT(ride.settings.noteRim, 0);
+		sendMidiAT(ride.settings.noteCup, 0);
+	}
 }
 
 void setLinksDrumCore(ADC_HandleTypeDef *adcGlobal,

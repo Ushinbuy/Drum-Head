@@ -120,6 +120,8 @@ class PadMemory(Structure):
           
 class PadInEeprom(Structure):
     padsNumber = 0
+    padsInBytes = bytes()
+    
     _fields_ = (
         ('id', c_uint8),
         ('pad', PadMemory)
@@ -129,12 +131,13 @@ class PadInEeprom(Structure):
         id = PadInEeprom.padsNumber
         PadInEeprom.padsNumber += 1
         super().__init__(id, pad)
+        PadInEeprom.padsInBytes += bytes(self)
     
 class QspiGenerate:
     def __init__(self) -> None:
         self.mem_sys_sector = InfoSector()
         
-    def generatePads(self) -> bytearray:
+    def generatePads(self):
         # All wav files must be stereo in 48 kHz.
         kick = PadInEeprom(pad = PadMemory(noteHead=Notes.kick))
         kick.pad.setHeadWavFile("kick.wav")
@@ -144,19 +147,18 @@ class QspiGenerate:
         
         # tom1 = PadInEeprom(pad = PadMemory(noteHead=Notes.tom1_head, noteRim=Notes.tom1_rim))
         # tom1.pad.setHeadWavFile("tomF.wav")
-        hihat = PadInEeprom(pad=PadMemory(noteHead=Notes.hi_hat_open, noteRim=Notes.hi_hat_closed))
-        hihat.pad.setHeadWavFile("hi-hat-open.wav")
-        hihat.pad.setRimWavFile("hi-hat-closed.wav")
+
+        # hihat = PadInEeprom(pad=PadMemory(noteHead=Notes.hi_hat_open, noteRim=Notes.hi_hat_closed))
+        # hihat.pad.setHeadWavFile("hi-hat-open.wav")
+        # hihat.pad.setRimWavFile("hi-hat-closed.wav")
         
         hihatPedal = PadInEeprom(pad=PadMemory(noteHead=Notes.hi_hat_pedal_chick))
         
         ride = PadInEeprom(pad = PadMemory(noteHead=Notes.ride_bow, noteRim=Notes.ride_edge, noteCup=Notes.ride_bell))
         ride.pad.setHeadWavFile("rideBow.wav")
-        return bytes(kick) + bytes(snare) + bytes(hihat) + bytes(hihatPedal) + bytes(ride)
-                
 
     def create_mem_sys_sector(self) -> bytearray:
-        pads_array = self.generatePads()
+        self.generatePads()
         
         self.mem_sys_sector.numberOfTotalPads = PadInEeprom.padsNumber
         self.mem_sys_sector.soundsNumber = len(PadMemory.list_ofWavFiles)
@@ -164,16 +166,16 @@ class QspiGenerate:
         adresses = PadMemory.list_wav_addresses
         self.fill_sounds_address(adresses)
         
-        tempToOut = bytearray(self.mem_sys_sector) + pads_array
-        tempToOut = self.fill_FF_to_the_end_sector(tempToOut)
+        outBytes = bytearray(self.mem_sys_sector) + PadInEeprom.padsInBytes
+        outBytes = self.fill_FF_to_the_end_sector(outBytes)
         
-        tempToOut += PadMemory.bytes_array_wav_files
+        outBytes += PadMemory.bytes_array_wav_files
     
-        bin_size = len(tempToOut)/0x400
+        bin_size = len(outBytes)/0x400
         assert (bin_size + 16) < MAX_FLASH_SIZE_KB, "Bin size is very big, please decrease wav volume"
         print("bin size is " + str(bin_size)+ " KB")
-        printByes(tempToOut[:0x190])
-        return tempToOut
+        printBytes(outBytes[:0x190])
+        return outBytes
             
     def fill_sounds_address(self, adresses: dict):
         num_adresses = len(adresses)
@@ -193,7 +195,7 @@ def writeByteArrayToFile(bin: bytearray, filename = "qspi.bin"):
     file_to_write.close()
     print("Bin image was writed success in file " + filename)
 
-def printByes(buffer: bytearray):
+def printBytes(buffer: bytearray):
     buffer += bytes(0x10) # this show last string if using re.compile("(.{80})")
     bytesInHex = ' '.join('0x{:02x}'.format(x) for x in bytearray(buffer))
     
@@ -215,4 +217,4 @@ def addWavFileToBinImage(filename:str) -> c_uint8:
 if __name__ == "__main__":
     gen = QspiGenerate()
     binImage = gen.create_mem_sys_sector()
-    # writeByteArrayToFile(binImage)
+    writeByteArrayToFile(binImage)
