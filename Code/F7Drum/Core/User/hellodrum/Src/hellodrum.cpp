@@ -20,25 +20,10 @@ extern char buffer_out[1000];
 
 #define DEBUG_DRUM
 
-//#include "Arduino.h"
-//#include "EEPROM.h"
-
 //Pad with a sensor.
 HelloDrum::HelloDrum(byte pin1)
 {
   pin_1 = pin1;
-
-//  //initial EEPROM value
-//  settings.sensitivity = 100;   //0
-//  settings.threshold1 = 10;     //1
-//  settings.scantime = 10;       //2
-//  param.masktime = 30;       //3
-//  param.rimSensitivity = 20; //4 edgeThreshold
-//  param.rimThreshold = 3;    //5 cupThreshold
-//  param.curvetype = 0;       //6
-//  param.note = 38;           //7
-//  param.noteRim = 39;        //8
-//  param.noteCup = 40;        //9
 
   //Give the instance a pad number.
   padNum = padIndex;
@@ -51,18 +36,6 @@ HelloDrum::HelloDrum(byte pin1, byte pin2)
 {
   pin_1 = pin1;
   pin_2 = pin2;
-
-//  //initial value
-//  sensitivity = 100;   //0
-//  threshold1 = 10;     //1
-//  scantime = 10;       //2
-//  masktime = 30;       //3
-//  rimSensitivity = 20; //4 edgeThreshold
-//  rimThreshold = 3;    //5 cupThreshold
-//  curvetype = 0;       //6
-//  note = 38;           //7
-//  noteRim = 39;        //8
-//  noteCup = 40;        //9
 
   //Give the instance a pad number.
   padNum = padIndex;
