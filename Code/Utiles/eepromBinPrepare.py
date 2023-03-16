@@ -120,7 +120,7 @@ class PadMemory(Structure):
           
 class PadInEeprom(Structure):
     padsNumber = 0
-    padsInBytes = bytes()
+    listOfPads = []
     
     _fields_ = (
         ('id', c_uint8),
@@ -131,7 +131,14 @@ class PadInEeprom(Structure):
         id = PadInEeprom.padsNumber
         PadInEeprom.padsNumber += 1
         super().__init__(id, pad)
-        PadInEeprom.padsInBytes += bytes(self)
+        PadInEeprom.listOfPads.append(self)
+        
+    @staticmethod
+    def listOfPadInBytes() -> bytes:
+        out = bytes()
+        for i in PadInEeprom.listOfPads:
+            out += bytes(i)
+        return out     
     
 class QspiGenerate:
     def __init__(self) -> None:
@@ -144,6 +151,7 @@ class QspiGenerate:
         
         snare = PadInEeprom(pad = PadMemory(noteHead=Notes.snare_head, noteRim=Notes.snare_rim))
         snare.pad.setHeadWavFile("snare.wav")
+        snare.pad.setRimWavFile("snareRim.wav")
         
         # tom1 = PadInEeprom(pad = PadMemory(noteHead=Notes.tom1_head, noteRim=Notes.tom1_rim))
         # tom1.pad.setHeadWavFile("tomF.wav")
@@ -153,6 +161,7 @@ class QspiGenerate:
         # hihat.pad.setRimWavFile("hi-hat-closed.wav")
         
         hihatPedal = PadInEeprom(pad=PadMemory(noteHead=Notes.hi_hat_pedal_chick))
+        hihatPedal.pad.setHeadWavFile("hihayFootOpen.wav")
         
         ride = PadInEeprom(pad = PadMemory(noteHead=Notes.ride_bow, noteRim=Notes.ride_edge, noteCup=Notes.ride_bell))
         ride.pad.setHeadWavFile("rideBow.wav")
@@ -166,7 +175,7 @@ class QspiGenerate:
         adresses = PadMemory.list_wav_addresses
         self.fill_sounds_address(adresses)
         
-        outBytes = bytearray(self.mem_sys_sector) + PadInEeprom.padsInBytes
+        outBytes = bytearray(self.mem_sys_sector) + PadInEeprom.listOfPadInBytes()
         outBytes = self.fill_FF_to_the_end_sector(outBytes)
         
         outBytes += PadMemory.bytes_array_wav_files
