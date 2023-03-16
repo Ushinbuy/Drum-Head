@@ -80,7 +80,7 @@ void checkHelloDrums(void){
 	snare.dualPiezo();
 //	hihat.HH();
 	hihatPedal.hihatControl();
-	ride.cymbal3zone();
+//	ride.cymbal3zone();
 
 	//KICK//
 	if (kick.hit == true) {
