@@ -1058,6 +1058,7 @@ void HelloDrum::hihatControl()
 {
   padType[padNum] = HHCnum;
   fsr = analogRead(pin_1);
+  // TODO create invert FSR for Alesis drum kit
   FSRSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime, settings.rimSensitivity);
 }
 
