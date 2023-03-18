@@ -387,16 +387,4 @@ private:
   byte pin_1;
 };
 
-class HelloDrumKnob
-{
-public:
-  HelloDrumKnob(byte pin1);
-  void read();
-//  void readMUX();
-  int knobValue;
-
-private:
-  byte pin_1;
-};
-
 #endif
