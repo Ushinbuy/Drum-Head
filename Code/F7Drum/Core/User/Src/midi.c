@@ -7,11 +7,13 @@
 #define KEY_PRESSURE 	0xA0 + MIDI_CHANNEL // AfterTouch
 #define CONTROL_CHANGE	0xB0 + MIDI_CHANNEL
 
+#define FOOT_SWITCH_CONTROLLER 4	// MIDI standard
+
 void sendMidiActiveSense(uint8_t* _upd_active_sens){
 	if (*_upd_active_sens) {
 		*_upd_active_sens = 0;
 		uint8_t bff[4] = { 0x0F, 0xFE, 0x00, 0x00 };
-		tx_midi((uint8_t*) bff, 4);
+		tx_midi((uint8_t*) bff, sizeof(bff));
 	}
 }
 
@@ -22,7 +24,7 @@ void sendMidiGEN(uint8_t note, uint8_t vel){
   bff[2] = 0x7f & note;
   bff[3] = 0x7f & vel;
   bff[6] = 0x7f & note;
-  tx_midi((uint8_t *)bff,8);
+  tx_midi((uint8_t *)bff,sizeof(bff));
 }
 
 // MIDI generic ON message
@@ -30,14 +32,14 @@ void sendMidi(uint8_t note, uint8_t vel){
   uint8_t bff[4] = {TAB,  NOTE_ON, 0x00, 0x00};
   bff[2] = 0x7f & note;
   bff[3] = 0x7f & vel;
-  tx_midi((uint8_t *)bff,4);
+  tx_midi((uint8_t *)bff,sizeof(bff));
 }
 // MIDI generic OFF message
 void sendMidiOFF(uint8_t note){
   uint8_t bff[4] = {TAB,  NOTE_OFF, 0x00, 0x00};
   bff[2] = 0x7f & note;
   bff[3] = 0x7f;
-  tx_midi((uint8_t *)bff,4);
+  tx_midi((uint8_t *)bff,sizeof(bff));
 }
 
 
@@ -46,7 +48,7 @@ void sendMidiAT(uint8_t note, uint8_t vel){
   uint8_t bff[4] = {TAB,  NOTE_ON, 0x00, 0x00};
   bff[2] = 0x7f & note;
   bff[3] = 0x7f & vel;
-  tx_midi((uint8_t *)bff,4);
+  tx_midi((uint8_t *)bff,sizeof(bff));
 }
 
 
@@ -58,7 +60,7 @@ void sendMidi2(uint8_t note1, uint8_t vel1,uint8_t note2, uint8_t vel2){
   bff[3] = 0x7f & vel1;
   bff[2+4] = 0x7f & note2;
   bff[3+4] = 0x7f & vel2;
-  tx_midi((uint8_t *)bff,8);
+  tx_midi((uint8_t *)bff,sizeof(bff));
 }
 
 // MIDI HiHat pedal press message
@@ -80,5 +82,5 @@ void sendMidi2(uint8_t note1, uint8_t vel1,uint8_t note2, uint8_t vel2){
 void sendMidiControlChange(uint8_t controlNumber, uint8_t controlValue) {
 	// TODO check correction of this message. It can be checked from arduino
 	uint8_t bff[4] = { TAB, controlNumber, controlValue, MIDI_CHANNEL };
-	tx_midi((uint8_t*) bff, 4);
+	tx_midi((uint8_t*) bff, sizeof(bff));
 }
