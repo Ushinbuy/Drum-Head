@@ -2,6 +2,16 @@
 
 ///////////////////// 7. BUTONN //////////////////////////
 
+//control button
+HelloDrumButton::HelloDrumButton(byte pin1, byte pin2, byte pin3, byte pin4, byte pin5)
+{
+  pin_1 = pin1; //EDIT
+  pin_2 = pin2; //UP
+  pin_3 = pin3; //DOWN
+  pin_4 = pin4; //NEXT
+  pin_5 = pin5; //BACK
+}
+
 void HelloDrumButton::readButton(bool button_set, bool button_up, bool button_down, bool button_next, bool button_back)
 {
   ////////////////////////////// EDIT START////////////////////////////////

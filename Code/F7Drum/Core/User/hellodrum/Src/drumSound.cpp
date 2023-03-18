@@ -86,9 +86,6 @@ void mixingAudio(uint8_t mainBuffer[], const uint8_t addedSound[], float addedVo
 		mainBuffer[inc] = summ & 0xFF;
 		mainBuffer[inc+1] = summ >> 8;
 	}
-//	char buffSymbols[40];
-//	sprintf(buffSymbols, "0x%X 0x%X 0x%X 0x%X ", mainBuffer[0], mainBuffer[1], mainBuffer[2], mainBuffer[3]);
-//	sendUart(buffSymbols);
 }
 
 void updateAudioBuffer(uint8_t *pBuffer){
@@ -121,7 +118,6 @@ void BSP_AUDIO_OUT_HalfTransfer_CallBack(void) {
 		return;
 	}
 	audioBufferOffset = PLAY_BUFFER_OFFSET_HALF;
-//	BSP_AUDIO_OUT_ChangeBuffer(pBufferSecondHalf, AUDIO_BUFFER_SIZE / 2);
 }
 
 void BSP_AUDIO_OUT_TransferComplete_CallBack(void) {
@@ -129,13 +125,12 @@ void BSP_AUDIO_OUT_TransferComplete_CallBack(void) {
 		return;
 	}
 	audioBufferOffset = PLAY_BUFFER_OFFSET_FULL;
-//	BSP_AUDIO_OUT_ChangeBuffer(pBufferFirstHalf, AUDIO_BUFFER_SIZE / 2);
 }
 
 void DrumSound::initAudioCore(void){
 	audioState = AUDIO_STATE_INIT;
 
-	uint8_t uwVolume = 15;
+	uint8_t uwVolume = 50;
 	if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_AUTO, uwVolume,
 			SAI_AUDIO_FREQUENCY_48K) != AUDIO_OK) {
 		return;

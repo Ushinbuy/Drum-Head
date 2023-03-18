@@ -4,7 +4,9 @@
 class HelloDrumKnob
 {
 public:
-	HelloDrumKnob(byte pin1);
+	HelloDrumKnob(byte pin1) {
+		this->pin_1 = pin1;
+	}
 	void read() {
 		knobValue = analogRead(pin_1);
 	}

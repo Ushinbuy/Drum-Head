@@ -44,31 +44,8 @@ HelloDrum::HelloDrum(byte pin1, byte pin2)
   channelsAmount += 2;
 }
 
-
-//control button
-HelloDrumButton::HelloDrumButton(byte pin1, byte pin2, byte pin3, byte pin4, byte pin5)
-{
-  pin_1 = pin1; //EDIT
-  pin_2 = pin2; //UP
-  pin_3 = pin3; //DOWN
-  pin_4 = pin4; //NEXT
-  pin_5 = pin5; //BACK
-}
-
 uint8_t HelloDrum::getChannelsAmount(void){
 	return channelsAmount;
-}
-
-//control button
-HelloDrumButtonLcdShield::HelloDrumButtonLcdShield(byte pin1)
-{
-  pin_1 = pin1; //button's analog pin
-}
-
-//Knob
-HelloDrumKnob::HelloDrumKnob(byte pin1)
-{
-  pin_1 = pin1;
 }
 
 ///////////////////// 1. SENSING  ///////////////////////

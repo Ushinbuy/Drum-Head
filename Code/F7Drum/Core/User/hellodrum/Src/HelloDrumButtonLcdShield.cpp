@@ -4,6 +4,11 @@
 /////////////// For Display Keypad ////////////////////
 /////////////////// 7-2. BUTTON (LCD KEYPAD SHIELD) ////////////////////////
 
+//control button
+HelloDrumButtonLcdShield::HelloDrumButtonLcdShield(byte pin1)
+{
+  pin_1 = pin1; //button's analog pin
+}
 
 byte HelloDrumButtonLcdShield::GetVelocity()
 {
