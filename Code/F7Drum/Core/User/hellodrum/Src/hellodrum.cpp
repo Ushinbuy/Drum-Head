@@ -44,47 +44,6 @@ HelloDrum::HelloDrum(byte pin1, byte pin2)
   channelsAmount += 2;
 }
 
-////MUX(4051) pin define
-//HelloDrumMUX_4051::HelloDrumMUX_4051(byte pin1, byte pin2, byte pin3, byte pinA) //s0,s1,s2, analogPin
-//{
-//  pin_1 = pin1;
-//  pin_2 = pin2;
-//  pin_3 = pin3;
-//  pin_A = pinA;
-//  selectPins[0] = pin_1;
-//  selectPins[1] = pin_2;
-//  selectPins[2] = pin_3;
-//
-//  for (byte i = 0; i < 3; i++)
-//  {
-//    pinMode(selectPins[i], OUTPUT);
-//    digitalWrite(selectPins[i], HIGH);
-//  }
-//  muxNum = muxIndex;
-//  muxIndex++;
-//}
-//
-////MUX(4067) pin define
-//HelloDrumMUX_4067::HelloDrumMUX_4067(byte pin1, byte pin2, byte pin3, byte pin4, byte pinA) //s0,s1,s2,s3,analogPin
-//{
-//  pin_1 = pin1;
-//  pin_2 = pin2;
-//  pin_3 = pin3;
-//  pin_4 = pin4;
-//  pin_A = pinA;
-//  selectPins[0] = pin_1;
-//  selectPins[1] = pin_2;
-//  selectPins[2] = pin_3;
-//  selectPins[3] = pin_4;
-//
-//  for (byte i = 0; i < 4; i++)
-//  {
-//    pinMode(selectPins[i], OUTPUT);
-//    digitalWrite(selectPins[i], HIGH);
-//  }
-//  muxNum = muxIndex;
-//  muxIndex++;
-//}
 
 //control button
 HelloDrumButton::HelloDrumButton(byte pin1, byte pin2, byte pin3, byte pin4, byte pin5)
@@ -564,18 +523,11 @@ void HelloDrum::cymbal3zoneSensing(byte sens, byte thre, byte scanTime, byte mas
 //This is OLD CODE!
 void HelloDrum::TCRT5000Sensing(byte sens, byte thre1, byte thre2, byte scanTime)
 {
-	// TODO remove ESP it comment can be use for understanding
-#ifdef ESP32
-  int thre1Raw = thre1 * 40;
-  int thre2Raw = thre2 * 40;
-  int sensRaw = sens * 40;
-  TCRT = 4096 - TCRT;
-#else
   int thre1Raw = thre1 * 10;
   int thre2Raw = thre2 * 10;
   int sensRaw = sens * 10;
   TCRT = 1024 - TCRT;
-#endif
+
 
   velocity = 0;
   openHH = false;
@@ -1382,13 +1334,3 @@ void HelloDrum::initSounds(){
 		noteCupSound = new DrumSound(address, settings.soundCupVolumeDb);
 	}
 }
-
-void HelloDrum::initMemory()
-{
-	// this function is deprecated
-
-  //Write initial value to EEPROM.
-}
-
-
-
