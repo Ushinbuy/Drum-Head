@@ -927,14 +927,14 @@ void HelloDrum::setCurve(byte curveType)
 
 void HelloDrum::singlePiezo(byte sens, byte thre, byte scan, byte mask)
 {
-  padType[padNum] = Snum;
+  padType[padNum] = SINGLE_PAD;
   piezoValue = analogRead(pin_1);
   singlePiezoSensing(sens, thre, scan, mask);
 }
 
 void HelloDrum::dualPiezo(byte sens, byte thre, byte scan, byte mask, byte rimSens, byte rimThre)
 {
-  padType[padNum] = Dnum;
+  padType[padNum] = DOUBLE_PAD;
   piezoValue = analogRead(pin_1);
   RimPiezoValue = analogRead(pin_2);
   dualPiezoSensing(sens, thre, scan, mask, rimSens, rimThre);
@@ -942,14 +942,14 @@ void HelloDrum::dualPiezo(byte sens, byte thre, byte scan, byte mask, byte rimSe
 
 void HelloDrum::HH(byte sens, byte thre, byte scan, byte mask)
 {
-  padType[padNum] = HHnum;
+  padType[padNum] = HH_PAD;
   piezoValue = analogRead(pin_1);
   singlePiezoSensing(sens, thre, scan, mask);
 }
 
 void HelloDrum::HH2zone(byte sens, byte thre, byte scan, byte mask, byte edgeThre)
 {
-  padType[padNum] = HH2num;
+  padType[padNum] = HH2_PAD;
   piezoValue = analogRead(pin_1);
   sensorValue = analogRead(pin_2);
   cymbal2zoneSensing(sens, thre, scan, mask, edgeThre);
@@ -957,7 +957,7 @@ void HelloDrum::HH2zone(byte sens, byte thre, byte scan, byte mask, byte edgeThr
 
 void HelloDrum::cymbal2zone(byte sens, byte thre, byte scan, byte mask, byte edgeThre)
 {
-  padType[padNum] = CY2num;
+  padType[padNum] = CY2_PAD;
   piezoValue = analogRead(pin_1);
   sensorValue = analogRead(pin_2);
   cymbal2zoneSensing(sens, thre, scan, mask, edgeThre);
@@ -965,7 +965,7 @@ void HelloDrum::cymbal2zone(byte sens, byte thre, byte scan, byte mask, byte edg
 
 void HelloDrum::cymbal3zone(byte sens, byte thre, byte scan, byte mask, byte edgeThre, byte cupThre)
 {
-  padType[padNum] = CY3num;
+  padType[padNum] = CY3_PAD;
   piezoValue = analogRead(pin_1);
   sensorValue = analogRead(pin_2);
   cymbal3zoneSensing(sens, thre, scan, mask, edgeThre, cupThre);
@@ -973,21 +973,21 @@ void HelloDrum::cymbal3zone(byte sens, byte thre, byte scan, byte mask, byte edg
 
 void HelloDrum::TCRT5000(byte sens, byte thre1, byte thre2, byte scan)
 {
-  padType[padNum] = HHCnum;
+  padType[padNum] = HHC_PAD;
   TCRT = analogRead(pin_1);
   TCRT5000Sensing(sens, thre1, thre2, scan);
 }
 
 void HelloDrum::FSR(byte sens, byte thre, byte scanStart, byte scanEnd, byte pedalSens)
 {
-  padType[padNum] = HHCnum;
+  padType[padNum] = HHC_PAD;
   fsr = analogRead(pin_1);
   FSRSensing(sens, thre, scanStart, scanEnd, pedalSens);
 }
 
 void HelloDrum::hihatControl(byte sens, byte thre, byte scanStart, byte scanEnd, byte pedalSens)
 {
-  padType[padNum] = HHCnum;
+  padType[padNum] = HHC_PAD;
   fsr = analogRead(pin_1);
   FSRSensing(sens, thre, scanStart, scanEnd, pedalSens);
 }
@@ -996,14 +996,14 @@ void HelloDrum::hihatControl(byte sens, byte thre, byte scanStart, byte scanEnd,
 
 void HelloDrum::singlePiezo()
 {
-  padType[padNum] = Snum;
+  padType[padNum] = SINGLE_PAD;
   piezoValue = analogRead(pin_1);
   singlePiezoSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime);
 }
 
 void HelloDrum::dualPiezo()
 {
-  padType[padNum] = Dnum;
+  padType[padNum] = DOUBLE_PAD;
   piezoValue = analogRead(pin_1);
   RimPiezoValue = analogRead(pin_2);
   dualPiezoSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime, settings.rimSensitivity, settings.rimThreshold);
@@ -1011,14 +1011,14 @@ void HelloDrum::dualPiezo()
 
 void HelloDrum::HH()
 {
-  padType[padNum] = HHnum;
+  padType[padNum] = HH_PAD;
   piezoValue = analogRead(pin_1);
   singlePiezoSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime);
 }
 
 void HelloDrum::HH2zone()
 {
-  padType[padNum] = HH2num;
+  padType[padNum] = HH2_PAD;
   piezoValue = analogRead(pin_1);
   sensorValue = analogRead(pin_2);
   cymbal2zoneSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime, settings.rimSensitivity);
@@ -1026,7 +1026,7 @@ void HelloDrum::HH2zone()
 
 void HelloDrum::cymbal2zone()
 {
-  padType[padNum] = CY2num;
+  padType[padNum] = CY2_PAD;
   piezoValue = analogRead(pin_1);
   sensorValue = analogRead(pin_2);
   cymbal2zoneSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime, settings.rimSensitivity);
@@ -1034,7 +1034,7 @@ void HelloDrum::cymbal2zone()
 
 void HelloDrum::cymbal3zone()
 {
-  padType[padNum] = CY3num;
+  padType[padNum] = CY3_PAD;
   piezoValue = analogRead(pin_1);
   sensorValue = analogRead(pin_2);
   cymbal3zoneSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime, settings.rimSensitivity, settings.rimThreshold);
@@ -1042,21 +1042,21 @@ void HelloDrum::cymbal3zone()
 
 void HelloDrum::TCRT5000()
 {
-  padType[padNum] = HHCnum;
+  padType[padNum] = HHC_PAD;
   TCRT = analogRead(pin_1);
   TCRT5000Sensing(settings.sensitivity, settings.threshold1, settings.masktime, settings.scantime);
 }
 
 void HelloDrum::FSR()
 {
-  padType[padNum] = HHCnum;
+  padType[padNum] = HHC_PAD;
   fsr = analogRead(pin_1);
   FSRSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime, settings.rimSensitivity);
 }
 
 void HelloDrum::hihatControl()
 {
-  padType[padNum] = HHCnum;
+  padType[padNum] = HHC_PAD;
   fsr = analogRead(pin_1);
   // TODO create invert FSR for Alesis drum kit
   FSRSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime, settings.rimSensitivity);
@@ -1508,7 +1508,7 @@ void HelloDrumButton::readButton(bool button_set, bool button_up, bool button_do
 
     if (itemNumber == 4)
     {
-      if (padType[nameIndex] == HHnum || padType[nameIndex] == Snum)
+      if (padType[nameIndex] == HH_PAD || padType[nameIndex] == SINGLE_PAD)
       {
         itemNumber = 6;
       }
@@ -1516,7 +1516,7 @@ void HelloDrumButton::readButton(bool button_set, bool button_up, bool button_do
 
     else if (itemNumber == 5)
     {
-      if (padType[nameIndex] == CY2num || padType[nameIndex] == HH2num || padType[nameIndex] == HHCnum)
+      if (padType[nameIndex] == CY2_PAD || padType[nameIndex] == HH2_PAD || padType[nameIndex] == HHC_PAD)
       {
         itemNumber = 6;
       }
@@ -1524,7 +1524,7 @@ void HelloDrumButton::readButton(bool button_set, bool button_up, bool button_do
 
     else if (itemNumber == 8)
     {
-      if (padType[nameIndex] == Snum)
+      if (padType[nameIndex] == SINGLE_PAD)
       {
         itemNumber = 0;
       }
@@ -1532,7 +1532,7 @@ void HelloDrumButton::readButton(bool button_set, bool button_up, bool button_do
 
     else if (itemNumber == 9)
     {
-      if (padType[nameIndex] == CY2num || padType[nameIndex] == HHnum || padType[nameIndex] == HH2num)
+      if (padType[nameIndex] == CY2_PAD || padType[nameIndex] == HH_PAD || padType[nameIndex] == HH2_PAD)
       {
         itemNumber = 0;
       }
@@ -1547,7 +1547,7 @@ void HelloDrumButton::readButton(bool button_set, bool button_up, bool button_do
 
     if (itemNumberShow == 6)
     {
-      if (padType[nameIndex] == Snum)
+      if (padType[nameIndex] == SINGLE_PAD)
       {
         itemNumberShow = 0;
       }
@@ -1555,7 +1555,7 @@ void HelloDrumButton::readButton(bool button_set, bool button_up, bool button_do
 
     else if (itemNumberShow == 7)
     {
-      if (padType[nameIndex] == HHnum)
+      if (padType[nameIndex] == HH_PAD)
       {
         itemNumberShow = 0;
       }
@@ -1563,7 +1563,7 @@ void HelloDrumButton::readButton(bool button_set, bool button_up, bool button_do
 
     else if (itemNumberShow == 8)
     {
-      if (padType[nameIndex] == HH2num || padType[nameIndex] == CY2num)
+      if (padType[nameIndex] == HH2_PAD || padType[nameIndex] == CY2_PAD)
       {
         itemNumberShow = 0;
       }
@@ -1571,7 +1571,7 @@ void HelloDrumButton::readButton(bool button_set, bool button_up, bool button_do
 
     else if (itemNumberShow == 9)
     {
-      if (padType[nameIndex] == HHCnum)
+      if (padType[nameIndex] == HHC_PAD)
       {
         itemNumberShow = 0;
       }
@@ -1579,7 +1579,7 @@ void HelloDrumButton::readButton(bool button_set, bool button_up, bool button_do
 
     else if (itemNumberShow == 10)
     {
-      if (padType[nameIndex] == Dnum || padType[nameIndex] == CY3num)
+      if (padType[nameIndex] == DOUBLE_PAD || padType[nameIndex] == CY3_PAD)
       {
         itemNumberShow = 0;
       }
@@ -1613,15 +1613,15 @@ void HelloDrumButton::readButton(bool button_set, bool button_up, bool button_do
 
     if (itemNumber == 255)
     {
-      if (padType[nameIndex] == Snum)
+      if (padType[nameIndex] == SINGLE_PAD)
       {
         itemNumber = 7;
       }
-      else if (padType[nameIndex] == CY2num || padType[nameIndex] == HHnum || padType[nameIndex] == HH2num)
+      else if (padType[nameIndex] == CY2_PAD || padType[nameIndex] == HH_PAD || padType[nameIndex] == HH2_PAD)
       {
         itemNumber = 8;
       }
-      else if (padType[nameIndex] == Dnum || padType[nameIndex] == CY3num || padType[nameIndex] == HHCnum)
+      else if (padType[nameIndex] == DOUBLE_PAD || padType[nameIndex] == CY3_PAD || padType[nameIndex] == HHC_PAD)
       {
         itemNumber = 9;
       }
@@ -1629,12 +1629,12 @@ void HelloDrumButton::readButton(bool button_set, bool button_up, bool button_do
 
     else if (itemNumber == 5)
     {
-      if (padType[nameIndex] == HHnum || padType[nameIndex] == Snum)
+      if (padType[nameIndex] == HH_PAD || padType[nameIndex] == SINGLE_PAD)
       {
         itemNumber = 3;
       }
 
-      else if (padType[nameIndex] == CY2num || padType[nameIndex] == HHCnum || padType[nameIndex] == HH2num)
+      else if (padType[nameIndex] == CY2_PAD || padType[nameIndex] == HHC_PAD || padType[nameIndex] == HH2_PAD)
       {
         itemNumber = 4;
       }
@@ -1642,7 +1642,7 @@ void HelloDrumButton::readButton(bool button_set, bool button_up, bool button_do
 
     else if (itemNumber == 8)
     {
-      if (padType[nameIndex] == Snum)
+      if (padType[nameIndex] == SINGLE_PAD)
       {
         itemNumber = 7;
       }
@@ -1650,12 +1650,12 @@ void HelloDrumButton::readButton(bool button_set, bool button_up, bool button_do
 
     else if (itemNumber == 9)
     {
-      if (padType[nameIndex] == Snum)
+      if (padType[nameIndex] == SINGLE_PAD)
       {
         itemNumber = 7;
       }
 
-      else if (padType[nameIndex] == CY2num || padType[nameIndex] == HHnum || padType[nameIndex] == HHCnum || padType[nameIndex] == HH2num)
+      else if (padType[nameIndex] == CY2_PAD || padType[nameIndex] == HH_PAD || padType[nameIndex] == HHC_PAD || padType[nameIndex] == HH2_PAD)
       {
         itemNumber = 8;
       }
@@ -1665,23 +1665,23 @@ void HelloDrumButton::readButton(bool button_set, bool button_up, bool button_do
 
     if (itemNumberShow == 255)
     {
-      if (padType[nameIndex] == Snum)
+      if (padType[nameIndex] == SINGLE_PAD)
       {
         itemNumberShow = 5;
       }
-      else if (padType[nameIndex] == HHnum)
+      else if (padType[nameIndex] == HH_PAD)
       {
         itemNumberShow = 6;
       }
-      else if (padType[nameIndex] == CY2num || padType[nameIndex] == HH2num)
+      else if (padType[nameIndex] == CY2_PAD || padType[nameIndex] == HH2_PAD)
       {
         itemNumberShow = 7;
       }
-      else if (padType[nameIndex] == HHCnum)
+      else if (padType[nameIndex] == HHC_PAD)
       {
         itemNumberShow = 8;
       }
-      else if (padType[nameIndex] == Dnum || padType[nameIndex] == CY3num)
+      else if (padType[nameIndex] == DOUBLE_PAD || padType[nameIndex] == CY3_PAD)
       {
         itemNumberShow = 9;
       }
@@ -1850,7 +1850,7 @@ void HelloDrumButtonLcdShield::readButton(bool button_set, bool button_up, bool 
 
     if (itemNumber == 4)
     {
-      if (padType[nameIndex] == HHnum || padType[nameIndex] == Snum)
+      if (padType[nameIndex] == HH_PAD || padType[nameIndex] == SINGLE_PAD)
       {
         itemNumber = 6;
       }
@@ -1858,7 +1858,7 @@ void HelloDrumButtonLcdShield::readButton(bool button_set, bool button_up, bool 
 
     else if (itemNumber == 5)
     {
-      if (padType[nameIndex] == CY2num || padType[nameIndex] == HH2num || padType[nameIndex] == HHCnum)
+      if (padType[nameIndex] == CY2_PAD || padType[nameIndex] == HH2_PAD || padType[nameIndex] == HHC_PAD)
       {
         itemNumber = 6;
       }
@@ -1866,7 +1866,7 @@ void HelloDrumButtonLcdShield::readButton(bool button_set, bool button_up, bool 
 
     else if (itemNumber == 8)
     {
-      if (padType[nameIndex] == Snum)
+      if (padType[nameIndex] == SINGLE_PAD)
       {
         itemNumber = 0;
       }
@@ -1874,7 +1874,7 @@ void HelloDrumButtonLcdShield::readButton(bool button_set, bool button_up, bool 
 
     else if (itemNumber == 9)
     {
-      if (padType[nameIndex] == CY2num || padType[nameIndex] == HHnum || padType[nameIndex] == HH2num)
+      if (padType[nameIndex] == CY2_PAD || padType[nameIndex] == HH_PAD || padType[nameIndex] == HH2_PAD)
       {
         itemNumber = 0;
       }
@@ -1889,7 +1889,7 @@ void HelloDrumButtonLcdShield::readButton(bool button_set, bool button_up, bool 
 
     if (itemNumberShow == 6)
     {
-      if (padType[nameIndex] == Snum)
+      if (padType[nameIndex] == SINGLE_PAD)
       {
         itemNumberShow = 0;
       }
@@ -1897,7 +1897,7 @@ void HelloDrumButtonLcdShield::readButton(bool button_set, bool button_up, bool 
 
     else if (itemNumberShow == 7)
     {
-      if (padType[nameIndex] == HHnum)
+      if (padType[nameIndex] == HH_PAD)
       {
         itemNumberShow = 0;
       }
@@ -1905,7 +1905,7 @@ void HelloDrumButtonLcdShield::readButton(bool button_set, bool button_up, bool 
 
     else if (itemNumberShow == 8)
     {
-      if (padType[nameIndex] == HH2num || padType[nameIndex] == CY2num)
+      if (padType[nameIndex] == HH2_PAD || padType[nameIndex] == CY2_PAD)
       {
         itemNumberShow = 0;
       }
@@ -1913,7 +1913,7 @@ void HelloDrumButtonLcdShield::readButton(bool button_set, bool button_up, bool 
 
     else if (itemNumberShow == 9)
     {
-      if (padType[nameIndex] == HHCnum)
+      if (padType[nameIndex] == HHC_PAD)
       {
         itemNumberShow = 0;
       }
@@ -1921,7 +1921,7 @@ void HelloDrumButtonLcdShield::readButton(bool button_set, bool button_up, bool 
 
     else if (itemNumberShow == 10)
     {
-      if (padType[nameIndex] == Dnum || padType[nameIndex] == CY3num)
+      if (padType[nameIndex] == DOUBLE_PAD || padType[nameIndex] == CY3_PAD)
       {
         itemNumberShow = 0;
       }
@@ -1955,15 +1955,15 @@ void HelloDrumButtonLcdShield::readButton(bool button_set, bool button_up, bool 
 
     if (itemNumber == 255)
     {
-      if (padType[nameIndex] == Snum)
+      if (padType[nameIndex] == SINGLE_PAD)
       {
         itemNumber = 7;
       }
-      else if (padType[nameIndex] == CY2num || padType[nameIndex] == HHnum || padType[nameIndex] == HH2num)
+      else if (padType[nameIndex] == CY2_PAD || padType[nameIndex] == HH_PAD || padType[nameIndex] == HH2_PAD)
       {
         itemNumber = 8;
       }
-      else if (padType[nameIndex] == Dnum || padType[nameIndex] == CY3num || padType[nameIndex] == HHCnum)
+      else if (padType[nameIndex] == DOUBLE_PAD || padType[nameIndex] == CY3_PAD || padType[nameIndex] == HHC_PAD)
       {
         itemNumber = 9;
       }
@@ -1971,12 +1971,12 @@ void HelloDrumButtonLcdShield::readButton(bool button_set, bool button_up, bool 
 
     else if (itemNumber == 5)
     {
-      if (padType[nameIndex] == HHnum || padType[nameIndex] == Snum)
+      if (padType[nameIndex] == HH_PAD || padType[nameIndex] == SINGLE_PAD)
       {
         itemNumber = 3;
       }
 
-      else if (padType[nameIndex] == CY2num || padType[nameIndex] == HHCnum || padType[nameIndex] == HH2num)
+      else if (padType[nameIndex] == CY2_PAD || padType[nameIndex] == HHC_PAD || padType[nameIndex] == HH2_PAD)
       {
         itemNumber = 4;
       }
@@ -1984,7 +1984,7 @@ void HelloDrumButtonLcdShield::readButton(bool button_set, bool button_up, bool 
 
     else if (itemNumber == 8)
     {
-      if (padType[nameIndex] == Snum)
+      if (padType[nameIndex] == SINGLE_PAD)
       {
         itemNumber = 7;
       }
@@ -1992,12 +1992,12 @@ void HelloDrumButtonLcdShield::readButton(bool button_set, bool button_up, bool 
 
     else if (itemNumber == 9)
     {
-      if (padType[nameIndex] == Snum)
+      if (padType[nameIndex] == SINGLE_PAD)
       {
         itemNumber = 7;
       }
 
-      else if (padType[nameIndex] == CY2num || padType[nameIndex] == HHnum || padType[nameIndex] == HHCnum || padType[nameIndex] == HH2num)
+      else if (padType[nameIndex] == CY2_PAD || padType[nameIndex] == HH_PAD || padType[nameIndex] == HHC_PAD || padType[nameIndex] == HH2_PAD)
       {
         itemNumber = 8;
       }
@@ -2007,23 +2007,23 @@ void HelloDrumButtonLcdShield::readButton(bool button_set, bool button_up, bool 
 
     if (itemNumberShow == 255)
     {
-      if (padType[nameIndex] == Snum)
+      if (padType[nameIndex] == SINGLE_PAD)
       {
         itemNumberShow = 5;
       }
-      else if (padType[nameIndex] == HHnum)
+      else if (padType[nameIndex] == HH_PAD)
       {
         itemNumberShow = 6;
       }
-      else if (padType[nameIndex] == CY2num || padType[nameIndex] == HH2num)
+      else if (padType[nameIndex] == CY2_PAD || padType[nameIndex] == HH2_PAD)
       {
         itemNumberShow = 7;
       }
-      else if (padType[nameIndex] == HHCnum)
+      else if (padType[nameIndex] == HHC_PAD)
       {
         itemNumberShow = 8;
       }
-      else if (padType[nameIndex] == Dnum || padType[nameIndex] == CY3num)
+      else if (padType[nameIndex] == DOUBLE_PAD || padType[nameIndex] == CY3_PAD)
       {
         itemNumberShow = 9;
       }
@@ -2149,31 +2149,31 @@ const char *HelloDrumButton::GetPadName()
 }
 const char *HelloDrumButton::GetSettingItem()
 {
-  if (padType[nameIndex] == Dnum)
+  if (padType[nameIndex] == DOUBLE_PAD)
   {
     return itemD[itemNumberShow];
   }
-  else if (padType[nameIndex] == CY2num)
+  else if (padType[nameIndex] == CY2_PAD)
   {
     return itemCY2[itemNumberShow];
   }
-  else if (padType[nameIndex] == CY3num)
+  else if (padType[nameIndex] == CY3_PAD)
   {
     return itemCY3[itemNumberShow];
   }
-  else if (padType[nameIndex] == HH2num)
+  else if (padType[nameIndex] == HH2_PAD)
   {
     return itemHH2[itemNumberShow];
   }
-  else if (padType[nameIndex] == HHnum)
+  else if (padType[nameIndex] == HH_PAD)
   {
     return itemHH[itemNumberShow];
   }
-  else if (padType[nameIndex] == HHCnum)
+  else if (padType[nameIndex] == HHC_PAD)
   {
     return itemHHC[itemNumberShow];
   }
-  else if (padType[nameIndex] == Snum)
+  else if (padType[nameIndex] == SINGLE_PAD)
   {
     return item[itemNumberShow];
   }
@@ -2227,31 +2227,31 @@ const char *HelloDrumButtonLcdShield::GetPadName()
 }
 const char *HelloDrumButtonLcdShield::GetSettingItem()
 {
-  if (padType[nameIndex] == Dnum)
+  if (padType[nameIndex] == DOUBLE_PAD)
   {
     return itemD[itemNumberShow];
   }
-  else if (padType[nameIndex] == CY2num)
+  else if (padType[nameIndex] == CY2_PAD)
   {
     return itemCY2[itemNumberShow];
   }
-  else if (padType[nameIndex] == CY3num)
+  else if (padType[nameIndex] == CY3_PAD)
   {
     return itemCY3[itemNumberShow];
   }
-  else if (padType[nameIndex] == HH2num)
+  else if (padType[nameIndex] == HH2_PAD)
   {
     return itemHH2[itemNumberShow];
   }
-  else if (padType[nameIndex] == HHnum)
+  else if (padType[nameIndex] == HH_PAD)
   {
     return itemHH[itemNumberShow];
   }
-  else if (padType[nameIndex] == HHCnum)
+  else if (padType[nameIndex] == HHC_PAD)
   {
     return itemHHC[itemNumberShow];
   }
-  else if (padType[nameIndex] == Snum)
+  else if (padType[nameIndex] == SINGLE_PAD)
   {
     return item[itemNumberShow];
   }

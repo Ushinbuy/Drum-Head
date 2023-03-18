@@ -125,14 +125,16 @@ static byte showValue = 0;
 static byte padIndex = 0;
 static byte channelsAmount = 0;
 //static byte muxIndex = 0;
-static byte Snum = 1; //pad type number
-static byte Dnum = 2;
-static byte CY2num = 3;
-static byte CY3num = 4;
-static byte HHnum = 5;
-static byte HH2num = 6;
-static byte HHCnum = 7;
-static byte padType[16]; //if you use more pad, add numer
+typedef enum{
+	SINGLE_PAD = 0,
+	DOUBLE_PAD,
+	CY2_PAD,
+	CY3_PAD,
+	HH_PAD,
+	HH2_PAD,
+	HHC_PAD
+} PadType;
+static PadType padType[16]; //if you use more pad, add number
 
 static bool edit;
 static bool editCheck;
@@ -148,12 +150,6 @@ static bool button_down;
 static bool button_next;
 static bool button_back;
 static byte UP[10] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-
-//#ifdef __AVR_ATmega328P__
-//static int rawValue[16]; //2 * 8chanel Mux
-//#else
-//static int rawValue[64]; //8 * 8chanel Mux
-//#endif
 
 struct PadMemory{
 public:
