@@ -204,8 +204,8 @@ public:
   void initSounds();
 
   int velocity;
-  int velocityRim;	// todo does it using anywhere?!?! Look in example
-  int velocityCup;	// todo does it using anywhere?!?! Look in example
+  int velocityRim;
+  int velocityCup;
   byte pedalCC;
 
   //  int exValue;

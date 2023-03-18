@@ -602,6 +602,7 @@ void HelloDrum::TCRT5000Sensing(byte sens, byte thre1, byte thre2, byte scanTime
 
 void HelloDrum::FSRSensing(byte sens, byte thre, byte scanStart, byte scanEnd, byte pedalSens)
 {
+	// TODO add reverse function
   int sensRaw = sens * 10;
   int thre1Raw = thre * 10;
   int ScanStart = scanStart * 10;
@@ -996,7 +997,7 @@ void HelloDrum::hihatControl()
 
 void HelloDrum::settingEnable()
 {
-	// TODO Override this function to save one time when you get out
+	// TODO Override memory just only by click on SAVE button
   //When EDIT button pushed
   if (padNum == nameIndex)
   {
