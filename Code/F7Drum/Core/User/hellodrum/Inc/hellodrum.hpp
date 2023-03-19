@@ -12,6 +12,8 @@
 
 #include "platform.h"
 #include "drumSound.hpp"
+#include "midi.h"
+#include "drumManager.h"
 
 const static char *item[] = {
     "SENSITIVITY", //0 0
@@ -175,6 +177,14 @@ public:
   HelloDrum(byte pin1);
   static uint8_t getChannelsAmount(void);
 
+  virtual void sensingPad(void){
+	  // TODO do this real virtual
+  }
+
+  virtual void executePad(void){
+	  // TODO do this real virtual
+  }
+
   void singlePiezo(byte sens, byte thre, byte scan, byte mask);
   void singlePiezo();
   void dualPiezo(byte sens, byte thre, byte scan, byte mask, byte rimSens, byte rimThre);
@@ -199,7 +209,7 @@ public:
   void settingName(const char *instrumentName);
   void settingEnable();
 
-  void loadMemory();
+  virtual void loadMemory();
   void initMemory();
   void initSounds();
 
@@ -240,9 +250,9 @@ public:
   byte noteClose;
   byte noteOpenEdge;
   byte noteCloseEdge;
-  byte noteCross;
+  byte noteCross; // this maybe note for stick on rim
 
-private:
+protected:
   byte pin_1;
   byte pin_2;
   int piezoValue;

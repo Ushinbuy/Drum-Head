@@ -33,6 +33,8 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 
 void initHelloDrums(void) {
 	//It is necessary to make the order in exactly the same order as you named the pad first.
+
+	// TODO add automatic variable name
 	kick.settingName("KICK");
 	snare.settingName("SNARE");
 //	hihat.settingName("HIHAT");

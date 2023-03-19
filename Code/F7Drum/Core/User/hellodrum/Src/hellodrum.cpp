@@ -12,7 +12,6 @@
 #include <hellodrum.hpp>
 #include <math.h>
 #include <stdio.h>
-#include "drumManager.h"
 #include "eepromManager.h"
 #include "HelloDrumKnob.hpp"
 
