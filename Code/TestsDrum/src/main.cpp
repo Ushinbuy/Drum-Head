@@ -6,10 +6,11 @@
 // Description : Hello World in C++, Ansi-style
 //============================================================================
 
-#include <eepromManager.h>
-#include <MemmorySystem.h>
+//#include <eepromManager.h>
+//#include <MemmorySystem.h>
 #include <iostream>
 #include "CppUTest/CommandLineTestRunner.h"
+#include "TestParent.h"
 
 using namespace std;
 
@@ -18,7 +19,12 @@ int main(int ac, char** av) {
 
 //	mainWork();
 
-	eeprom_work();
+//	eeprom_work();
+	Child child1, child2, child3;
+	ChildAnother newOne;
+
+	Parent::printAll();
+//		cout << "length is " << list.size() << endl;
 	return 0;
 
 	// for tests uncomment this

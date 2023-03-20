@@ -10,30 +10,48 @@
 //#define DEBUG_DRUM //<-- uncomment this line to enable debug mode with Serial.
 
 #include <hellodrum.hpp>
-#include <math.h>
+
 #include <stdio.h>
 #include "eepromManager.h"
 #include "HelloDrumKnob.hpp"
+#include <vector>
 
 extern "C" void sendUart(const char *_msg);
 extern char buffer_out[1000];
 
 #define DEBUG_DRUM
 
+//std::vector< std::unique_ptr<HelloDrum>> padsList;
+std::vector<HelloDrum*> padsList;
+
 //Pad with a sensor.
 HelloDrum::HelloDrum(byte pin1)
 {
+//	for (uint8_t i = 0; i < padsList.size(); i++) {
+//		if(pin1 == padsList[i]->pin_1){
+//			sendUart("\nPad was init before");
+//			Error_Handler();
+//		}
+//	}
   pin_1 = pin1;
 
   //Give the instance a pad number.
   padNum = padIndex;
   padIndex++;
   channelsAmount++;
+  padsList.emplace_back(this);
 }
 
 //Pad with 2 sensors.
 HelloDrum::HelloDrum(byte pin1, byte pin2)
 {
+//	for (uint8_t i = 0; i < padsList.size(); i++) {
+//		if ((pin1 == padsList[i]->pin_1) || (pin1 == padsList[i]->pin_2)
+//				|| ((pin2 == padsList[i]->pin_1) || (pin2 == padsList[i]->pin_2))) {
+//			sendUart("\nPad was init before");
+//			Error_Handler();
+//		}
+//	}
   pin_1 = pin1;
   pin_2 = pin2;
 
@@ -41,11 +59,14 @@ HelloDrum::HelloDrum(byte pin1, byte pin2)
   padNum = padIndex;
   padIndex++;
   channelsAmount += 2;
+  padsList.emplace_back(this);
 }
 
 uint8_t HelloDrum::getChannelsAmount(void){
 	return channelsAmount;
 }
+
+// TODO add destructor with clearing vector
 
 ///////////////////// 1. SENSING  ///////////////////////
 
@@ -116,115 +137,6 @@ void HelloDrum::singlePiezoSensing(byte sens, byte thre, byte scanTime, byte mas
 #endif
 
       loopTimes = 0; //reset loopTimes (ready for next sensing)
-    }
-  }
-}
-
-void HelloDrum::dualPiezoSensing(byte sens, byte thre, byte scanTime, byte maskTime, byte rimSens, byte rimThre)
-{
-  int Threshold = thre * 10;
-  int Sensitivity = sens * 10;
-  int RimThreshold = rimThre * 10;
-  int RimSensitivity = rimSens * 10;
-
-  hit = false;
-  hitRim = false;
-
-  //when the value > threshold
-  if ((piezoValue > Threshold && loopTimes == 0) || (RimPiezoValue > Threshold && loopTimes == 0))
-  {
-    time_hit = millis();
-
-    if (time_hit - time_end < maskTime)
-    {
-      return;
-    }
-    else
-    {
-      velocity = piezoValue; //first peak
-      velocityRim = RimPiezoValue;
-      loopTimes = 1;
-    }
-  }
-
-  //peak scan start
-  if (loopTimes > 0)
-  {
-#ifdef DEBUG_DRUM
-	  sprintf(buffer_out, "%d, %d\n",
-			  piezoValue,
-			  RimPiezoValue);
-	  	  sendUart(buffer_out);
-#endif
-    if (piezoValue > velocity)
-    {
-      velocity = piezoValue;
-    }
-    if (RimPiezoValue > velocityRim)
-    {
-      velocityRim = RimPiezoValue;
-    }
-    loopTimes++;
-
-    //scan end
-    if (millis() - time_hit >= scanTime)
-    {
-
-#ifdef DEBUG_DRUM
-      int prevVel = velocity;
-      int prevVelR = velocityRim;
-#endif
-
-      time_end = millis();
-
-      if ((velocity - velocityRim < RimSensitivity) && (velocityRim > RimThreshold))
-      {
-
-        velocity = curve(velocity, Threshold, Sensitivity, settings.curvetype);
-        velocityRim = curve(velocityRim, Threshold, Sensitivity, settings.curvetype);
-
-#ifdef DEBUG_DRUM
-        sprintf(buffer_out, "[HitRim] velocity : %d , velocity rim : %d (raw value : %d, %d, head - rim : %d), loopTimes : %d, ScanTime(ms) : %ld",
-			  velocity,
-			  velocityRim,
-			  prevVel,
-			  prevVelR,
-			  (prevVel - prevVelR),
-			  loopTimes,
-			  (time_end - time_hit));
-	  sendUart(buffer_out);
-#endif
-        velocity = velocityRim;
-        hitRim = true;
-      }
-
-      else
-      {
-
-        velocity = curve(velocity, Threshold, Sensitivity, settings.curvetype);
-        velocityRim = curve(velocityRim, Threshold, Sensitivity, settings.curvetype);
-
-#ifdef DEBUG_DRUM
-        sprintf(buffer_out, "[HitRim] velocity : %d , velocity rim : %d (raw value : %d, %d, d : %d), loopTimes : %d, ScanTime(ms) : %ld",
-			  velocity,
-			  velocityRim,
-			  prevVel,
-			  prevVelR,
-			  (prevVel - prevVelR),
-			  loopTimes,
-			  (time_end - time_hit));
-	  sendUart(buffer_out);
-#endif
-        hit = true;
-      }
-
-      //Those 3 lines are for "Eeprom version"
-      //I think that are ignore in simple mode, but otw we can pass a flag and skip that.
-      showVelocity = velocity;
-      showLCD = true;
-      padIndex = padNum;
-
-      loopTimes = 0;
     }
   }
 }
@@ -354,386 +266,7 @@ void HelloDrum::cymbal2zoneSensing(byte sens, byte thre, byte scanTime, byte mas
   }
 }
 
-void HelloDrum::cymbal3zoneSensing(byte sens, byte thre, byte scanTime, byte maskTime, byte edgeThre, byte cupThre)
-{
-  int Threshold = thre * 10;
-  int Sensitivity = sens * 10;
-  int edgeThreshold = edgeThre * 10;
-  int cupThreshold = cupThre * 10;
 
-  hit = false;
-  hitRim = false;
-  hitCup = false;
-  choke = false;
-
-  //when the value > threshold
-  if ((piezoValue > Threshold && loopTimes == 0) || (sensorValue > edgeThreshold && loopTimes == 0))
-  {
-    time_hit = millis(); //check the time pad hitted
-
-    if (time_hit - time_end < maskTime)
-    {
-      return;
-    }
-    else
-    {
-      velocity = abs(piezoValue - sensorValue); //first peak //ここコメント化ありうる。
-      firstSensorValue = sensorValue;
-      loopTimes = 1;
-    }
-  }
-
-  //peak scan start
-  if (loopTimes > 0)
-  {
-#ifdef DEBUG_DRUM
-	sprintf(buffer_out, "%d, %d, %d",
-			piezoValue,
-			sensorValue,
-			abs(piezoValue - sensorValue));
-	sendUart(buffer_out);
-#endif
-    if (abs(piezoValue - sensorValue) > velocity)
-    {
-      velocity = abs(piezoValue - sensorValue);
-      velocityCup = velocity;
-    }
-    if (sensorValue > firstSensorValue && loopTimes < 5)
-    {
-      firstSensorValue = sensorValue;
-    }
-    loopTimes++;
-
-    //scan end
-    if (millis() - time_hit >= scanTime)
-    {
-      velocity = velocity - firstSensorValue;
-
-#ifdef DEBUG_DRUM
-      int prevVel = velocity;
-#endif
-
-      time_end = millis();
-
-      lastSensorValue = sensorValue;
-
-      //bow
-      if (velocity > Threshold && firstSensorValue < edgeThreshold && lastSensorValue < edgeThreshold)
-      {
-        velocity = curve(velocity, Threshold, Sensitivity, settings.curvetype);
-#ifdef DEBUG_DRUM
-		sprintf(buffer_out, "[Hit Bow] velocity : %d, (raw value : %d, firstSensorValue : %d, lastSensorValue : %d), loopTimes : %d, ScanTime(ms) : %ld",
-			  velocity,
-			  prevVel,
-			  firstSensorValue,
-			  lastSensorValue,
-			  loopTimes,
-			  (time_end - time_hit));
-		sendUart(buffer_out);
-#endif
-        hit = true;
-        showVelocity = velocity;
-        showLCD = true;
-        padIndex = padNum;
-      }
-
-      //edge
-      else if (velocity > Threshold && firstSensorValue > edgeThreshold && firstSensorValue < cupThreshold && firstSensorValue > lastSensorValue)
-      {
-        velocity = curve(velocity, Threshold, Sensitivity, settings.curvetype);
-#ifdef DEBUG_DRUM
-		sprintf(buffer_out, "[Hit Edge] velocity : %d, (raw value : %d, firstSensorValue : %d, lastSensorValue : %d), loopTimes : %d, ScanTime(ms) : %ld",
-			  velocity,
-			  prevVel,
-			  firstSensorValue,
-			  lastSensorValue,
-			  loopTimes,
-			  (time_end - time_hit));
-		sendUart(buffer_out);
-#endif
-        hitRim = true;
-        showVelocity = velocity;
-        showLCD = true;
-        padIndex = padNum;
-      }
-
-      //cup
-      else if (velocity > Threshold && firstSensorValue > cupThreshold && lastSensorValue < edgeThreshold)
-      {
-        velocity = curve(velocity, Threshold, Sensitivity, settings.curvetype);
-#ifdef DEBUG_DRUM
-		sprintf(buffer_out, "[Hit Cup] velocity : %d, (raw value : %d, firstSensorValue : %d, lastSensorValue : %d), loopTimes : %d, ScanTime(ms) : %ld",
-			  velocity,
-			  prevVel,
-			  firstSensorValue,
-			  lastSensorValue,
-			  loopTimes,
-			  (time_end - time_hit));
-		sendUart(buffer_out);
-#endif
-        hitCup = true;
-        showVelocity = velocity;
-        showLCD = true;
-        padIndex = padNum;
-      }
-
-      //choke
-      else if (firstSensorValue > edgeThreshold && lastSensorValue > edgeThreshold && lastSensorValue >= firstSensorValue)
-      {
-#ifdef DEBUG_DRUM
-  		sprintf(buffer_out, "[Choke] firstSensorValue : %d, lastSensorValue : %d, loopTimes : %d, ScanTime(ms) : %ld",
-  			  firstSensorValue,
-  			  lastSensorValue,
-  			  loopTimes,
-  			  (time_end - time_hit));
-  		sendUart(buffer_out);
-#endif
-        choke = true;
-      }
-
-      loopTimes = 0;
-    }
-  }
-}
-
-//This is OLD CODE!
-void HelloDrum::TCRT5000Sensing(byte sens, byte thre1, byte thre2, byte scanTime)
-{
-  int thre1Raw = thre1 * 10;
-  int thre2Raw = thre2 * 10;
-  int sensRaw = sens * 10;
-  TCRT = 1024 - TCRT;
-
-
-  velocity = 0;
-  openHH = false;
-  closeHH = false;
-
-  //thre2 : first trigger (start to close)
-  if (TCRT > thre2Raw && closeHH == false && pedalVelocityFlag == false && pedalFlag == false)
-  {
-    time_hit_pedal_1 = millis();
-    pedalVelocityFlag = true;
-  }
-
-  //sensitivity : second trigger (close)
-  else if (TCRT > sensRaw && pedalFlag == false)
-  {
-    time_hit_pedal_2 = millis();
-
-    velocity = time_hit_pedal_2 - time_hit_pedal_1;
-    velocity = map(velocity, scanTime * 100, 0, 1, 127); //?
-
-    if (velocity <= 1)
-    {
-      velocity = 1;
-    }
-
-    if (velocity > 127)
-    {
-      velocity = 127;
-    }
-
-    closeHH = true;
-    openHH = false;
-    pedalFlag = true;
-    pedalVelocityFlag = false;
-  }
-
-  if (TCRT < thre2Raw && pedalFlag == true)
-  {
-    pedalFlag = false;
-    closeHH = false;
-    openHH = true;
-  }
-
-  //Pedal CC
-  //TCRT = map(TCRT, thre1Raw, sensRaw, 0, 127);
-  TCRT = curve(TCRT, thre1Raw, sensRaw, settings.curvetype);
-
-  if (TCRT < 20)
-  {
-    TCRT = 0;
-  }
-
-  else if (TCRT >= 20 && TCRT < 40)
-  {
-    TCRT = 20;
-  }
-
-  else if (TCRT >= 40 && TCRT < 60)
-  {
-    TCRT = 40;
-  }
-
-  else if (TCRT >= 60 && TCRT < 80)
-  {
-    TCRT = 60;
-  }
-
-  else if (TCRT >= 80 && TCRT < 100)
-  {
-    TCRT = 80;
-  }
-
-  else if (TCRT >= 100 && TCRT < 120)
-  {
-    TCRT = 100;
-  }
-
-  else if (TCRT >= 120)
-  {
-    TCRT = 127;
-  }
-
-  if (exTCRT != TCRT)
-  {
-    pedalCC = TCRT;
-    moving = true;
-    exTCRT = TCRT;
-  }
-
-  else
-  {
-    moving = false;
-  }
-}
-
-void HelloDrum::FSRSensing(byte sens, byte thre, byte scanStart, byte scanEnd, byte pedalSens)
-{
-	// TODO add reverse function
-  int sensRaw = sens * 10;
-  int thre1Raw = thre * 10;
-  int ScanStart = scanStart * 10;
-  int ScanEnd = scanEnd * 10;
-
-  hit = false;
-  velocity = 0;
-  //openHH = false;
-  //closeHH = false;
-
-  //scan start
-  if (fsr > ScanStart && closeHH == false && pedalVelocityFlag == false && pedalFlag == false)
-  {
-    time_hit_pedal_1 = millis();
-    pedalVelocityFlag = true;
-  }
-
-  //scan end
-  else if (fsr > ScanEnd && pedalFlag == false)
-  {
-    time_hit_pedal_2 = millis();
-
-    velocity = time_hit_pedal_2 - time_hit_pedal_1;
-
-#ifdef DEBUG_DRUM
-    int prevVel = velocity;
-#endif
-
-    velocity = map(velocity, pedalSens * 100, 0, 1, 127);
-
-    if (velocity <= 1)
-    {
-      velocity = 1;
-    }
-
-    if (velocity > 127)
-    {
-      velocity = 127;
-    }
-
-#ifdef DEBUG_DRUM
-	sprintf(buffer_out, "[Close] velocity : %d, ScanTime(ms) : %d",
-		  velocity,
-		  prevVel);
-	sendUart(buffer_out);
-#endif
-
-    hit = true;
-    closeHH = true;
-    openHH = false;
-    pedalFlag = true;
-    pedalVelocityFlag = false;
-
-    showVelocity = velocity;
-    showLCD = true;
-    padIndex = padNum;
-  }
-
-#ifdef DEBUG_DRUM
-  int prevFsr = fsr;
-#endif
-  //
-  if (fsr < ScanEnd && pedalFlag == true)
-  {
-#ifdef DEBUG_DRUM
-	sprintf(buffer_out, "[Open] sensorValue :  %d", fsr);
-	sendUart(buffer_out);
-#endif
-    pedalFlag = false;
-    closeHH = false;
-    openHH = true;
-  }
-
-  //Pedal CC
-  fsr = curve(fsr, thre1Raw, sensRaw, settings.curvetype);
-
-  if (fsr < 20)
-  {
-    fsr = 0;
-  }
-
-  else if (fsr >= 20 && fsr < 40)
-  {
-    fsr = 20;
-  }
-
-  else if (fsr >= 40 && fsr < 60)
-  {
-    fsr = 40;
-  }
-
-  else if (fsr >= 60 && fsr < 80)
-  {
-    fsr = 60;
-  }
-
-  else if (fsr >= 80 && fsr < 100)
-  {
-    fsr = 80;
-  }
-
-  else if (fsr >= 100 && fsr < 120)
-  {
-    fsr = 100;
-  }
-
-  else if (fsr >= 120)
-  {
-    fsr = 127;
-  }
-
-  if (exFSR != fsr)
-  {
-    pedalCC = fsr;
-    moving = true;
-    exFSR = fsr;
-
-#ifdef DEBUG_DRUM
-	sprintf(buffer_out, "[Move] sensorValue : %d, (raw value :  %d), openHH : %d, closeHH : %d",
-		fsr,
-		prevFsr,
-		openHH,
-		closeHH);
-	sendUart(buffer_out);
-#endif
-  }
-
-  else
-  {
-    moving = false;
-  }
-}
 
 int HelloDrum::curve(int velocityRaw, int threshold, int sensRaw, byte curveType)
 {
@@ -851,145 +384,6 @@ int HelloDrum::curve(int velocityRaw, int threshold, int sensRaw, byte curveType
 void HelloDrum::setCurve(byte curveType)
 {
 	settings.curvetype = curveType;
-}
-
-///////////////////// 2. PAD without EEPROM //////////////////////////
-
-void HelloDrum::singlePiezo(byte sens, byte thre, byte scan, byte mask)
-{
-  padType[padNum] = SINGLE_PAD;
-  piezoValue = analogRead(pin_1);
-  singlePiezoSensing(sens, thre, scan, mask);
-}
-
-void HelloDrum::dualPiezo(byte sens, byte thre, byte scan, byte mask, byte rimSens, byte rimThre)
-{
-  padType[padNum] = DOUBLE_PAD;
-  piezoValue = analogRead(pin_1);
-  RimPiezoValue = analogRead(pin_2);
-  dualPiezoSensing(sens, thre, scan, mask, rimSens, rimThre);
-}
-
-void HelloDrum::HH(byte sens, byte thre, byte scan, byte mask)
-{
-  padType[padNum] = HH_PAD;
-  piezoValue = analogRead(pin_1);
-  singlePiezoSensing(sens, thre, scan, mask);
-}
-
-void HelloDrum::HH2zone(byte sens, byte thre, byte scan, byte mask, byte edgeThre)
-{
-  padType[padNum] = HH2_PAD;
-  piezoValue = analogRead(pin_1);
-  sensorValue = analogRead(pin_2);
-  cymbal2zoneSensing(sens, thre, scan, mask, edgeThre);
-}
-
-void HelloDrum::cymbal2zone(byte sens, byte thre, byte scan, byte mask, byte edgeThre)
-{
-  padType[padNum] = CY2_PAD;
-  piezoValue = analogRead(pin_1);
-  sensorValue = analogRead(pin_2);
-  cymbal2zoneSensing(sens, thre, scan, mask, edgeThre);
-}
-
-void HelloDrum::cymbal3zone(byte sens, byte thre, byte scan, byte mask, byte edgeThre, byte cupThre)
-{
-  padType[padNum] = CY3_PAD;
-  piezoValue = analogRead(pin_1);
-  sensorValue = analogRead(pin_2);
-  cymbal3zoneSensing(sens, thre, scan, mask, edgeThre, cupThre);
-}
-
-void HelloDrum::TCRT5000(byte sens, byte thre1, byte thre2, byte scan)
-{
-  padType[padNum] = HHC_PAD;
-  TCRT = analogRead(pin_1);
-  TCRT5000Sensing(sens, thre1, thre2, scan);
-}
-
-void HelloDrum::FSR(byte sens, byte thre, byte scanStart, byte scanEnd, byte pedalSens)
-{
-  padType[padNum] = HHC_PAD;
-  fsr = analogRead(pin_1);
-  FSRSensing(sens, thre, scanStart, scanEnd, pedalSens);
-}
-
-void HelloDrum::hihatControl(byte sens, byte thre, byte scanStart, byte scanEnd, byte pedalSens)
-{
-  padType[padNum] = HHC_PAD;
-  fsr = analogRead(pin_1);
-  FSRSensing(sens, thre, scanStart, scanEnd, pedalSens);
-}
-
-////////////////// 3. PAD WITH LCD & EEPROM //////////////////////
-
-void HelloDrum::singlePiezo()
-{
-  padType[padNum] = SINGLE_PAD;
-  piezoValue = analogRead(pin_1);
-  singlePiezoSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime);
-}
-
-void HelloDrum::dualPiezo()
-{
-  padType[padNum] = DOUBLE_PAD;
-  piezoValue = analogRead(pin_1);
-  RimPiezoValue = analogRead(pin_2);
-  dualPiezoSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime, settings.rimSensitivity, settings.rimThreshold);
-}
-
-void HelloDrum::HH()
-{
-  padType[padNum] = HH_PAD;
-  piezoValue = analogRead(pin_1);
-  singlePiezoSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime);
-}
-
-void HelloDrum::HH2zone()
-{
-  padType[padNum] = HH2_PAD;
-  piezoValue = analogRead(pin_1);
-  sensorValue = analogRead(pin_2);
-  cymbal2zoneSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime, settings.rimSensitivity);
-}
-
-void HelloDrum::cymbal2zone()
-{
-  padType[padNum] = CY2_PAD;
-  piezoValue = analogRead(pin_1);
-  sensorValue = analogRead(pin_2);
-  cymbal2zoneSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime, settings.rimSensitivity);
-}
-
-void HelloDrum::cymbal3zone()
-{
-  padType[padNum] = CY3_PAD;
-  piezoValue = analogRead(pin_1);
-  sensorValue = analogRead(pin_2);
-  cymbal3zoneSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime, settings.rimSensitivity, settings.rimThreshold);
-}
-
-void HelloDrum::TCRT5000()
-{
-  padType[padNum] = HHC_PAD;
-  TCRT = analogRead(pin_1);
-  TCRT5000Sensing(settings.sensitivity, settings.threshold1, settings.masktime, settings.scantime);
-}
-
-void HelloDrum::FSR()
-{
-  padType[padNum] = HHC_PAD;
-  fsr = analogRead(pin_1);
-  FSRSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime, settings.rimSensitivity);
-}
-
-void HelloDrum::hihatControl()
-{
-  padType[padNum] = HHC_PAD;
-  fsr = analogRead(pin_1);
-  // TODO create invert FSR for Alesis drum kit
-  FSRSensing(settings.sensitivity, settings.threshold1, settings.scantime, settings.masktime, settings.rimSensitivity);
 }
 
 //////////////////////////// 6. EEPROM SETTING  //////////////////////////////
@@ -1278,6 +672,14 @@ void HelloDrum::settingName(const char *instrumentName)
   nameIndexMax = nameIndex;
   nameIndex++;
 }
+//
+//void HelloDrum::loadPadsSettings(){
+//	sprintf(buffer_out, "\n number of pads is %d", padsList.size());
+//	sendUart(buffer_out);
+//	for (uint8_t i = 0; i < padsList.size(); i++) {
+//		padsList[i]->loadMemory();
+//	}
+//}
 
 void HelloDrum::loadMemory()
 {
@@ -1295,7 +697,15 @@ void HelloDrum::loadMemory()
 	// TODO Remove duplicates of parameters.
 }
 
-void HelloDrum::initSounds(){
+//void HelloDrum::loadPadsSounds(){
+//	for (uint8_t i = 0; i < padsList.size(); i++) {
+//		padsList[i]->loadSounds();
+//	}
+//}
+
+void HelloDrum::loadSounds(){
+	sprintf(buffer_out, "length is %d", padsList.size());
+	sendUart(buffer_out);
 	uint32_t address = 0;
 	float volumeDb = 0.0;
 	if(settings.soundHeadAddressId != 0xff){
@@ -1311,3 +721,16 @@ void HelloDrum::initSounds(){
 		noteCupSound = new DrumSound(address, settings.soundCupVolumeDb);
 	}
 }
+
+
+//void HelloDrum::sensingAllPads(){
+//	for (uint8_t i = 0; i < padsList.size(); i++) {
+//		padsList[i]->sensingPad();
+//	}
+//}
+//
+//void HelloDrum::executeAllPads(){
+//	for (uint8_t i = 0; i < padsList.size(); i++) {
+//		padsList[i]->executePad();
+//	}
+//}

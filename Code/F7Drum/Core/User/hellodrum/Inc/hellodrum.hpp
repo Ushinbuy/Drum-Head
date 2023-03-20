@@ -14,6 +14,8 @@
 #include "drumSound.hpp"
 #include "midi.h"
 #include "drumManager.h"
+#include <math.h>
+#include <vector>
 
 const static char *item[] = {
     "SENSITIVITY", //0 0
@@ -173,45 +175,27 @@ public:
 class HelloDrum
 {
 public:
-  HelloDrum(byte pin1, byte pin2);
-  HelloDrum(byte pin1);
+	  HelloDrum(byte pin1, byte pin2);
+	  HelloDrum(byte pin1);
+
+	virtual void loadMemory();
+	virtual void sensingPad(void) = 0;
+	virtual void executePad(void) = 0;
+	void loadSounds();
+
   static uint8_t getChannelsAmount(void);
-
-  virtual void sensingPad(void){
-	  // TODO do this real virtual
-  }
-
-  virtual void executePad(void){
-	  // TODO do this real virtual
-  }
-
-  void singlePiezo(byte sens, byte thre, byte scan, byte mask);
-  void singlePiezo();
-  void dualPiezo(byte sens, byte thre, byte scan, byte mask, byte rimSens, byte rimThre);
-  void dualPiezo();
-  void HH(byte sens, byte thre, byte scan, byte mask);
-  void HH();
-  void HH2zone(byte sens, byte thre, byte scan, byte mask, byte edgeThre);
-  void HH2zone();
-  void cymbal3zone(byte sens, byte thre, byte scan, byte mask, byte edgeThre, byte cupThre);
-  void cymbal3zone();
-  void cymbal2zone(byte sens, byte thre, byte scan, byte mask, byte edgeThre);
-  void cymbal2zone();
-  void TCRT5000(byte sens, byte thre1, byte thre2, byte scan);
-  void TCRT5000();
-  void FSR(byte sens, byte thre, byte scanStart, byte scanEnd, byte pedalSens);
-  void FSR();
-  void hihatControl(byte sens, byte thre, byte scanStart, byte scanEnd, byte pedalSens);
-  void hihatControl();
+  static void init(void);
+  static void loadPadsSettings(void);
+  static void loadPadsSounds(void);
+  static void sensingAllPads(void);
+  static void executeAllPads(void);
 
   void setCurve(byte curveType);
 
   void settingName(const char *instrumentName);
   void settingEnable();
 
-  virtual void loadMemory();
   void initMemory();
-  void initSounds();
 
   int velocity;
   int velocityRim;
@@ -219,20 +203,13 @@ public:
   byte pedalCC;
 
   //  int exValue;
-  byte exTCRT = 0;
-  byte exFSR = 0;
   bool hit;
-  bool openHH = false;
-  bool closeHH = false;
   bool hitRim;
   bool hitCup;
   bool choke;
-  bool sensorFlag;
-  bool moving;
-  bool pedalVelocityFlag = false;
-  bool pedalFlag = true;
-  bool settingHHC = false;
-  bool chokeFlag;
+//  bool sensorFlag;
+//  bool settingHHC = false;
+//  bool chokeFlag;
 
   char *GetItem(byte i);
 
@@ -253,28 +230,22 @@ public:
   byte noteCross; // this maybe note for stick on rim
 
 protected:
+
   byte pin_1;
   byte pin_2;
   int piezoValue;
   int RimPiezoValue;
   int sensorValue;
-  int TCRT;
-  int fsr;
   int firstSensorValue;
   int lastSensorValue;
   int loopTimes = 0;
   unsigned long time_hit;
   unsigned long time_end;
-  unsigned long time_choke;
-  unsigned long time_hit_pedal_1;
-  unsigned long time_hit_pedal_2;
+//  unsigned long time_choke;
 
   void singlePiezoSensing(byte sens, byte thre, byte scanTime, byte maskTime);
-  void dualPiezoSensing(byte sens, byte thre, byte scanTime, byte maskTime, byte rimSens, byte rimThre);
   void cymbal2zoneSensing(byte sens, byte thre, byte scanTime, byte maskTime, byte edgeThre);
-  void cymbal3zoneSensing(byte sens, byte thre, byte scanTime, byte maskTime, byte edgeThre, byte cupThre);
-  void TCRT5000Sensing(byte sens, byte thre1, byte thre2, byte scanTime);
-  void FSRSensing(byte sens, byte thre, byte scanStart, byte scanEnd, byte pedalSens);
+
   int curve(int velocityRaw, int threshold, int sensRaw, byte curveType);
 };
 
