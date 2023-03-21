@@ -15,7 +15,7 @@ void setLinksDrumCore(ADC_HandleTypeDef *adcGlobal,
 		TIM_HandleTypeDef *timGlobalPiezoAsk,
 		TIM_HandleTypeDef *timGlobalActiveSense);
 
-void callAudioStreamHandle(void);// todo this function in another plase
+void callAudioStreamHandle(void);
 
 #ifdef __cplusplus
 }

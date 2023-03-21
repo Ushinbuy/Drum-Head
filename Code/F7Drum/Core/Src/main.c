@@ -86,13 +86,13 @@ SDRAM_HandleTypeDef hsdram1;
 void SystemClock_Config(void);
 void PeriphCommonClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_ADC3_Init(void);
+static void MX_DMA_Init(void);
 static void MX_FMC_Init(void);
 static void MX_SAI2_Init(void);
 static void MX_SDMMC1_SD_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_USART1_UART_Init(void);
-static void MX_DMA_Init(void);
+static void MX_ADC3_Init(void);
 static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
@@ -136,7 +136,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_ADC3_Init();
+  MX_DMA_Init();
   MX_FMC_Init();
   MX_SAI2_Init();
   MX_SDMMC1_SD_Init();
@@ -144,7 +144,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_FATFS_Init();
   MX_USB_DEVICE_Init();
-  MX_DMA_Init();
+  MX_ADC3_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 #define MY_DEBUG
@@ -272,7 +272,7 @@ static void MX_ADC3_Init(void)
   */
   hadc3.Instance = ADC3;
   hadc3.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
-  hadc3.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc3.Init.Resolution = ADC_RESOLUTION_10B;
   hadc3.Init.ScanConvMode = ADC_SCAN_ENABLE;
   hadc3.Init.ContinuousConvMode = DISABLE;
   hadc3.Init.DiscontinuousConvMode = DISABLE;
