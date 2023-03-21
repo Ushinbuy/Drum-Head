@@ -1,8 +1,11 @@
 #include <HelloDrumPads.hpp>
 
-//#define DEBUG_DRUM //<-- uncomment this line to enable debug mode with Serial.
+#define DEBUG_DRUM //<-- uncomment this line to enable debug mode with Serial.
 
-//extern std::vector< HelloDrum *> padsList;
+#ifdef DEBUG_DRUM
+extern "C" void sendUart(const char *_msg);
+extern char buffer_out[1000];
+#endif
 
 //////////////// SINGLE ///////////////////
 SinglePad::SinglePad(byte pin1) : HelloDrum(pin1){
