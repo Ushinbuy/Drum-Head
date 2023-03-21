@@ -5,11 +5,13 @@
 #include "eepromManager.h"
 #include "drumSound.hpp"
 
-SinglePad kick(0);
-DoublePad snare(1, 2);
+extern std::vector<HelloDrum*> padsList; // TODO delete this and check if this will work
+
+SinglePad * kick;
+DoublePad * snare;
 // HelloDrum hihat(3);
-HiHatPedalPad hihatPedal(3, FSR_PEDAL);
-Cymbal2ZonesPad ride(4, 5);
+ HiHatPedalPad * hihatPedal;
+ Cymbal2ZonesPad * ride;
 
 static ADC_HandleTypeDef* adcLocal;
 static TIM_HandleTypeDef* timActiveSense;
@@ -34,32 +36,28 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 void initHelloDrums(void) {
 	//It is necessary to make the order in exactly the same order as you named the pad first.
 
+	kick = new SinglePad(0);
+	snare = new DoublePad(1, 2);
+	// HelloDrum hihat(3);
+	hihatPedal = new HiHatPedalPad(3, FSR_PEDAL);
+	ride = new Cymbal2ZonesPad(4, 5);
+
 
 	// TODO add automatic variable name
-	kick.settingName("KICK");
-	snare.settingName("SNARE");
+	kick->settingName("KICK");
+	snare->settingName("SNARE");
 //	hihat.settingName("HIHAT");
-	hihatPedal.settingName("HIHAT PEDAL");
-	ride.settingName("RIDE");
+	hihatPedal->settingName("HIHAT PEDAL");
+	ride->settingName("RIDE");
 
 	//Load settings from EEPROM.
 	//It is necessary to make the order in exactly the same order as you named the pad first.
 	EepromManager::getInstance()->loadInfoSector();
 
-//	HelloDrum::loadPadsSettings();
-	kick.loadMemory();
-	snare.loadMemory();
-	hihatPedal.loadMemory();
-	ride.loadMemory();
-
-
+	HelloDrum::prinListSize();
+	HelloDrum::loadPadsSettings();
 	DrumSound::initAudioCore();
-
-//	HelloDrum::loadPadsSounds();
-	kick.loadSounds();
-	snare.loadSounds();
-	hihatPedal.loadSounds();
-	ride.loadSounds();
+	HelloDrum::loadPadsSounds();
 
 	adc_buf = new uint32_t[HelloDrum::getChannelsAmount()];
 	adc_val = new uint16_t[HelloDrum::getChannelsAmount()];
@@ -79,88 +77,8 @@ void checkHelloDrums(void){
 		return;
 	adcState = ADC_IDLE;
 
-//	HelloDrum::sensingAllPads();
-	kick.sensingPad();
-	snare.sensingPad();
-//	hihat.HH();
-	hihatPedal.sensingPad();
-//	ride.cymbal3zone();
-
-
-//	HelloDrum::executeAllPads();
-	kick.executePad();
-	snare.executePad();
-	hihatPedal.executePad();
-
-	//KICK//
-//	if (kick.hit == true) {
-//		sendMidiGEN(kick.settings.note, kick.velocity);
-//		kick.noteHeadSound->playSound(kick.velocity);
-//	}
-//
-//	//SNARE//
-//	if (snare.hit == true) {
-//		sendMidiGEN(snare.settings.note, snare.velocity);
-//		snare.noteHeadSound->playSound(snare.velocity);
-//	}
-//	else if(snare.hitRim == true){
-//		sendMidiGEN(snare.settings.noteRim, snare.velocity);
-//		snare.noteRimSound->playSound(snare.velocity);
-//	}
-
-	//HIHAT//
-//	if (hihat.hit == true) {
-//		//check open or close
-//		//1.open
-//		if (hihatPedal.openHH == true) {
-//			sendMidiGEN(hihat.noteOpen, hihat.velocity);
-//			hihat.noteHeadSound->playSound(hihat.velocity);
-//		}
-//		//2.close
-//		else if (hihatPedal.closeHH == true) {
-//			sendMidiGEN(hihat.noteClose, hihat.velocity);
-//			hihat.noteRimSound->playSound(hihat.velocity);
-//		}
-//	}
-
-	//HIHAT CONTROLLER//
-	//when hihat is closed
-//	if (hihatPedal.hit == true) {
-//		sendMidiGEN(hihatPedal.settings.note, hihatPedal.velocity);
-//		hihatPedal.noteHeadSound->playSound(hihatPedal.velocity);
-//	}
-//
-//	//sending state of pedal with controll change
-//	if (hihatPedal.moving == true) {
-//		sendMidiControlChange(4, hihatPedal.pedalCC);
-//	}
-//
-//	//RIDE//
-//	//1.bow
-//	if (ride.hit == true) {
-//		sendMidiGEN(ride.settings.note, ride.velocity); //(note, velocity, channel)
-//		ride.noteHeadSound->playSound(ride.velocity);
-//	}
-//
-//	//2.edge
-//	else if (ride.hitRim == true) {
-//		sendMidiGEN(ride.settings.noteRim, ride.velocity); //(note, velocity, channel)
-//	}
-//
-//	//3.cup
-//	else if (ride.hitCup == true) {
-//		sendMidiGEN(ride.settings.noteCup, ride.velocity); //(note, velocity, channel)
-//	}
-//
-//	//4.choke
-//	if (ride.choke == true) {
-//		sendMidiAT(ride.settings.note, 127);
-//		sendMidiAT(ride.settings.noteRim, 127);
-//		sendMidiAT(ride.settings.noteCup, 127);
-//		sendMidiAT(ride.settings.note, 0);
-//		sendMidiAT(ride.settings.noteRim, 0);
-//		sendMidiAT(ride.settings.noteCup, 0);
-//	}
+	HelloDrum::sensingAllPads();
+	HelloDrum::executeAllPads();
 }
 
 void setLinksDrumCore(ADC_HandleTypeDef *adcGlobal,

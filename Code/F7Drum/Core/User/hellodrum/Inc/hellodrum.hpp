@@ -177,6 +177,9 @@ class HelloDrum
 public:
 	  HelloDrum(byte pin1, byte pin2);
 	  HelloDrum(byte pin1);
+	  ~HelloDrum();
+
+	  static void prinListSize();
 
 	virtual void loadMemory();
 	virtual void sensingPad(void) = 0;
@@ -248,5 +251,7 @@ protected:
 
   int curve(int velocityRaw, int threshold, int sensRaw, byte curveType);
 };
+
+static std::vector<HelloDrum*> padsList;
 
 #endif

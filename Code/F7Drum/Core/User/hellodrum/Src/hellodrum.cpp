@@ -21,37 +21,47 @@ extern char buffer_out[1000];
 
 #define DEBUG_DRUM
 
-//std::vector< std::unique_ptr<HelloDrum>> padsList;
-std::vector<HelloDrum*> padsList;
+HelloDrum::~HelloDrum(){
+	sendUart("Pad was deleted");
+}
+
+void HelloDrum::prinListSize(){
+	static uint8_t numOfCall = 0;
+	sprintf(buffer_out, "\nCall %d size is %d", numOfCall, padsList.size());
+	sendUart(buffer_out);
+	numOfCall++;
+}
 
 //Pad with a sensor.
 HelloDrum::HelloDrum(byte pin1)
 {
-//	for (uint8_t i = 0; i < padsList.size(); i++) {
-//		if(pin1 == padsList[i]->pin_1){
-//			sendUart("\nPad was init before");
-//			Error_Handler();
-//		}
-//	}
+	for (uint8_t i = 0; i < padsList.size(); i++) {
+		if(pin1 == padsList[i]->pin_1){
+			sendUart("\nPad was init before");
+			Error_Handler();
+		}
+	}
   pin_1 = pin1;
 
   //Give the instance a pad number.
   padNum = padIndex;
   padIndex++;
   channelsAmount++;
-  padsList.emplace_back(this);
+
+//  padsList.resize(padsList.size() + 1);
+  padsList.push_back(this);
 }
 
 //Pad with 2 sensors.
 HelloDrum::HelloDrum(byte pin1, byte pin2)
 {
-//	for (uint8_t i = 0; i < padsList.size(); i++) {
-//		if ((pin1 == padsList[i]->pin_1) || (pin1 == padsList[i]->pin_2)
-//				|| ((pin2 == padsList[i]->pin_1) || (pin2 == padsList[i]->pin_2))) {
-//			sendUart("\nPad was init before");
-//			Error_Handler();
-//		}
-//	}
+	for (uint8_t i = 0; i < padsList.size(); i++) {
+		if ((pin1 == padsList[i]->pin_1) || (pin1 == padsList[i]->pin_2)
+				|| ((pin2 == padsList[i]->pin_1) || (pin2 == padsList[i]->pin_2))) {
+			sendUart("\nPad was init before");
+			Error_Handler();
+		}
+	}
   pin_1 = pin1;
   pin_2 = pin2;
 
@@ -59,7 +69,9 @@ HelloDrum::HelloDrum(byte pin1, byte pin2)
   padNum = padIndex;
   padIndex++;
   channelsAmount += 2;
-  padsList.emplace_back(this);
+
+//  padsList.resize(padsList.size() + 1);
+  padsList.push_back(this);
 }
 
 uint8_t HelloDrum::getChannelsAmount(void){
@@ -672,14 +684,12 @@ void HelloDrum::settingName(const char *instrumentName)
   nameIndexMax = nameIndex;
   nameIndex++;
 }
-//
-//void HelloDrum::loadPadsSettings(){
-//	sprintf(buffer_out, "\n number of pads is %d", padsList.size());
-//	sendUart(buffer_out);
-//	for (uint8_t i = 0; i < padsList.size(); i++) {
-//		padsList[i]->loadMemory();
-//	}
-//}
+
+void HelloDrum::loadPadsSettings(){
+	for (uint8_t i = 0; i < padsList.size(); i++) {
+		padsList[i]->loadMemory();
+	}
+}
 
 void HelloDrum::loadMemory()
 {
@@ -697,11 +707,11 @@ void HelloDrum::loadMemory()
 	// TODO Remove duplicates of parameters.
 }
 
-//void HelloDrum::loadPadsSounds(){
-//	for (uint8_t i = 0; i < padsList.size(); i++) {
-//		padsList[i]->loadSounds();
-//	}
-//}
+void HelloDrum::loadPadsSounds(){
+	for (uint8_t i = 0; i < padsList.size(); i++) {
+		padsList[i]->loadSounds();
+	}
+}
 
 void HelloDrum::loadSounds(){
 	sprintf(buffer_out, "length is %d", padsList.size());
@@ -723,14 +733,14 @@ void HelloDrum::loadSounds(){
 }
 
 
-//void HelloDrum::sensingAllPads(){
-//	for (uint8_t i = 0; i < padsList.size(); i++) {
-//		padsList[i]->sensingPad();
-//	}
-//}
-//
-//void HelloDrum::executeAllPads(){
-//	for (uint8_t i = 0; i < padsList.size(); i++) {
-//		padsList[i]->executePad();
-//	}
-//}
+void HelloDrum::sensingAllPads(){
+	for (uint8_t i = 0; i < padsList.size(); i++) {
+		padsList[i]->sensingPad();
+	}
+}
+
+void HelloDrum::executeAllPads(){
+	for (uint8_t i = 0; i < padsList.size(); i++) {
+		padsList[i]->executePad();
+	}
+}
