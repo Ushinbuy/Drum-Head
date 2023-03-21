@@ -252,6 +252,6 @@ protected:
   int curve(int velocityRaw, int threshold, int sensRaw, byte curveType);
 };
 
-static std::vector<HelloDrum*> padsList;
+static std::vector<HelloDrum*> padsList; // TODO find way to hide this
 
 #endif

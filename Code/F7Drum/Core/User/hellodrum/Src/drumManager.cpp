@@ -7,11 +7,11 @@
 
 extern std::vector<HelloDrum*> padsList; // TODO delete this and check if this will work
 
-SinglePad * kick;
+SinglePad * kick;	// TODO fix static initialization order
 DoublePad * snare;
 // HelloDrum hihat(3);
- HiHatPedalPad * hihatPedal;
- Cymbal2ZonesPad * ride;
+HiHatPedalPad *hihatPedal;
+Cymbal2ZonesPad *ride;
 
 static ADC_HandleTypeDef* adcLocal;
 static TIM_HandleTypeDef* timActiveSense;
