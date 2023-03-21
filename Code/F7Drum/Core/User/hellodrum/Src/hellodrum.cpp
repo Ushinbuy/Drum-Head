@@ -25,6 +25,7 @@ HelloDrum::~HelloDrum(){
 	sendUart("Pad was deleted");
 }
 
+// TODO remove this method after debug
 void HelloDrum::prinListSize(){
 	static uint8_t numOfCall = 0;
 	sprintf(buffer_out, "\nCall %d size is %d", numOfCall, padsList.size());
