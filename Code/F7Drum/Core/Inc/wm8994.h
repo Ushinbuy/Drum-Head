@@ -42,7 +42,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "audio.h"
-#include "audio_io.h"
 
 /** @addtogroup BSP
   * @{

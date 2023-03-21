@@ -39,6 +39,7 @@
 //#include "drumCore.h"
 #include "stm32746g_discovery_qspi.h"
 #include "drumManager.h"
+#include "display.h"
 
 /* USER CODE END Includes */
 
@@ -168,6 +169,8 @@ int main(void)
 //	HAL_GPIO_WritePin(LCD_BL_CTRL_GPIO_Port, LCD_BL_CTRL_Pin, GPIO_PIN_RESET);	// shutdown display
 
 	initHelloDrums();
+//	LCD_Init();
+//	DrawONButton();
   /* USER CODE END 2 */
 
   /* Infinite loop */
