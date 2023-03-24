@@ -687,8 +687,8 @@ void HelloDrum::settingName(const char *instrumentName)
 }
 
 void HelloDrum::loadPadsSettings(){
-	for (uint8_t i = 0; i < padsList.size(); i++) {
-		padsList[i]->loadMemory();
+	for (HelloDrum* pad : padsList) {
+		pad->loadMemory();
 	}
 }
 
@@ -709,8 +709,8 @@ void HelloDrum::loadMemory()
 }
 
 void HelloDrum::loadPadsSounds(){
-	for (uint8_t i = 0; i < padsList.size(); i++) {
-		padsList[i]->loadSounds();
+	for (HelloDrum* pad : padsList) {
+		pad->loadSounds();
 	}
 }
 
@@ -735,13 +735,13 @@ void HelloDrum::loadSounds(){
 
 
 void HelloDrum::sensingAllPads(){
-	for (uint8_t i = 0; i < padsList.size(); i++) {
-		padsList[i]->sensingPad();
+	for (HelloDrum* pad : padsList) {
+		pad->sensingPad();
 	}
 }
 
 void HelloDrum::executeAllPads(){
-	for (uint8_t i = 0; i < padsList.size(); i++) {
-		padsList[i]->executePad();
+	for (HelloDrum* pad : padsList) {
+		pad->executePad();
 	}
 }
