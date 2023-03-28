@@ -17,6 +17,9 @@
 #include <math.h>
 #include <vector>
 
+#define UNCORRECT_SOUND_ID 0xFF
+#define DEFUAULT_SOUND_ID UNCORRECT_SOUND_ID
+
 const static char *item[] = {
     "SENSITIVITY", //0 0
     "THRESHOLD",   //1 1
@@ -164,9 +167,9 @@ public:
 	  byte note = 0x18;           //7
 	  byte noteRim = 0x19;        //8
 	  byte noteCup = 0x20;        //9
-	  byte soundHeadAddressId = 0xFF;	//10 this field show which item from soundsAdresses
-	  byte soundRimAddressId = 0xFF;	//11
-	  byte soundCupAddressId = 0xFF;	//12
+	  byte soundHeadAddressId = DEFUAULT_SOUND_ID;	//10 this field show which item from soundsAdresses
+	  byte soundRimAddressId = DEFUAULT_SOUND_ID;	//11
+	  byte soundCupAddressId = DEFUAULT_SOUND_ID;	//12
 	  float soundHeadVolumeDb = -3.0;
 	  float soundRimVolumeDb = -3.0;
 	  float soundCupVolumeDb = -3.0;

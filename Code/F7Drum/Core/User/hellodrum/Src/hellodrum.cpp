@@ -718,15 +718,15 @@ void HelloDrum::loadPadsSounds(){
 void HelloDrum::loadSounds(){
 	uint32_t address = 0;
 	float volumeDb = 0.0;
-	if(settings.soundHeadAddressId != 0xff){
+	if(settings.soundHeadAddressId != UNCORRECT_SOUND_ID){
 		address = EepromManager::getInstance()->infoSector.soundsAdresses[settings.soundHeadAddressId];
 		noteHeadSound = new DrumSound(address, settings.soundHeadVolumeDb);
 	}
-	if(settings.soundRimAddressId != 0xff){
+	if(settings.soundRimAddressId != UNCORRECT_SOUND_ID){
 		address = EepromManager::getInstance()->infoSector.soundsAdresses[settings.soundRimAddressId];
 		noteRimSound = new DrumSound(address, settings.soundRimVolumeDb);
 	}
-	if(settings.soundCupAddressId != 0xff){
+	if(settings.soundCupAddressId != UNCORRECT_SOUND_ID){
 		address = EepromManager::getInstance()->infoSector.soundsAdresses[settings.soundCupAddressId];
 		noteCupSound = new DrumSound(address, settings.soundCupVolumeDb);
 	}
