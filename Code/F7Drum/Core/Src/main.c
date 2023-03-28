@@ -28,16 +28,11 @@
 #include <usbd_cdc.h>
 #include "midi.h"
 #include "uartManage.h"
-//#include "audioExample.h"
-//#define SDPLAY
+
 #ifdef SDPLAY
 #include "audioFromSdCard.h"
-#else
-//#include "drumAudioCore.h"
 #endif
 
-//#include "drumCore.h"
-#include "stm32746g_discovery_qspi.h"
 #include "drumManager.h"
 #include "display.h"
 

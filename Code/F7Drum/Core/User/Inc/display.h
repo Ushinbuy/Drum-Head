@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+void LCD_Start();
 void LCD_Init();
 void DrawONButton();
 
