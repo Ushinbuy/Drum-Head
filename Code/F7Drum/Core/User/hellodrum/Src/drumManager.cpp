@@ -11,7 +11,7 @@ SinglePad * kick;	// TODO fix static initialization order
 DoublePad * snare;
 // HelloDrum hihat(3);
 HiHatPedalPad *hihatPedal;
-Cymbal2ZonesPad *ride;
+Cymbal3ZonesPad *ride;
 
 static ADC_HandleTypeDef* adcLocal;
 static TIM_HandleTypeDef* timActiveSense;
@@ -40,7 +40,7 @@ void initHelloDrums(void) {
 	snare = new DoublePad(1, 2);
 	// HelloDrum hihat(3);
 	hihatPedal = new HiHatPedalPad(3, FSR_PEDAL);
-	ride = new Cymbal2ZonesPad(4, 5);
+	ride = new Cymbal3ZonesPad(4, 5);
 
 
 	// TODO add automatic variable name
