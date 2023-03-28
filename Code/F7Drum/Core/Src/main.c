@@ -137,22 +137,22 @@ int main(void)
   PeriphCommonClock_Config();
 
   /* USER CODE BEGIN SysInit */
-  MX_DMA_Init();
-  setLinkUart(&huart1);
-  setLinksDrumCore(&hadc3, &htim4, &htim2);
+	MX_DMA_Init();
+	setLinkUart(&huart1);
+	setLinksDrumCore(&hadc3, &htim4, &htim2);
 
 #define MY_INIT
 #ifdef MY_INIT
-  MX_GPIO_Init();
-  LCD_Init();
-  MX_DMA_Init();
-  MX_SAI2_Init();
-  MX_SDMMC1_SD_Init(); // TODO remove this
-  MX_TIM2_Init();
-  MX_USART1_UART_Init();
-  MX_USB_DEVICE_Init();
-  MX_ADC3_Init();
-  MX_TIM4_Init();
+	MX_GPIO_Init();
+	LCD_Init();
+	MX_DMA_Init();
+	MX_SAI2_Init();
+	MX_SDMMC1_SD_Init(); // TODO remove this
+	MX_TIM2_Init();
+	MX_USART1_UART_Init();
+	MX_USB_DEVICE_Init();
+	MX_ADC3_Init();
+	MX_TIM4_Init();
 #else
   /* USER CODE END SysInit */
   /* Initialize all configured peripherals */
@@ -173,9 +173,8 @@ int main(void)
 #define MY_DEBUG
 #ifdef MY_DEBUG
 	DBGMCU->APB1FZ |= DBGMCU_APB1_FZ_DBG_TIM6_STOP;		// shutdown TIM6 on debug
-	DBGMCU->APB1FZ |= DBGMCU_APB1_FZ_DBG_TIM4_STOP;		// shutdown TIM6 on debug
 #endif
-//	HAL_GPIO_WritePin(LCD_BL_CTRL_GPIO_Port, LCD_BL_CTRL_Pin, GPIO_PIN_RESET);	// shutdown display
+
 	initHelloDrums();
 
 	LCD_Start();
