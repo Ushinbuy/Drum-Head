@@ -14,7 +14,6 @@ extern char buffer_out[1000];
 //////////////// SINGLE ///////////////////
 SinglePad::SinglePad(byte pin1) : HelloDrum(pin1){
 	padType[padNum] = SINGLE_PAD;
-//	padsList.push_back(this);
 }
 
 void SinglePad::sensingPad(){
@@ -35,7 +34,6 @@ void SinglePad::executePad(){
 
 DoublePad::DoublePad(byte pin1, byte pin2) : HelloDrum(pin1, pin2){
 	padType[padNum] = DOUBLE_PAD;
-//	padsList.push_back(this);
 }
 
 void DoublePad::sensingPad(){
@@ -173,7 +171,6 @@ void DoublePad::dualPiezoSensing(byte sens, byte thre, byte scanTime, byte maskT
 HiHatPad::HiHatPad(byte pin1, HiHatPedalPad * pedal) : HelloDrum(pin1){
 	this->pedal = pedal;
 	padType[padNum] = HH_PAD;
-//	padsList.push_back(this);
 }
 
 void HiHatPad::sensingPad(){
@@ -209,7 +206,6 @@ HiHat2zonePad::HiHat2zonePad(byte pin1, byte pin2, HiHatPedalPad * pedal) : Hell
 	// TODO copy noteOpen noteClose
 	this->pedal = pedal;
 	padType[padNum] = HH2_PAD;
-//	padsList.push_back(this);
 }
 
 void HiHat2zonePad::sensingPad(){
@@ -262,7 +258,6 @@ void HiHat2zonePad::loadMemory(){
 HiHatPedalPad::HiHatPedalPad(byte pin1, PedalType pedalType) : HelloDrum(pin1){
 	this->pedalType = pedalType;
 	padType[padNum] = HHC_PAD;
-//	padsList.push_back(this);
 }
 
 void HiHatPedalPad::sensingPad(){
@@ -536,7 +531,6 @@ void HiHatPedalPad::FSRSensing(byte sens, byte thre, byte scanStart, byte scanEn
 
 Cymbal2ZonesPad::Cymbal2ZonesPad(byte pin1, byte pin2) : HelloDrum(pin1, pin2){
 	padType[padNum] = CY2_PAD;
-//	padsList.push_back(this);
 }
 
 void Cymbal2ZonesPad::sensingPad(){
@@ -574,7 +568,6 @@ void Cymbal2ZonesPad::executePad(){
 
 Cymbal3ZonesPad::Cymbal3ZonesPad(byte pin1, byte pin2) : HelloDrum(pin1, pin2){
 	padType[padNum] = CY3_PAD;
-//	padsList.push_back(this);
 }
 
 void Cymbal3ZonesPad::sensingPad(){
