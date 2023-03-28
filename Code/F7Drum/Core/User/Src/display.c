@@ -8,34 +8,34 @@
 
 #define DATA_IN_ExtSDRAM
 
-void LCD_Init() {
-
-//	BSP_LCD_Init();
-//	BSP_LCD_LayerDefaultInit(0, LCD_FB_START_ADDRESS);
-//	BSP_LCD_LayerDefaultInit(1,
-//	LCD_FB_START_ADDRESS + BSP_LCD_GetXSize() * BSP_LCD_GetYSize() * 4);
-//	BSP_LCD_DisplayOn();
-//	BSP_LCD_SelectLayer(1);
-//	BSP_LCD_Clear(LCD_COLOR_BLACK);
-//	BSP_LCD_SetFont(&Font12);
-//	BSP_LCD_SetBackColor(LCD_COLOR_BLACK);
-//	BSP_LCD_SetTextColor(LCD_COLOR_LIGHTBLUE);
-//	if (BSP_TS_Init(BSP_LCD_GetXSize(), BSP_LCD_GetYSize()) != TS_OK) {
-//		BSP_LCD_SetBackColor(LCD_COLOR_BLACK);
-//		BSP_LCD_SetTextColor(LCD_COLOR_RED);
-//		BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize() - 95, (uint8_t*) "ERROR",
-//				CENTER_MODE);
-//		BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize() - 80,
-//				(uint8_t*) "Touchscreen cannot be initialized", CENTER_MODE);
-//	} else {
-//		BSP_LCD_DisplayStringAt(0, 10, (uint8_t*) "Init Ecran - OK",
-//				CENTER_MODE);
-//	}
-
-	BSP_SDRAM_Init();
-////	BSP_TS_Init(480, 272);
-////	BSP_LCD_Init();
+void LCD_Start(){
+	BSP_LCD_LayerDefaultInit(0, LCD_FB_START_ADDRESS);
+	BSP_LCD_LayerDefaultInit(1,
+	LCD_FB_START_ADDRESS + BSP_LCD_GetXSize() * BSP_LCD_GetYSize() * 4);
+	BSP_LCD_DisplayOn();
+	BSP_LCD_SelectLayer(1);
+	BSP_LCD_Clear(LCD_COLOR_BLACK);
+	BSP_LCD_SetFont(&Font12);
+	BSP_LCD_SetBackColor(LCD_COLOR_BLACK);
+	BSP_LCD_SetTextColor(LCD_COLOR_LIGHTBLUE);
+	if (BSP_TS_Init(BSP_LCD_GetXSize(), BSP_LCD_GetYSize()) != TS_OK) {
+		BSP_LCD_SetBackColor(LCD_COLOR_BLACK);
+		BSP_LCD_SetTextColor(LCD_COLOR_RED);
+		BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize() - 95, (uint8_t*) "ERROR",
+				CENTER_MODE);
+		BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize() - 80,
+				(uint8_t*) "Touchscreen cannot be initialized", CENTER_MODE);
+	} else {
+		BSP_LCD_DisplayStringAt(0, 10, (uint8_t*) "Init Ecran - OK",
+				CENTER_MODE);
+	}
 }
+
+void LCD_Init() {
+	BSP_LCD_Init();
+}
+
+
 
 void DrawONButton(){
 	BSP_LCD_Clear(LCD_COLOR_BLACK);
