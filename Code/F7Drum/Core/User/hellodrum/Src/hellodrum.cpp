@@ -19,7 +19,8 @@
 extern "C" void sendUart(const char *_msg);
 extern char buffer_out[1000];
 
-#define DEBUG_DRUM
+//#define DEBUG_DRUM
+//#define DEBUG_DRUM_VOLTAGE
 
 HelloDrum::~HelloDrum(){
 	sendUart("Pad was deleted");
@@ -111,7 +112,7 @@ void HelloDrum::singlePiezoSensing(byte sens, byte thre, byte scanTime, byte mas
   //peak scan start
 	if (loopTimes > 0) {
 
-#ifdef DEBUG_DRUM
+#ifdef DEBUG_DRUM_VOLTAGE
 	  sprintf(buffer_out, "%d\n", piezoValue);
 	  sendUart(buffer_out);
 #endif
@@ -141,7 +142,7 @@ void HelloDrum::singlePiezoSensing(byte sens, byte thre, byte scanTime, byte mas
       padIndex = padNum;
 
 #ifdef DEBUG_DRUM
-      sprintf(buffer_out, "[Hit] velocity : %d (raw value : %d), loopTimes : %d, ScanTime(ms) : %ld",
+      sprintf(buffer_out, "\n[Hit] velocity : %d (raw value : %d), loopTimes : %d, ScanTime(ms) : %ld",
     		  velocity,
 			  prevVel,
 			  loopTimes,
@@ -184,7 +185,7 @@ void HelloDrum::cymbal2zoneSensing(byte sens, byte thre, byte scanTime, byte mas
   //peak scan start
   if (loopTimes > 0)
   {
-#ifdef DEBUG_DRUM
+#ifdef DEBUG_DRUM_VOLTAGE
 	sprintf(buffer_out, "%d, %d, %d",
 			piezoValue,
 			sensorValue,
@@ -220,7 +221,7 @@ void HelloDrum::cymbal2zoneSensing(byte sens, byte thre, byte scanTime, byte mas
         velocity = curve(velocity, Threshold, Sensitivity, settings.curvetype);
 
 #ifdef DEBUG_DRUM
-		sprintf(buffer_out, "[Hit Bow] velocity : %d, (raw value : %d, firstSensorValue : %d, lastSensorValue : %d), loopTimes : %d, ScanTime(ms) : %ld",
+		sprintf(buffer_out, "\n[Hit Bow] velocity : %d, (raw value : %d, firstSensorValue : %d, lastSensorValue : %d), loopTimes : %d, ScanTime(ms) : %ld",
 			  velocity,
 			  prevVel,
 			  firstSensorValue,
@@ -242,7 +243,7 @@ void HelloDrum::cymbal2zoneSensing(byte sens, byte thre, byte scanTime, byte mas
         velocity = curve(velocity, Threshold, Sensitivity, settings.curvetype);
 
 #ifdef DEBUG_DRUM
-		sprintf(buffer_out, "[Hit Edge] velocity : %d, (raw value : %d, firstSensorValue : %d, lastSensorValue : %d), loopTimes : %d, ScanTime(ms) : %ld",
+		sprintf(buffer_out, "\n[Hit Edge] velocity : %d, (raw value : %d, firstSensorValue : %d, lastSensorValue : %d), loopTimes : %d, ScanTime(ms) : %ld",
 			  velocity,
 			  prevVel,
 			  firstSensorValue,
@@ -263,7 +264,7 @@ void HelloDrum::cymbal2zoneSensing(byte sens, byte thre, byte scanTime, byte mas
       {
 
 #ifdef DEBUG_DRUM
-		sprintf(buffer_out, "[Choke] firstSensorValue : %d, lastSensorValue : %d, loopTimes : %d, ScanTime(ms) : %ld",
+		sprintf(buffer_out, "\n[Choke] firstSensorValue : %d, lastSensorValue : %d, loopTimes : %d, ScanTime(ms) : %ld",
 			  firstSensorValue,
 			  lastSensorValue,
 			  loopTimes,
@@ -715,8 +716,6 @@ void HelloDrum::loadPadsSounds(){
 }
 
 void HelloDrum::loadSounds(){
-	sprintf(buffer_out, "length is %d", padsList.size());
-	sendUart(buffer_out);
 	uint32_t address = 0;
 	float volumeDb = 0.0;
 	if(settings.soundHeadAddressId != 0xff){
