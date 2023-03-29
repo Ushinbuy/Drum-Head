@@ -223,9 +223,9 @@ public:
   byte padNum;
 
   PadMemory settings;
-  DrumSound* noteHeadSound;
-  DrumSound* noteRimSound;
-  DrumSound* noteCupSound;
+  DrumSound* noteHeadSound = NULL;
+  DrumSound* noteRimSound = NULL;
+  DrumSound* noteCupSound = NULL;
 
   // TODO remove duplicates
   byte noteEdge;
