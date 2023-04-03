@@ -32,7 +32,7 @@
 #include "audioFromSdCard.h"
 #endif
 
-//#include "drumManager.h"
+#include "drumManager.h"
 
 #include "lvgl/lvgl.h"
 
@@ -1104,16 +1104,6 @@ void tx_midi(uint8_t *_buffer, uint16_t len) {
 
 void ADC3_Init(void)
 {
-
-  /* USER CODE BEGIN ADC3_Init 0 */
-
-  /* USER CODE END ADC3_Init 0 */
-
-  ADC_ChannelConfTypeDef sConfig = {0};
-
-  /* USER CODE BEGIN ADC3_Init 1 */
-
-  /* USER CODE END ADC3_Init 1 */
   /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
   */
   hadc3.Instance = ADC3;
