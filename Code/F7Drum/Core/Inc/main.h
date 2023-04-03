@@ -381,8 +381,8 @@ void Error_Handler(void);
 #define ARDUINO_MISO_D12_GPIO_Port GPIOB
 #define ARDUINO_MOSI_PWM_D11_Pin GPIO_PIN_15
 #define ARDUINO_MOSI_PWM_D11_GPIO_Port GPIOB
-void   MX_I2C3_Init(void);
-void   MX_QUADSPI_Init(void);
+void   MX_ADC3_Init(void);
+void   MX_TIM4_Init(void);
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

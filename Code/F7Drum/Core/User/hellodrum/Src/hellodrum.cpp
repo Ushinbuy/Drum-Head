@@ -19,7 +19,10 @@
 extern "C" void sendUart(const char *_msg);
 extern char buffer_out[1000];
 
-#define DEBUG_DRUM
+//#define DEBUG_DRUM
+//#define DEBUG_DRUM_VOLTAGE
+
+static std::vector<HelloDrum*> padsList;
 
 HelloDrum::~HelloDrum(){
 	sendUart("Pad was deleted");
@@ -49,7 +52,6 @@ HelloDrum::HelloDrum(byte pin1)
   padIndex++;
   channelsAmount++;
 
-//  padsList.resize(padsList.size() + 1);
   padsList.push_back(this);
 }
 
@@ -71,15 +73,12 @@ HelloDrum::HelloDrum(byte pin1, byte pin2)
   padIndex++;
   channelsAmount += 2;
 
-//  padsList.resize(padsList.size() + 1);
   padsList.push_back(this);
 }
 
 uint8_t HelloDrum::getChannelsAmount(void){
 	return channelsAmount;
 }
-
-// TODO add destructor with clearing vector
 
 ///////////////////// 1. SENSING  ///////////////////////
 
@@ -111,7 +110,7 @@ void HelloDrum::singlePiezoSensing(byte sens, byte thre, byte scanTime, byte mas
   //peak scan start
 	if (loopTimes > 0) {
 
-#ifdef DEBUG_DRUM
+#ifdef DEBUG_DRUM_VOLTAGE
 	  sprintf(buffer_out, "%d\n", piezoValue);
 	  sendUart(buffer_out);
 #endif
@@ -141,7 +140,7 @@ void HelloDrum::singlePiezoSensing(byte sens, byte thre, byte scanTime, byte mas
       padIndex = padNum;
 
 #ifdef DEBUG_DRUM
-      sprintf(buffer_out, "[Hit] velocity : %d (raw value : %d), loopTimes : %d, ScanTime(ms) : %ld",
+      sprintf(buffer_out, "\n[Hit] velocity : %d (raw value : %d), loopTimes : %d, ScanTime(ms) : %ld",
     		  velocity,
 			  prevVel,
 			  loopTimes,
@@ -184,7 +183,7 @@ void HelloDrum::cymbal2zoneSensing(byte sens, byte thre, byte scanTime, byte mas
   //peak scan start
   if (loopTimes > 0)
   {
-#ifdef DEBUG_DRUM
+#ifdef DEBUG_DRUM_VOLTAGE
 	sprintf(buffer_out, "%d, %d, %d",
 			piezoValue,
 			sensorValue,
@@ -220,7 +219,7 @@ void HelloDrum::cymbal2zoneSensing(byte sens, byte thre, byte scanTime, byte mas
         velocity = curve(velocity, Threshold, Sensitivity, settings.curvetype);
 
 #ifdef DEBUG_DRUM
-		sprintf(buffer_out, "[Hit Bow] velocity : %d, (raw value : %d, firstSensorValue : %d, lastSensorValue : %d), loopTimes : %d, ScanTime(ms) : %ld",
+		sprintf(buffer_out, "\n[Hit Bow] velocity : %d, (raw value : %d, firstSensorValue : %d, lastSensorValue : %d), loopTimes : %d, ScanTime(ms) : %ld",
 			  velocity,
 			  prevVel,
 			  firstSensorValue,
@@ -242,7 +241,7 @@ void HelloDrum::cymbal2zoneSensing(byte sens, byte thre, byte scanTime, byte mas
         velocity = curve(velocity, Threshold, Sensitivity, settings.curvetype);
 
 #ifdef DEBUG_DRUM
-		sprintf(buffer_out, "[Hit Edge] velocity : %d, (raw value : %d, firstSensorValue : %d, lastSensorValue : %d), loopTimes : %d, ScanTime(ms) : %ld",
+		sprintf(buffer_out, "\n[Hit Edge] velocity : %d, (raw value : %d, firstSensorValue : %d, lastSensorValue : %d), loopTimes : %d, ScanTime(ms) : %ld",
 			  velocity,
 			  prevVel,
 			  firstSensorValue,
@@ -263,7 +262,7 @@ void HelloDrum::cymbal2zoneSensing(byte sens, byte thre, byte scanTime, byte mas
       {
 
 #ifdef DEBUG_DRUM
-		sprintf(buffer_out, "[Choke] firstSensorValue : %d, lastSensorValue : %d, loopTimes : %d, ScanTime(ms) : %ld",
+		sprintf(buffer_out, "\n[Choke] firstSensorValue : %d, lastSensorValue : %d, loopTimes : %d, ScanTime(ms) : %ld",
 			  firstSensorValue,
 			  lastSensorValue,
 			  loopTimes,
@@ -687,8 +686,8 @@ void HelloDrum::settingName(const char *instrumentName)
 }
 
 void HelloDrum::loadPadsSettings(){
-	for (uint8_t i = 0; i < padsList.size(); i++) {
-		padsList[i]->loadMemory();
+	for (HelloDrum* pad : padsList) {
+		pad->loadMemory();
 	}
 }
 
@@ -709,25 +708,23 @@ void HelloDrum::loadMemory()
 }
 
 void HelloDrum::loadPadsSounds(){
-	for (uint8_t i = 0; i < padsList.size(); i++) {
-		padsList[i]->loadSounds();
+	for (HelloDrum* pad : padsList) {
+		pad->loadSounds();
 	}
 }
 
 void HelloDrum::loadSounds(){
-	sprintf(buffer_out, "length is %d", padsList.size());
-	sendUart(buffer_out);
 	uint32_t address = 0;
 	float volumeDb = 0.0;
-	if(settings.soundHeadAddressId != 0xff){
+	if(settings.soundHeadAddressId != UNCORRECT_SOUND_ID){
 		address = EepromManager::getInstance()->infoSector.soundsAdresses[settings.soundHeadAddressId];
 		noteHeadSound = new DrumSound(address, settings.soundHeadVolumeDb);
 	}
-	if(settings.soundRimAddressId != 0xff){
+	if(settings.soundRimAddressId != UNCORRECT_SOUND_ID){
 		address = EepromManager::getInstance()->infoSector.soundsAdresses[settings.soundRimAddressId];
 		noteRimSound = new DrumSound(address, settings.soundRimVolumeDb);
 	}
-	if(settings.soundCupAddressId != 0xff){
+	if(settings.soundCupAddressId != UNCORRECT_SOUND_ID){
 		address = EepromManager::getInstance()->infoSector.soundsAdresses[settings.soundCupAddressId];
 		noteCupSound = new DrumSound(address, settings.soundCupVolumeDb);
 	}
@@ -735,13 +732,13 @@ void HelloDrum::loadSounds(){
 
 
 void HelloDrum::sensingAllPads(){
-	for (uint8_t i = 0; i < padsList.size(); i++) {
-		padsList[i]->sensingPad();
+	for (HelloDrum* pad : padsList) {
+		pad->sensingPad();
 	}
 }
 
 void HelloDrum::executeAllPads(){
-	for (uint8_t i = 0; i < padsList.size(); i++) {
-		padsList[i]->executePad();
+	for (HelloDrum* pad : padsList) {
+		pad->executePad();
 	}
 }

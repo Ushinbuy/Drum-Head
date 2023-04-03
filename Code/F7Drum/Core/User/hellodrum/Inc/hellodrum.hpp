@@ -17,6 +17,9 @@
 #include <math.h>
 #include <vector>
 
+#define UNCORRECT_SOUND_ID 0xFF
+#define DEFUAULT_SOUND_ID UNCORRECT_SOUND_ID
+
 const static char *item[] = {
     "SENSITIVITY", //0 0
     "THRESHOLD",   //1 1
@@ -164,94 +167,84 @@ public:
 	  byte note = 0x18;           //7
 	  byte noteRim = 0x19;        //8
 	  byte noteCup = 0x20;        //9
-	  byte soundHeadAddressId = 0xFF;	//10 this field show which item from soundsAdresses
-	  byte soundRimAddressId = 0xFF;	//11
-	  byte soundCupAddressId = 0xFF;	//12
+	  byte soundHeadAddressId = DEFUAULT_SOUND_ID;	//10 this field show which item from soundsAdresses
+	  byte soundRimAddressId = DEFUAULT_SOUND_ID;	//11
+	  byte soundCupAddressId = DEFUAULT_SOUND_ID;	//12
 	  float soundHeadVolumeDb = -3.0;
 	  float soundRimVolumeDb = -3.0;
 	  float soundCupVolumeDb = -3.0;
 };
 
-class HelloDrum
-{
+class HelloDrum {
 public:
-	  HelloDrum(byte pin1, byte pin2);
-	  HelloDrum(byte pin1);
-	  ~HelloDrum();
-
-	  static void prinListSize();
+	HelloDrum(byte pin1, byte pin2);
+	HelloDrum(byte pin1);
+	~HelloDrum();
 
 	virtual void loadMemory();
 	virtual void sensingPad(void) = 0;
 	virtual void executePad(void) = 0;
 	void loadSounds();
 
-  static uint8_t getChannelsAmount(void);
-  static void init(void);
-  static void loadPadsSettings(void);
-  static void loadPadsSounds(void);
-  static void sensingAllPads(void);
-  static void executeAllPads(void);
+	static uint8_t getChannelsAmount(void);
+	static void init(void);
+	static void loadPadsSettings(void);
+	static void loadPadsSounds(void);
+	static void sensingAllPads(void);
+	static void executeAllPads(void);
 
-  void setCurve(byte curveType);
+	void setCurve(byte curveType);
 
-  void settingName(const char *instrumentName);
-  void settingEnable();
+	void settingName(const char *instrumentName);
+	void settingEnable();
 
-  void initMemory();
+	void initMemory();
 
-  int velocity;
-  int velocityRim;
-  int velocityCup;
-  byte pedalCC;
+	int velocity;
+	int velocityRim;
+	int velocityCup;
+	byte pedalCC;
 
-  //  int exValue;
-  bool hit;
-  bool hitRim;
-  bool hitCup;
-  bool choke;
-//  bool sensorFlag;
-//  bool settingHHC = false;
-//  bool chokeFlag;
+	bool hit;
+	bool hitRim;
+	bool hitCup;
+	bool choke;
 
-  char *GetItem(byte i);
+	char* GetItem(byte i);
 
-  byte value;
-  byte padNum;
+	byte value;
+	byte padNum;
 
-  PadMemory settings;
-  DrumSound* noteHeadSound;
-  DrumSound* noteRimSound;
-  DrumSound* noteCupSound;
+	PadMemory settings;
+	DrumSound *noteHeadSound = NULL;
+	DrumSound *noteRimSound = NULL;
+	DrumSound *noteCupSound = NULL;
 
-  // TODO remove duplicates
-  byte noteEdge;
-  byte noteOpen;
-  byte noteClose;
-  byte noteOpenEdge;
-  byte noteCloseEdge;
-  byte noteCross; // this maybe note for stick on rim
+	// TODO remove duplicates
+	byte noteEdge;
+	byte noteOpen;
+	byte noteClose;
+	byte noteOpenEdge;
+	byte noteCloseEdge;
+	byte noteCross; // this maybe note for stick on rim
 
 protected:
 
-  byte pin_1;
-  byte pin_2;
-  int piezoValue;
-  int RimPiezoValue;
-  int sensorValue;
-  int firstSensorValue;
-  int lastSensorValue;
-  int loopTimes = 0;
-  unsigned long time_hit;
-  unsigned long time_end;
-//  unsigned long time_choke;
+	byte pin_1;
+	byte pin_2;
+	int piezoValue;
+	int RimPiezoValue;
+	int sensorValue;
+	int firstSensorValue;
+	int lastSensorValue;
+	int loopTimes = 0;
+	unsigned long time_hit;
+	unsigned long time_end;
 
-  void singlePiezoSensing(byte sens, byte thre, byte scanTime, byte maskTime);
-  void cymbal2zoneSensing(byte sens, byte thre, byte scanTime, byte maskTime, byte edgeThre);
+	void singlePiezoSensing(byte sens, byte thre, byte scanTime, byte maskTime);
+	void cymbal2zoneSensing(byte sens, byte thre, byte scanTime, byte maskTime, byte edgeThre);
 
-  int curve(int velocityRaw, int threshold, int sensRaw, byte curveType);
+	int curve(int velocityRaw, int threshold, int sensRaw, byte curveType);
 };
-
-static std::vector<HelloDrum*> padsList; // TODO find way to hide this
 
 #endif

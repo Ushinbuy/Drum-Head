@@ -1,6 +1,10 @@
 #include <HelloDrumPads.hpp>
 
 #define DEBUG_DRUM //<-- uncomment this line to enable debug mode with Serial.
+//#define DEBUG_DRUM_VOLTAGE
+extern "C" void sendUart(const char *_msg);
+extern char buffer_out[1000];
+
 
 #ifdef DEBUG_DRUM
 extern "C" void sendUart(const char *_msg);
@@ -10,7 +14,6 @@ extern char buffer_out[1000];
 //////////////// SINGLE ///////////////////
 SinglePad::SinglePad(byte pin1) : HelloDrum(pin1){
 	padType[padNum] = SINGLE_PAD;
-//	padsList.push_back(this);
 }
 
 void SinglePad::sensingPad(){
@@ -21,7 +24,9 @@ void SinglePad::sensingPad(){
 void SinglePad::executePad(){
 	if(hit){
 		sendMidiGEN(settings.note, velocity);
-		noteHeadSound->playSound(velocity);
+		if (noteHeadSound != NULL) {
+			noteHeadSound->playSound(velocity);
+		}
 	}
 }
 
@@ -29,7 +34,6 @@ void SinglePad::executePad(){
 
 DoublePad::DoublePad(byte pin1, byte pin2) : HelloDrum(pin1, pin2){
 	padType[padNum] = DOUBLE_PAD;
-//	padsList.push_back(this);
 }
 
 void DoublePad::sensingPad(){
@@ -41,11 +45,15 @@ void DoublePad::sensingPad(){
 void DoublePad::executePad(){
 	if(hit){
 		sendMidiGEN(settings.note, velocity);
-		noteHeadSound->playSound(velocity);
+		if (noteHeadSound != NULL) {
+			noteHeadSound->playSound(velocity);
+		}
 	}
 	if (hitRim) {
 		sendMidiGEN(settings.noteRim, velocity);
-		noteRimSound->playSound(velocity);
+		if (noteRimSound != NULL) {
+			noteRimSound->playSound(velocity);
+		}
 	}
 }
 
@@ -79,7 +87,7 @@ void DoublePad::dualPiezoSensing(byte sens, byte thre, byte scanTime, byte maskT
   //peak scan start
   if (loopTimes > 0)
   {
-#ifdef DEBUG_DRUM
+#ifdef DEBUG_DRUM_VOLTAGE
 	  sprintf(buffer_out, "%d, %d\n",
 			  piezoValue,
 			  RimPiezoValue);
@@ -113,7 +121,7 @@ void DoublePad::dualPiezoSensing(byte sens, byte thre, byte scanTime, byte maskT
         velocityRim = curve(velocityRim, Threshold, Sensitivity, settings.curvetype);
 
 #ifdef DEBUG_DRUM
-        sprintf(buffer_out, "[HitRim] velocity : %d , velocity rim : %d (raw value : %d, %d, head - rim : %d), loopTimes : %d, ScanTime(ms) : %ld",
+        sprintf(buffer_out, "\n[HitRim] velocity : %d , velocity rim : %d (raw value : %d, %d, head - rim : %d), loopTimes : %d, ScanTime(ms) : %ld",
 			  velocity,
 			  velocityRim,
 			  prevVel,
@@ -134,7 +142,7 @@ void DoublePad::dualPiezoSensing(byte sens, byte thre, byte scanTime, byte maskT
         velocityRim = curve(velocityRim, Threshold, Sensitivity, settings.curvetype);
 
 #ifdef DEBUG_DRUM
-        sprintf(buffer_out, "[HitRim] velocity : %d , velocity rim : %d (raw value : %d, %d, d : %d), loopTimes : %d, ScanTime(ms) : %ld",
+        sprintf(buffer_out, "\n[HitRim] velocity : %d , velocity rim : %d (raw value : %d, %d, d : %d), loopTimes : %d, ScanTime(ms) : %ld",
 			  velocity,
 			  velocityRim,
 			  prevVel,
@@ -163,7 +171,6 @@ void DoublePad::dualPiezoSensing(byte sens, byte thre, byte scanTime, byte maskT
 HiHatPad::HiHatPad(byte pin1, HiHatPedalPad * pedal) : HelloDrum(pin1){
 	this->pedal = pedal;
 	padType[padNum] = HH_PAD;
-//	padsList.push_back(this);
 }
 
 void HiHatPad::sensingPad(){
@@ -172,14 +179,18 @@ void HiHatPad::sensingPad(){
 }
 
 void HiHatPad::executePad(){
-	if(hit){
+	if(hit){ // TODO here must be another sounds
 		if(pedal->openHH){
 			sendMidiGEN(noteOpen1, velocity);
-			noteHeadSound->playSound(velocity);
+			if (noteHeadSound != NULL) {
+				noteHeadSound->playSound(velocity);
+			}
 		}
 		else if(pedal->closeHH){
 			sendMidiGEN(noteClose1, velocity);
-			noteHeadSound->playSound(velocity);
+			if (noteHeadSound != NULL) {
+				noteHeadSound->playSound(velocity);
+			}
 		}
 	}
 }
@@ -195,7 +206,6 @@ HiHat2zonePad::HiHat2zonePad(byte pin1, byte pin2, HiHatPedalPad * pedal) : Hell
 	// TODO copy noteOpen noteClose
 	this->pedal = pedal;
 	padType[padNum] = HH2_PAD;
-//	padsList.push_back(this);
 }
 
 void HiHat2zonePad::sensingPad(){
@@ -207,21 +217,29 @@ void HiHat2zonePad::sensingPad(){
 
 void HiHat2zonePad::executePad(){
 	if (hit) {
-		if (pedal->openHH) {
+		if (pedal->openHH) { // TODO here must be another sounds
 			sendMidiGEN(noteOpen, velocity);
-			noteHeadSound->playSound(velocity);
+			if(noteHeadSound != NULL){
+				noteHeadSound->playSound(velocity);
+			}
 		} else if (pedal->closeHH) {
 			sendMidiGEN(noteClose, velocity);
-			noteHeadSound->playSound(velocity);
+			if(noteHeadSound != NULL){
+				noteHeadSound->playSound(velocity);
+			}
 		}
 	}
-	if (hitRim) {
+	if (hitRim) {	// TODO here must be another sounds
 		if (pedal->openHH) {
 			sendMidiGEN(noteOpenEdge, velocity);
-			noteHeadSound->playSound(velocity);
+			if(noteHeadSound != NULL){
+				noteHeadSound->playSound(velocity);
+			}
 		} else if (pedal->closeHH) {
 			sendMidiGEN(noteCloseEdge, velocity);
-			noteHeadSound->playSound(velocity);
+			if (noteHeadSound != NULL) {
+				noteHeadSound->playSound(velocity);
+			}
 		}
 	}
 }
@@ -240,7 +258,6 @@ void HiHat2zonePad::loadMemory(){
 HiHatPedalPad::HiHatPedalPad(byte pin1, PedalType pedalType) : HelloDrum(pin1){
 	this->pedalType = pedalType;
 	padType[padNum] = HHC_PAD;
-//	padsList.push_back(this);
 }
 
 void HiHatPedalPad::sensingPad(){
@@ -260,7 +277,9 @@ void HiHatPedalPad::sensingPad(){
 void HiHatPedalPad::executePad(){
 	if(hit){
 		sendMidiGEN(settings.note, velocity);
-		noteHeadSound->playSound(velocity);
+		if(noteHeadSound != NULL){
+			noteHeadSound->playSound(velocity);
+		}
 	}
 	if (moving) {
 		sendMidiGEN(settings.noteRim, velocity);
@@ -416,7 +435,7 @@ void HiHatPedalPad::FSRSensing(byte sens, byte thre, byte scanStart, byte scanEn
     }
 
 #ifdef DEBUG_DRUM
-	sprintf(buffer_out, "[Close] velocity : %d, ScanTime(ms) : %d",
+	sprintf(buffer_out, "\n[Close] velocity : %d, ScanTime(ms) : %d",
 		  velocity,
 		  prevVel);
 	sendUart(buffer_out);
@@ -440,7 +459,7 @@ void HiHatPedalPad::FSRSensing(byte sens, byte thre, byte scanStart, byte scanEn
   if (fsr < ScanEnd && pedalFlag == true)
   {
 #ifdef DEBUG_DRUM
-	sprintf(buffer_out, "[Open] sensorValue :  %d", fsr);
+	sprintf(buffer_out, "\n[Open] sensorValue :  %d", fsr);
 	sendUart(buffer_out);
 #endif
     pedalFlag = false;
@@ -493,7 +512,7 @@ void HiHatPedalPad::FSRSensing(byte sens, byte thre, byte scanStart, byte scanEn
     exFSR = fsr;
 
 #ifdef DEBUG_DRUM
-	sprintf(buffer_out, "[Move] sensorValue : %d, (raw value :  %d), openHH : %d, closeHH : %d",
+	sprintf(buffer_out, "\n[Move] sensorValue : %d, (raw value :  %d), openHH : %d, closeHH : %d",
 		fsr,
 		prevFsr,
 		openHH,
@@ -512,7 +531,6 @@ void HiHatPedalPad::FSRSensing(byte sens, byte thre, byte scanStart, byte scanEn
 
 Cymbal2ZonesPad::Cymbal2ZonesPad(byte pin1, byte pin2) : HelloDrum(pin1, pin2){
 	padType[padNum] = CY2_PAD;
-//	padsList.push_back(this);
 }
 
 void Cymbal2ZonesPad::sensingPad(){
@@ -524,13 +542,17 @@ void Cymbal2ZonesPad::sensingPad(){
 void Cymbal2ZonesPad::executePad(){
 	if (hit == true) {
 		sendMidiGEN(settings.note, velocity); //(note, velocity, channel)
-		noteHeadSound->playSound(velocity);
+		if(noteHeadSound != NULL){
+			noteHeadSound->playSound(velocity);
+		}
 	}
 
 	//edge
 	else if (hitRim == true) {
 		sendMidiGEN(settings.noteRim, velocity); //(note, velocity, channel)
-		noteRimSound->playSound(velocity);
+		if (noteRimSound != NULL) {
+			noteRimSound->playSound(velocity);
+		}
 	}
 
 	//choke
@@ -546,7 +568,6 @@ void Cymbal2ZonesPad::executePad(){
 
 Cymbal3ZonesPad::Cymbal3ZonesPad(byte pin1, byte pin2) : HelloDrum(pin1, pin2){
 	padType[padNum] = CY3_PAD;
-//	padsList.push_back(this);
 }
 
 void Cymbal3ZonesPad::sensingPad(){
@@ -562,19 +583,25 @@ void Cymbal3ZonesPad::executePad(){
 	//1.bow
 	if (hit == true) {
 		sendMidiGEN(settings.note, velocity); //(note, velocity, channel)
-		noteHeadSound->playSound(velocity);
+		if(noteHeadSound != NULL){
+			noteHeadSound->playSound(velocity);
+		}
 	}
 
 	//2.edge
 	else if (hitRim == true) {
 		sendMidiGEN(settings.noteRim, velocity); //(note, velocity, channel)
-		noteRimSound->playSound(velocity);
+		if (noteRimSound != NULL) {
+			noteRimSound->playSound(velocity);
+		}
 	}
 
 	//3.cup
 	else if (hitCup == true) {
 		sendMidiGEN(settings.noteCup, velocity); //(note, velocity, channel)
-		noteCupSound->playSound(velocity);
+		if (noteCupSound != NULL) {
+			noteCupSound->playSound(velocity);
+		}
 	}
 
 	//4.choke
@@ -621,7 +648,7 @@ void Cymbal3ZonesPad::cymbal3zoneSensing(byte sens, byte thre, byte scanTime, by
   //peak scan start
   if (loopTimes > 0)
   {
-#ifdef DEBUG_DRUM
+#ifdef DEBUG_DRUM_VOLTAGE
 	sprintf(buffer_out, "%d, %d, %d",
 			piezoValue,
 			sensorValue,
@@ -677,7 +704,7 @@ void Cymbal3ZonesPad::cymbal3zoneSensing(byte sens, byte thre, byte scanTime, by
       {
         velocity = curve(velocity, Threshold, Sensitivity, settings.curvetype);
 #ifdef DEBUG_DRUM
-		sprintf(buffer_out, "[Hit Edge] velocity : %d, (raw value : %d, firstSensorValue : %d, lastSensorValue : %d), loopTimes : %d, ScanTime(ms) : %ld",
+		sprintf(buffer_out, "\n[Hit Edge] velocity : %d, (raw value : %d, firstSensorValue : %d, lastSensorValue : %d), loopTimes : %d, ScanTime(ms) : %ld",
 			  velocity,
 			  prevVel,
 			  firstSensorValue,
@@ -697,7 +724,7 @@ void Cymbal3ZonesPad::cymbal3zoneSensing(byte sens, byte thre, byte scanTime, by
       {
         velocity = curve(velocity, Threshold, Sensitivity, settings.curvetype);
 #ifdef DEBUG_DRUM
-		sprintf(buffer_out, "[Hit Cup] velocity : %d, (raw value : %d, firstSensorValue : %d, lastSensorValue : %d), loopTimes : %d, ScanTime(ms) : %ld",
+		sprintf(buffer_out, "\n[Hit Cup] velocity : %d, (raw value : %d, firstSensorValue : %d, lastSensorValue : %d), loopTimes : %d, ScanTime(ms) : %ld",
 			  velocity,
 			  prevVel,
 			  firstSensorValue,
@@ -716,7 +743,7 @@ void Cymbal3ZonesPad::cymbal3zoneSensing(byte sens, byte thre, byte scanTime, by
       else if (firstSensorValue > edgeThreshold && lastSensorValue > edgeThreshold && lastSensorValue >= firstSensorValue)
       {
 #ifdef DEBUG_DRUM
-  		sprintf(buffer_out, "[Choke] firstSensorValue : %d, lastSensorValue : %d, loopTimes : %d, ScanTime(ms) : %ld",
+  		sprintf(buffer_out, "\n[Choke] firstSensorValue : %d, lastSensorValue : %d, loopTimes : %d, ScanTime(ms) : %ld",
   			  firstSensorValue,
   			  lastSensorValue,
   			  loopTimes,

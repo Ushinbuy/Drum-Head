@@ -11,7 +11,7 @@
 
 std::vector< DrumSound *> soundsList;
 
-#define AUDIO_BUFFER_SIZE 128 	// must be equal to 20 ms * 48 kHz
+#define AUDIO_BUFFER_SIZE 128*2 	// must be equal to 20 ms * 48 kHz // TODO minimize this
 
 static void mixingAudio(uint8_t mainBuffer[], const uint8_t addedSound[], float addedVolume);
 
@@ -28,8 +28,8 @@ typedef enum {
 static uint8_t audioBuffer[AUDIO_BUFFER_SIZE] = {0};
 static uint8_t *pBufferFirstHalf = &audioBuffer[0];
 static uint8_t *pBufferSecondHalf = &audioBuffer[AUDIO_BUFFER_SIZE / 2];
-static AUDIO_PLAYBACK_StateTypeDef audioState = AUDIO_STATE_IDLE;
-static BUFFER_StateTypeDef audioBufferOffset = BUFFER_OFFSET_NONE;
+volatile static AUDIO_PLAYBACK_StateTypeDef audioState = AUDIO_STATE_IDLE;
+volatile static BUFFER_StateTypeDef audioBufferOffset = BUFFER_OFFSET_NONE;
 
 DrumSound::DrumSound(uint32_t soundAddress, float soundVolumeDb){
 	WAVE_FormatTypeDef *waveformat = NULL;
@@ -46,9 +46,8 @@ DrumSound::DrumSound(uint32_t soundAddress, float soundVolumeDb){
 }
 
 DrumSound::~DrumSound() {
-//	soundsList.erase(std::remove(soundsList.begin(), soundsList.end(), this),
-//			soundsList.end());
-	// todo add this experimental method after check that all correct work
+	soundsList.erase(std::remove(soundsList.begin(), soundsList.end(), this),
+			soundsList.end());
 }
 
 void DrumSound::setUserVolumeDb(float _newValue){
