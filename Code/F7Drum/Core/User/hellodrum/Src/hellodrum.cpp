@@ -22,6 +22,8 @@ extern char buffer_out[1000];
 //#define DEBUG_DRUM
 //#define DEBUG_DRUM_VOLTAGE
 
+static std::vector<HelloDrum*> padsList;
+
 HelloDrum::~HelloDrum(){
 	sendUart("Pad was deleted");
 }
@@ -50,7 +52,6 @@ HelloDrum::HelloDrum(byte pin1)
   padIndex++;
   channelsAmount++;
 
-//  padsList.resize(padsList.size() + 1);
   padsList.push_back(this);
 }
 
@@ -72,15 +73,12 @@ HelloDrum::HelloDrum(byte pin1, byte pin2)
   padIndex++;
   channelsAmount += 2;
 
-//  padsList.resize(padsList.size() + 1);
   padsList.push_back(this);
 }
 
 uint8_t HelloDrum::getChannelsAmount(void){
 	return channelsAmount;
 }
-
-// TODO add destructor with clearing vector
 
 ///////////////////// 1. SENSING  ///////////////////////
 

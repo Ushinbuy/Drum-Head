@@ -46,9 +46,8 @@ DrumSound::DrumSound(uint32_t soundAddress, float soundVolumeDb){
 }
 
 DrumSound::~DrumSound() {
-//	soundsList.erase(std::remove(soundsList.begin(), soundsList.end(), this),
-//			soundsList.end());
-	// todo add this experimental method after check that all correct work
+	soundsList.erase(std::remove(soundsList.begin(), soundsList.end(), this),
+			soundsList.end());
 }
 
 void DrumSound::setUserVolumeDb(float _newValue){

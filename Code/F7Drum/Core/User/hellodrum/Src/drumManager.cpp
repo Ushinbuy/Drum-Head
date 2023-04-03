@@ -5,9 +5,7 @@
 #include "eepromManager.h"
 #include "drumSound.hpp"
 
-extern std::vector<HelloDrum*> padsList; // TODO delete this and check if this will work
-
-SinglePad * kick;	// TODO fix static initialization order
+SinglePad * kick;
 DoublePad * snare;
 // HelloDrum hihat(3);
 HiHatPedalPad *hihatPedal;
@@ -44,7 +42,6 @@ void initHelloDrums(void) {
 	//It is necessary to make the order in exactly the same order as you named the pad first.
 	EepromManager::getInstance()->loadInfoSector();
 
-	HelloDrum::prinListSize();
 	HelloDrum::loadPadsSettings();
 	DrumSound::initAudioCore();
 	HelloDrum::loadPadsSounds();
