@@ -11,7 +11,7 @@
 
 std::vector< DrumSound *> soundsList;
 
-#define AUDIO_BUFFER_SIZE 128 	// must be equal to 20 ms * 48 kHz
+#define AUDIO_BUFFER_SIZE 128*2 	// must be equal to 20 ms * 48 kHz // TODO minimize this
 
 static void mixingAudio(uint8_t mainBuffer[], const uint8_t addedSound[], float addedVolume);
 

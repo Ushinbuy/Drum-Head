@@ -16,22 +16,12 @@ Cymbal3ZonesPad *ride;
 static ADC_HandleTypeDef* adcLocal;
 static TIM_HandleTypeDef* timActiveSense;
 static TIM_HandleTypeDef* timPiezoAsk;
-static uint32_t * adc_buf;
 static uint16_t * adc_val;
 
 typedef enum {
 	ADC_IDLE = 0, ADC_READY, ADC_NOT_INIT, ADC_RUN
 } ADC_State;
 volatile ADC_State adcState = ADC_NOT_INIT;
-
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
-	if (hadc->Instance == (*adcLocal).Instance) {
-		for (uint8_t i = 0; i < HelloDrum::getChannelsAmount(); i++) {
-			adc_val[i] = adc_buf[i];
-		}
-		adcState = ADC_READY;
-	}
-}
 
 void initHelloDrums(void) {
 	//It is necessary to make the order in exactly the same order as you named the pad first.
@@ -59,7 +49,6 @@ void initHelloDrums(void) {
 	DrumSound::initAudioCore();
 	HelloDrum::loadPadsSounds();
 
-	adc_buf = new uint32_t[HelloDrum::getChannelsAmount()];
 	adc_val = new uint16_t[HelloDrum::getChannelsAmount()];
 	adcState = ADC_IDLE;
 
@@ -68,11 +57,41 @@ void initHelloDrums(void) {
 }
 
 void requestPiezo(void) {
-	 HAL_ADC_Start_DMA(adcLocal, (uint32_t*) &adc_buf[0], HelloDrum::getChannelsAmount());
 	 adcState = ADC_RUN;
 }
 
+static uint16_t ADC_Read(uint32_t channel) {
+	ADC_ChannelConfTypeDef sConfig = { 0 };
+	/** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+	 */
+
+	// TODO maybe this can be optimized by sampling mode (Datasheet)
+	sConfig.Channel = channel;
+	sConfig.Rank = ADC_REGULAR_RANK_1;
+	sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+	if (HAL_ADC_ConfigChannel(adcLocal, &sConfig) != HAL_OK) {
+		Error_Handler();
+	}
+
+	HAL_ADC_Start (adcLocal);
+	HAL_ADC_PollForConversion(adcLocal, 1000);
+	uint16_t value = HAL_ADC_GetValue(adcLocal);
+	HAL_ADC_Stop(adcLocal);
+
+	return value;
+}
+
 void checkHelloDrums(void){
+	if(adcState == ADC_RUN){
+		adc_val[0] = ADC_Read(ADC_CHANNEL_0);
+		adc_val[1] = ADC_Read(ADC_CHANNEL_8);
+		adc_val[2] = ADC_Read(ADC_CHANNEL_7);
+		adc_val[3] = ADC_Read(ADC_CHANNEL_6);
+		adc_val[4] = ADC_Read(ADC_CHANNEL_5);
+		adc_val[5] = ADC_Read(ADC_CHANNEL_4);
+		adcState = ADC_READY;
+	}
+
 	if(adcState != ADC_READY)
 		return;
 	adcState = ADC_IDLE;
@@ -91,6 +110,7 @@ void setLinksDrumCore(ADC_HandleTypeDef *adcGlobal,
 
 uint16_t analogRead(uint8_t currentPin){
 	// currentPin is offset for audioBuffer in stm massive
+	// TODO check this is can be merge with ADC_Read() with removing TIM4 cycling asking
 	return adc_val[currentPin];
 }
 
