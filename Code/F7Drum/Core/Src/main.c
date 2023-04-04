@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 #include "usb_device.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -84,6 +85,8 @@ DMA_HandleTypeDef hdma_usart1_tx;
 
 SDRAM_HandleTypeDef hsdram1;
 
+osThreadId displayTaskHandle;
+osThreadId drumCoreTaskHandle;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -101,6 +104,9 @@ static void MX_TIM2_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_DMA2D_Init(void);
 static void MX_LTDC_Init(void);
+void StartDefaultTask(void const * argument);
+void StartTask02(void const * argument);
+
 /* USER CODE BEGIN PFP */
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
 void ADC3_Init(void);
@@ -155,7 +161,6 @@ int main(void)
   MX_SAI2_Init();
   MX_TIM2_Init();
   MX_USART1_UART_Init();
-  MX_USB_DEVICE_Init();
   MX_TIM4_Init();
   MX_DMA2D_Init();
   MX_LTDC_Init();
@@ -165,31 +170,44 @@ int main(void)
 	DBGMCU->APB1FZ |= DBGMCU_APB1_FZ_DBG_TIM6_STOP;		// shutdown TIM6 on debug but it use handle lvgl events
 #endif
 
-	ADC3_Init();
-	setLinkUart(&huart1);
-	setLinksDrumCore(&hadc3, &htim4, &htim2);
-
-	initHelloDrums();
-
-	lv_init();
-
-	tft_init();
-	touchpad_init();
-	lv_demo_widgets();
   /* USER CODE END 2 */
 
+  /* USER CODE BEGIN RTOS_MUTEX */
+  /* add mutexes, ... */
+  /* USER CODE END RTOS_MUTEX */
+
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* add semaphores, ... */
+  /* USER CODE END RTOS_SEMAPHORES */
+
+  /* USER CODE BEGIN RTOS_TIMERS */
+  /* start timers, add new ones, ... */
+  /* USER CODE END RTOS_TIMERS */
+
+  /* USER CODE BEGIN RTOS_QUEUES */
+  /* add queues, ... */
+  /* USER CODE END RTOS_QUEUES */
+
+  /* Create the thread(s) */
+  /* definition and creation of displayTask */
+  osThreadDef(displayTask, StartDefaultTask, osPriorityNormal, 0, 2048);
+  displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
+
+  /* definition and creation of drumCoreTask */
+  osThreadDef(drumCoreTask, StartTask02, osPriorityNormal, 0, 512);
+  drumCoreTaskHandle = osThreadCreate(osThread(drumCoreTask), NULL);
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  /* add threads, ... */
+  /* USER CODE END RTOS_THREADS */
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1) {
-//		HAL_Delay(1);
-		lv_task_handler();
-
-		callAudioStreamHandle();
-		checkHelloDrums();
-
-		if(hUsbDeviceFS.dev_state == USBD_STATE_CONFIGURED){
-			sendMidiActiveSense(&upd_active_sens);
-		}
 
     /* USER CODE END WHILE */
 
@@ -716,7 +734,7 @@ static void MX_DMA_Init(void)
 
   /* DMA interrupt init */
   /* DMA2_Stream4_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream4_IRQn, 1, 0);
+  HAL_NVIC_SetPriority(DMA2_Stream4_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream4_IRQn);
   /* DMA2_Stream7_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, 5, 0);
@@ -1124,6 +1142,60 @@ void ADC3_Init(void)
   }
 }
 /* USER CODE END 4 */
+
+/* USER CODE BEGIN Header_StartDefaultTask */
+/**
+  * @brief  Function implementing the displayTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_StartDefaultTask */
+void StartDefaultTask(void const * argument)
+{
+  /* init code for USB_DEVICE */
+  MX_USB_DEVICE_Init();
+  /* USER CODE BEGIN 5 */
+	lv_init();
+
+	tft_init();
+	touchpad_init();
+	lv_demo_widgets();
+  /* Infinite loop */
+  for(;;)
+  {
+		lv_task_handler();
+		osDelay(20);
+  }
+  /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_StartTask02 */
+/**
+* @brief Function implementing the drumCoreTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartTask02 */
+void StartTask02(void const * argument)
+{
+  /* USER CODE BEGIN StartTask02 */
+	ADC3_Init();
+	setLinkUart(&huart1);
+	setLinksDrumCore(&hadc3, &htim4, &htim2);
+
+	initHelloDrums();
+  /* Infinite loop */
+  for(;;)
+  {
+		callAudioStreamHandle();
+		checkHelloDrums();
+
+		if (hUsbDeviceFS.dev_state == USBD_STATE_CONFIGURED) {
+			sendMidiActiveSense(&upd_active_sens);
+		}
+  }
+  /* USER CODE END StartTask02 */
+}
 
 /**
   * @brief  Period elapsed callback in non blocking mode
