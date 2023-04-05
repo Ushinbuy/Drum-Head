@@ -43,6 +43,8 @@
 #include "lvgl/demos/lv_demos.h"
 
 #include "lvgl/src/hal/lv_hal_tick.h"
+
+#include "task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -85,8 +87,8 @@ DMA_HandleTypeDef hdma_usart1_tx;
 
 SDRAM_HandleTypeDef hsdram1;
 
+osThreadId drumTaskHandle;
 osThreadId displayTaskHandle;
-osThreadId drumCoreTaskHandle;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -104,8 +106,8 @@ static void MX_TIM2_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_DMA2D_Init(void);
 static void MX_LTDC_Init(void);
-void StartDefaultTask(void const * argument);
-void StartTask02(void const * argument);
+void StartDrumTask(void const * argument);
+void StartDisplayTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
@@ -189,13 +191,13 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* definition and creation of displayTask */
-  osThreadDef(displayTask, StartDefaultTask, osPriorityNormal, 0, 2048);
-  displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
+  /* definition and creation of drumTask */
+  osThreadDef(drumTask, StartDrumTask, osPriorityNormal, 0, 512);
+  drumTaskHandle = osThreadCreate(osThread(drumTask), NULL);
 
-  /* definition and creation of drumCoreTask */
-  osThreadDef(drumCoreTask, StartTask02, osPriorityNormal, 0, 512);
-  drumCoreTaskHandle = osThreadCreate(osThread(drumCoreTask), NULL);
+  /* definition and creation of displayTask */
+  osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 2048);
+  displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -1141,44 +1143,60 @@ void ADC3_Init(void)
     Error_Handler();
   }
 }
+
+
+  #define DEBUG_OS
+
+void TaskSwitchedIn(int tag){
+#ifdef DEBUG_OS
+	switch(tag){
+	case 1:
+		GPIOG->BSRR = GPIO_PIN_6;	// D2
+		break;
+	case 2:
+		GPIOG->BSRR = GPIO_PIN_7;	// D4
+		break;
+	}
+#endif
+}
+
+void TaskSwitchedOut(int tag){
+#ifdef DEBUG_OS
+	switch(tag){
+	case 1:
+		GPIOG->BSRR = (uint32_t) GPIO_PIN_6 << 16;
+		break;
+	case 2:
+		GPIOG->BSRR = (uint32_t) GPIO_PIN_7 << 16;
+		break;
+	}
+#endif
+}
+
+void vApplicationIdleHook(void){
+#ifdef DEBUG_OS
+//	GPIOI->BSRR = GPIO_PIN_3;	// D7
+//	__NOP();
+//	GPIOI->BSRR = (uint32_t) GPIO_PIN_3 << 16;
+#endif
+}
+
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_StartDefaultTask */
+/* USER CODE BEGIN Header_StartDrumTask */
 /**
-  * @brief  Function implementing the displayTask thread.
+  * @brief  Function implementing the drumTask thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const * argument)
+/* USER CODE END Header_StartDrumTask */
+void StartDrumTask(void const * argument)
 {
   /* init code for USB_DEVICE */
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */
-	lv_init();
+  vTaskSetApplicationTaskTag( NULL, ( void * ) 1 );
 
-	tft_init();
-	touchpad_init();
-	lv_demo_widgets();
-  /* Infinite loop */
-  for(;;)
-  {
-		lv_task_handler();
-		osDelay(20);
-  }
-  /* USER CODE END 5 */
-}
-
-/* USER CODE BEGIN Header_StartTask02 */
-/**
-* @brief Function implementing the drumCoreTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartTask02 */
-void StartTask02(void const * argument)
-{
-  /* USER CODE BEGIN StartTask02 */
 	ADC3_Init();
 	setLinkUart(&huart1);
 	setLinksDrumCore(&hadc3, &htim4, &htim2);
@@ -1194,7 +1212,32 @@ void StartTask02(void const * argument)
 			sendMidiActiveSense(&upd_active_sens);
 		}
   }
-  /* USER CODE END StartTask02 */
+  /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_StartDisplayTask */
+/**
+* @brief Function implementing the displayTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartDisplayTask */
+void StartDisplayTask(void const * argument)
+{
+  /* USER CODE BEGIN StartDisplayTask */
+  /* Infinite loop */
+	vTaskSetApplicationTaskTag( NULL, ( void * ) 2 );
+	lv_init();
+
+	tft_init();
+	touchpad_init();
+	lv_demo_widgets();
+  for(;;)
+  {
+		lv_task_handler();
+		osDelay(20);
+  }
+  /* USER CODE END StartDisplayTask */
 }
 
 /**
