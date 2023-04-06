@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 #include "usb_device.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -28,7 +29,7 @@
 #include "midi.h"
 #include "uartManage.h"
 
-#ifdef SDPLAY
+#ifdef SDPLAY // TODO remove all this definintions
 #include "audioFromSdCard.h"
 #endif
 
@@ -42,6 +43,8 @@
 #include "lvgl/demos/lv_demos.h"
 
 #include "lvgl/src/hal/lv_hal_tick.h"
+
+#include "task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -84,6 +87,8 @@ DMA_HandleTypeDef hdma_usart1_tx;
 
 SDRAM_HandleTypeDef hsdram1;
 
+osThreadId drumTaskHandle;
+osThreadId displayTaskHandle;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -101,9 +106,14 @@ static void MX_TIM2_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_DMA2D_Init(void);
 static void MX_LTDC_Init(void);
+void StartDrumTask(void const * argument);
+void StartDisplayTask(void const * argument);
+
 /* USER CODE BEGIN PFP */
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
 void ADC3_Init(void);
+
+#define DEBUG_OS
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -155,7 +165,6 @@ int main(void)
   MX_SAI2_Init();
   MX_TIM2_Init();
   MX_USART1_UART_Init();
-  MX_USB_DEVICE_Init();
   MX_TIM4_Init();
   MX_DMA2D_Init();
   MX_LTDC_Init();
@@ -165,31 +174,44 @@ int main(void)
 	DBGMCU->APB1FZ |= DBGMCU_APB1_FZ_DBG_TIM6_STOP;		// shutdown TIM6 on debug but it use handle lvgl events
 #endif
 
-	ADC3_Init();
-	setLinkUart(&huart1);
-	setLinksDrumCore(&hadc3, &htim4, &htim2);
-
-	initHelloDrums();
-
-	lv_init();
-
-	tft_init();
-	touchpad_init();
-	lv_demo_widgets();
   /* USER CODE END 2 */
 
+  /* USER CODE BEGIN RTOS_MUTEX */
+  /* add mutexes, ... */
+  /* USER CODE END RTOS_MUTEX */
+
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* add semaphores, ... */
+  /* USER CODE END RTOS_SEMAPHORES */
+
+  /* USER CODE BEGIN RTOS_TIMERS */
+  /* start timers, add new ones, ... */
+  /* USER CODE END RTOS_TIMERS */
+
+  /* USER CODE BEGIN RTOS_QUEUES */
+  /* add queues, ... */
+  /* USER CODE END RTOS_QUEUES */
+
+  /* Create the thread(s) */
+  /* definition and creation of drumTask */
+  osThreadDef(drumTask, StartDrumTask, osPriorityNormal, 0, 512);
+  drumTaskHandle = osThreadCreate(osThread(drumTask), NULL);
+
+  /* definition and creation of displayTask */
+  osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 2048);
+  displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  /* add threads, ... */
+  /* USER CODE END RTOS_THREADS */
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1) {
-//		HAL_Delay(1);
-		lv_task_handler();
-
-		callAudioStreamHandle();
-		checkHelloDrums();
-
-		if(hUsbDeviceFS.dev_state == USBD_STATE_CONFIGURED){
-			sendMidiActiveSense(&upd_active_sens);
-		}
 
     /* USER CODE END WHILE */
 
@@ -716,7 +738,7 @@ static void MX_DMA_Init(void)
 
   /* DMA interrupt init */
   /* DMA2_Stream4_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream4_IRQn, 1, 0);
+  HAL_NVIC_SetPriority(DMA2_Stream4_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream4_IRQn);
   /* DMA2_Stream7_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, 5, 0);
@@ -1123,7 +1145,104 @@ void ADC3_Init(void)
     Error_Handler();
   }
 }
+
+
+void TaskSwitchedIn(int tag){
+#ifdef DEBUG_OS
+	switch(tag){
+	case 1:
+		GPIOG->BSRR = GPIO_PIN_6;	// D2
+		break;
+	case 2:
+		GPIOG->BSRR = GPIO_PIN_7;	// D4
+		break;
+	}
+#endif
+}
+
+void TaskSwitchedOut(int tag){
+#ifdef DEBUG_OS
+	switch(tag){
+	case 1:
+		GPIOG->BSRR = (uint32_t) GPIO_PIN_6 << 16;
+		break;
+	case 2:
+		GPIOG->BSRR = (uint32_t) GPIO_PIN_7 << 16;
+		break;
+	}
+#endif
+}
+
+void vApplicationIdleHook(void){
+#ifdef DEBUG_OS
+	GPIOI->BSRR = GPIO_PIN_3;	// D7
+	__NOP();
+	GPIOI->BSRR = (uint32_t) GPIO_PIN_3 << 16;
+#endif
+}
+
 /* USER CODE END 4 */
+
+/* USER CODE BEGIN Header_StartDrumTask */
+/**
+  * @brief  Function implementing the drumTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_StartDrumTask */
+void StartDrumTask(void const * argument)
+{
+  /* init code for USB_DEVICE */
+  MX_USB_DEVICE_Init();
+  /* USER CODE BEGIN 5 */
+#ifdef DEBUG_OS
+  vTaskSetApplicationTaskTag( NULL, ( void * ) 1 );
+#endif
+
+	ADC3_Init();
+	setLinkUart(&huart1);
+	setLinksDrumCore(&hadc3, &htim4, &htim2);
+
+	initHelloDrums();
+  /* Infinite loop */
+  for(;;)
+  {
+		callAudioStreamHandle();
+		checkHelloDrums();
+
+		if (hUsbDeviceFS.dev_state == USBD_STATE_CONFIGURED) {
+			sendMidiActiveSense(&upd_active_sens);
+		}
+  }
+  /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_StartDisplayTask */
+/**
+* @brief Function implementing the displayTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartDisplayTask */
+void StartDisplayTask(void const * argument)
+{
+  /* USER CODE BEGIN StartDisplayTask */
+  /* Infinite loop */
+#ifdef DEBUG_OS
+	vTaskSetApplicationTaskTag( NULL, ( void * ) 2 );
+#endif
+	lv_init();
+
+	tft_init();
+	touchpad_init();
+	lv_demo_widgets();
+  for(;;)
+  {
+		lv_task_handler();
+		osDelay(20);
+  }
+  /* USER CODE END StartDisplayTask */
+}
 
 /**
   * @brief  Period elapsed callback in non blocking mode
@@ -1148,6 +1267,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	// 10kHz trigger, 0.1ms
 	if (htim->Instance == htim4.Instance) {
 		requestPiezo();
+		// TODO remove this
 	}
 
 	// 3.33Hz active sensing, 300ms

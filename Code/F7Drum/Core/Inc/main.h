@@ -46,7 +46,9 @@ extern "C" {
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
-
+void TaskSwitchedIn(int tag);
+void TaskSwitchedOut(int tag);
+void vApplicationIdleHook(void);
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
