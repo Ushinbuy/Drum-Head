@@ -29,7 +29,7 @@
 #include "midi.h"
 #include "uartManage.h"
 
-#ifdef SDPLAY
+#ifdef SDPLAY // TODO remove all this definintions
 #include "audioFromSdCard.h"
 #endif
 
@@ -112,6 +112,8 @@ void StartDisplayTask(void const * argument);
 /* USER CODE BEGIN PFP */
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
 void ADC3_Init(void);
+
+#define DEBUG_OS
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -1145,8 +1147,6 @@ void ADC3_Init(void)
 }
 
 
-  #define DEBUG_OS
-
 void TaskSwitchedIn(int tag){
 #ifdef DEBUG_OS
 	switch(tag){
@@ -1175,9 +1175,9 @@ void TaskSwitchedOut(int tag){
 
 void vApplicationIdleHook(void){
 #ifdef DEBUG_OS
-//	GPIOI->BSRR = GPIO_PIN_3;	// D7
-//	__NOP();
-//	GPIOI->BSRR = (uint32_t) GPIO_PIN_3 << 16;
+	GPIOI->BSRR = GPIO_PIN_3;	// D7
+	__NOP();
+	GPIOI->BSRR = (uint32_t) GPIO_PIN_3 << 16;
 #endif
 }
 
@@ -1195,7 +1195,9 @@ void StartDrumTask(void const * argument)
   /* init code for USB_DEVICE */
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */
+#ifdef DEBUG_OS
   vTaskSetApplicationTaskTag( NULL, ( void * ) 1 );
+#endif
 
 	ADC3_Init();
 	setLinkUart(&huart1);
@@ -1226,7 +1228,9 @@ void StartDisplayTask(void const * argument)
 {
   /* USER CODE BEGIN StartDisplayTask */
   /* Infinite loop */
+#ifdef DEBUG_OS
 	vTaskSetApplicationTaskTag( NULL, ( void * ) 2 );
+#endif
 	lv_init();
 
 	tft_init();
