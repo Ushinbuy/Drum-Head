@@ -1267,6 +1267,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	// 10kHz trigger, 0.1ms
 	if (htim->Instance == htim4.Instance) {
 		requestPiezo();
+		// TODO remove this
 	}
 
 	// 3.33Hz active sensing, 300ms
