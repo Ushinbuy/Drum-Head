@@ -1,4 +1,5 @@
 #include "lvgl/examples/lv_examples.h"
+#include "padWindow.h"
 #include "stdio.h"
 #if LV_USE_MENU && LV_USE_MSGBOX && LV_BUILD_EXAMPLES
 
