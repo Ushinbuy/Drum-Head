@@ -1,5 +1,6 @@
 #include "lvgl/examples/lv_examples.h"
 #include "padWindow.h"
+#include "guiObjects.h"
 #include "stdio.h"
 #if LV_USE_MENU && LV_USE_MSGBOX && LV_BUILD_EXAMPLES
 
@@ -8,13 +9,6 @@ enum {
     LV_MENU_ITEM_BUILDER_VARIANT_2
 };
 typedef uint8_t lv_menu_builder_variant_t;
-
-typedef struct {
-	lv_obj_t * sliderObj;
-	lv_obj_t * sliderValueText;
-} SliderWithText;
-
-
 
 struct PadMemory_s {
 	uint8_t sensitivity;   //0
@@ -53,24 +47,6 @@ struct PadMemory_s {
 	};
 
 typedef struct PadMemory_s PadMemory;
-//PadMemory pad = (PadMemory){
-//	.sensitivity = 100,
-//	.threshold1 = 10,
-//	.scantime = 10,
-//	.masktime = 30,
-//	.rimSensitivity = 20,
-//	.rimThreshold = 3,
-//	.curvetype = 0,
-//	.note = 38,
-//	.noteRim = 39,
-//	.noteCup = 40,
-//	.soundHeadAddressId = 0xFF,
-//	.soundRimAddressId = 0xFF,
-//	.soundCupAddressId = 0xFF,
-//	.soundHeadVolumeDb = -3.,
-//	.soundRimVolumeDb = -3.,
-//	.soundCupVolumeDb = -3.
-//};
 
 static void back_event_handler(lv_event_t * e);
 static void switch_handler(lv_event_t * e);
@@ -89,10 +65,26 @@ static void label_event_cb(lv_event_t * e);
 static lv_obj_t * create_inc_dec(lv_obj_t * parent, const char * txt);
 static int32_t limit_value(int32_t v);
 
-static SliderWithText velocity;
-static SliderWithText acceleration;
-static SliderWithText weightLimit;
+static SliderWithText sensitivity;   //0
+static SliderWithText threshold;     //1
+static SliderWithText scantime;       //2
+static SliderWithText masktime;       //3
+static SliderWithText rimSensitivity; //4
+static SliderWithText rimThreshold;    //5
+static IdButtonsObj curvetype;       //6
+uint8_t note;           //7
+uint8_t noteRim;        //8
+uint8_t noteCup;        //9
+static IdButtonsObj soundHeadAddressId;	//10 this field show which item from soundsAdresses
+static IdButtonsObj soundRimAddressId;	//11
+static IdButtonsObj soundCupAddressId;	//12
+float soundHeadVolumeDb;
+float soundRimVolumeDb;
+float soundCupVolumeDb;
+
 static SliderWithText brigthness;
+
+static SliderWithText slidersList[];
 
 void lv_example_menu_7(void)
 {
@@ -121,9 +113,10 @@ void lv_example_menu_7(void)
     lv_obj_set_style_pad_hor(sub_mechanics_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(menu), 0), 0);
     lv_menu_separator_create(sub_mechanics_page);
     section = lv_menu_section_create(sub_mechanics_page);
-    velocity = create_slider(section, NULL, "Velocity", 0, 150, 120);
-    acceleration = create_slider(section, NULL, "Acceleration", 0, 150, 50);
-    weightLimit = create_slider(section, NULL, "Weight limit", 0, 150, 80);
+    printf("OOOOP");
+    sensitivity = create_slider(section, NULL, "Sensitivity", 0, 150, 120);
+    threshold = create_slider(section, NULL, "Threshold", 0, 150, 50);
+    scantime = create_slider(section, NULL, "Scan time", 0, 150, 80);
     create_inc_dec(section, "Hello");
 
     lv_obj_t * sub_sound_page = lv_menu_page_create(menu, NULL);
@@ -201,14 +194,14 @@ static void slider_event_cb(lv_event_t * e)
     char buff[4];
     sprintf(buff, "%d", newVal);
 
-    if(slider->parent == velocity.sliderObj){
-    	lv_label_set_text(velocity.sliderValueText, buff);
+    if(slider->parent == sensitivity.sliderObj){
+    	lv_label_set_text(sensitivity.sliderValueText, buff);
     }
-    else if(slider->parent == acceleration.sliderObj){
-    	lv_label_set_text(acceleration.sliderValueText, buff);
+    else if(slider->parent == threshold.sliderObj){
+    	lv_label_set_text(threshold.sliderValueText, buff);
     }
-    else if (slider->parent == weightLimit.sliderObj) {
-		lv_label_set_text(weightLimit.sliderValueText, buff);
+    else if (slider->parent == scantime.sliderObj) {
+		lv_label_set_text(scantime.sliderValueText, buff);
 	}
     else if (slider->parent == brigthness.sliderObj) {
 		lv_label_set_text(brigthness.sliderValueText, buff);
@@ -390,4 +383,3 @@ static lv_obj_t * create_switch(lv_obj_t * parent, const char * icon, const char
 }
 
 #endif
-
