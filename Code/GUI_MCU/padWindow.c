@@ -2,6 +2,8 @@
 #include "padWindow.h"
 #include "guiObjects.h"
 #include "stdio.h"
+#include <stdlib.h>
+#include <string.h>
 #if LV_USE_MENU && LV_USE_MSGBOX && LV_BUILD_EXAMPLES
 
 enum {
@@ -60,9 +62,9 @@ static lv_obj_t * create_switch(lv_obj_t * parent,
 
 static void slider_event_cb(lv_event_t * e);
 
-static void btn_event_cb(lv_event_t * e);
-static void label_event_cb(lv_event_t * e);
-static lv_obj_t * create_inc_dec(lv_obj_t * parent, const char * txt);
+static void idButtonsEvent_cb(lv_event_t * e);
+
+static IdButtonsObj create_inc_dec(lv_obj_t * parent, const char * txt);
 static int32_t limit_value(int32_t v);
 
 static SliderWithText sensitivity;   //0
@@ -82,9 +84,30 @@ float soundHeadVolumeDb;
 float soundRimVolumeDb;
 float soundCupVolumeDb;
 
+
+
 static SliderWithText brigthness;
 
-static SliderWithText slidersList[];
+#define NUM_SLIDERS 7
+#define NUM_ID_BUTTONS 1
+static SliderWithText * slidersList[NUM_SLIDERS];
+static IdButtonsObj * idButtonsList[NUM_ID_BUTTONS];
+
+static void initPadWindow(void){
+	slidersList[0] = &sensitivity;
+	slidersList[1] = &threshold;
+	slidersList[2] = &scantime;
+	slidersList[3] = &masktime;
+	slidersList[4] = &rimSensitivity;
+	slidersList[5] = &rimThreshold;
+	slidersList[6] = &brigthness;
+}
+
+static void initIdButtonsList(void){
+	idButtonsList[0] = &curvetype;
+//	idButtonsList[1] = soundRimAddressId;
+//	idButtonsList[2] = soundCupAddressId;
+}
 
 void lv_example_menu_7(void)
 {
@@ -113,11 +136,16 @@ void lv_example_menu_7(void)
     lv_obj_set_style_pad_hor(sub_mechanics_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(menu), 0), 0);
     lv_menu_separator_create(sub_mechanics_page);
     section = lv_menu_section_create(sub_mechanics_page);
-    printf("OOOOP");
+
+    initPadWindow();
+    initIdButtonsList();
     sensitivity = create_slider(section, NULL, "Sensitivity", 0, 150, 120);
     threshold = create_slider(section, NULL, "Threshold", 0, 150, 50);
     scantime = create_slider(section, NULL, "Scan time", 0, 150, 80);
-    create_inc_dec(section, "Hello");
+    masktime = create_slider(section, NULL, "Mask time", 0, 150, 80);
+    rimSensitivity = create_slider(section, NULL, "Rim Sensitivity", 0, 150, 80);
+    rimThreshold = create_slider(section, NULL, "Rim Threshold", 0, 150, 80);
+    curvetype = create_inc_dec(section, "Curve Type");
 
     lv_obj_t * sub_sound_page = lv_menu_page_create(menu, NULL);
     lv_obj_set_style_pad_hor(sub_sound_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(menu), 0), 0);
@@ -165,7 +193,7 @@ void lv_example_menu_7(void)
     root_page = lv_menu_page_create(menu, "Settings");
     lv_obj_set_style_pad_hor(root_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(menu), 0), 0);
     section = lv_menu_section_create(root_page);
-    cont = create_text(section, LV_SYMBOL_SETTINGS, "Mechanics", LV_MENU_ITEM_BUILDER_VARIANT_1);
+    cont = create_text(section, LV_SYMBOL_SETTINGS, "Sensitivity", LV_MENU_ITEM_BUILDER_VARIANT_1);
     lv_menu_set_load_page_event(menu, cont, sub_mechanics_page);
     cont = create_text(section, LV_SYMBOL_AUDIO, "Sound", LV_MENU_ITEM_BUILDER_VARIANT_1);
     lv_menu_set_load_page_event(menu, cont, sub_sound_page);
@@ -194,19 +222,12 @@ static void slider_event_cb(lv_event_t * e)
     char buff[4];
     sprintf(buff, "%d", newVal);
 
-    if(slider->parent == sensitivity.sliderObj){
-    	lv_label_set_text(sensitivity.sliderValueText, buff);
+    for(uint8_t sliderNum = 0; sliderNum < NUM_SLIDERS; sliderNum++){
+		if (slider->parent == slidersList[sliderNum]->sliderObj) {
+			lv_label_set_text(slidersList[sliderNum]->sliderValueText, buff);
+			break;
+		}
     }
-    else if(slider->parent == threshold.sliderObj){
-    	lv_label_set_text(threshold.sliderValueText, buff);
-    }
-    else if (slider->parent == scantime.sliderObj) {
-		lv_label_set_text(scantime.sliderValueText, buff);
-	}
-    else if (slider->parent == brigthness.sliderObj) {
-		lv_label_set_text(brigthness.sliderValueText, buff);
-	}
-
 }
 
 static void back_event_handler(lv_event_t * e)
@@ -268,42 +289,50 @@ static lv_obj_t * create_text(lv_obj_t * parent, const char * icon, const char *
     return obj;
 }
 
-static int32_t power_value; // TODO
-
-static lv_obj_t * create_inc_dec(lv_obj_t * parent, const char * txt){
+static IdButtonsObj create_inc_dec(lv_obj_t * parent, const char * txt){
 	lv_obj_t * obj = create_text(parent, NULL, txt, LV_MENU_ITEM_BUILDER_VARIANT_2);
 
-	lv_obj_t * btn;
+	lv_obj_t * btnPlus;
+	lv_obj_t * btnPlusString;
+	lv_obj_t * btnMinus;
+	lv_obj_t * btnMinusString;
 	lv_obj_t * label;
 
 	/*Up button*/
-	btn = lv_btn_create(obj);
-	lv_obj_set_flex_grow(btn, 1);
-	lv_obj_add_event(btn, btn_event_cb, LV_EVENT_ALL, NULL);
-	label = lv_label_create(btn);
-	lv_label_set_text(label, LV_SYMBOL_LEFT);
-	lv_obj_set_height(btn, 20);
-	lv_obj_center(label);
+	btnMinus = lv_btn_create(obj);
+	lv_obj_set_flex_grow(btnMinus, 1);
+	lv_obj_add_event(btnMinus, idButtonsEvent_cb, LV_EVENT_ALL, NULL);
+	btnPlusString = lv_label_create(btnMinus);
+	lv_label_set_text(btnPlusString, LV_SYMBOL_LEFT);
+	lv_obj_set_height(btnMinus, 20);
+	lv_obj_center(btnPlusString);
 
 	label = lv_label_create(obj);
 	lv_obj_set_flex_grow(label, 2);
 	lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
-	lv_label_set_text(label, "?");
-	lv_msg_subscribe_obj((lv_msg_id_t)&power_value, label, NULL);
-	lv_obj_add_event(label, label_event_cb, LV_EVENT_MSG_RECEIVED, NULL);
+	uint8_t startValue = 35;
+	char startValueString[3];
+	sprintf(startValueString, "%d", startValue);
+	lv_label_set_text(label, startValueString);
+//	lv_msg_subscribe_obj((lv_msg_id_t)&power_value, label, NULL);
+//	lv_obj_add_event(label, label_event_cb, LV_EVENT_MSG_RECEIVED, NULL);
 
-	btn = lv_btn_create(obj);
-	lv_obj_set_flex_grow(btn, 1);
-	lv_obj_add_event(btn, btn_event_cb, LV_EVENT_ALL, NULL);
-	label = lv_label_create(btn);
-	lv_label_set_text(label, LV_SYMBOL_RIGHT);
-	lv_obj_set_height(btn, 20);
-	lv_obj_center(label);
+	btnPlus = lv_btn_create(obj);
+	lv_obj_set_flex_grow(btnPlus, 1);
+	lv_obj_add_event(btnPlus, idButtonsEvent_cb, LV_EVENT_ALL, NULL);
+	btnMinusString = lv_label_create(btnPlus);
+	lv_label_set_text(btnMinusString, LV_SYMBOL_RIGHT);
+	lv_obj_set_height(btnPlus, 20);
+	lv_obj_center(btnMinusString);
 
-	power_value = 30;
-	lv_msg_update_value(&power_value);
+//	lv_msg_update_value(&power_value);
 
-	return obj;
+	IdButtonsObj returnObject;
+	returnObject.valueText = label;
+	returnObject.incButton = btnPlus;
+	returnObject.decButton = btnMinus;
+
+	return returnObject;
 }
 
 static int32_t limit_value(int32_t v)
@@ -311,32 +340,34 @@ static int32_t limit_value(int32_t v)
     return LV_CLAMP(30, v, 80);
 }
 
-static void btn_event_cb(lv_event_t * e)
+static void idButtonsEvent_cb(lv_event_t * e)
 {
     lv_obj_t * btn = lv_event_get_target(e);
     lv_event_code_t code = lv_event_get_code(e);
     if(code == LV_EVENT_CLICKED || code == LV_EVENT_LONG_PRESSED_REPEAT) {
-    	printf("\n call button is %X", btn);
-    	printf("\n index button is %d", lv_obj_get_index(btn));
-        if(lv_obj_get_index(btn) == 0) {    /*First object is the dec. button*/
-            power_value = limit_value(power_value - 1);
-            lv_msg_update_value(&power_value);
-        }
-        else {
-            power_value = limit_value(power_value + 1);
-            lv_msg_update_value(&power_value);
-        }
-    }
-}
+    	for(uint8_t idBtn_num = 0; idBtn_num < NUM_ID_BUTTONS; idBtn_num++){
+//    		printf("\n current button is %X and parent is %X", btn, btn->parent);
+//    		printf("\n check   button is %X and %X", idButtonsList[idBtn_num]->decButton, idButtonsList[idBtn_num]->incButton);
+			if (btn == idButtonsList[idBtn_num]->decButton) { /*First object is the dec. button*/
+				char buff[3];
+				strcpy(buff, lv_label_get_text(idButtonsList[idBtn_num]->valueText));
+				uint8_t val = atoi(buff);
 
-static void label_event_cb(lv_event_t * e)
-{
-    lv_obj_t * label = lv_event_get_target(e);
-    lv_event_code_t code = lv_event_get_code(e);
-    if(code == LV_EVENT_MSG_RECEIVED) {
-        lv_msg_t * m = lv_event_get_msg(e);
-        const int32_t * v = lv_msg_get_payload(m);
-        lv_label_set_text_fmt(label, "%"LV_PRId32" %%", *v);
+				val = limit_value(--val);
+				sprintf(buff, "%d", val);
+				lv_label_set_text(idButtonsList[idBtn_num]->valueText, buff);
+			}
+			else if (btn == idButtonsList[idBtn_num]->incButton) {
+				char buff[3];
+				strcpy(buff,
+						lv_label_get_text(idButtonsList[idBtn_num]->valueText));
+				uint8_t val = atoi(buff);
+
+				val = limit_value(++val);
+				sprintf(buff, "%d", val);
+				lv_label_set_text(idButtonsList[idBtn_num]->valueText, buff);
+			}
+    	}
     }
 }
 
