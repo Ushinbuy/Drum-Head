@@ -65,7 +65,6 @@ static lv_obj_t * create_switch(lv_obj_t * parent,
 
 static IdButtonsObj create_inc_dec(lv_obj_t *parent, const char *txt,
 		uint8_t maxValue, void *addressParameter);
-static int32_t limit_value(int32_t v);
 
 static SliderWithText sensitivity;   //0
 static SliderWithText threshold;     //1
