@@ -56,8 +56,7 @@ lv_obj_t * root_page;
 static lv_obj_t * create_text(lv_obj_t * parent, const char * icon, const char * txt,
                               lv_menu_builder_variant_t builder_variant);
 static SliderWithText create_slider(lv_obj_t *parent, const char *icon,
-		const char *txt, int32_t min, int32_t max, int32_t val,
-		void * addressParameter);
+		const char *txt, int32_t min, int32_t max, void *addressParameter);
 static SliderWithText create_slider_float(lv_obj_t *parent, const char *icon,
 		const char *txt, float min, float max, float val,
 		void *addressParameter);
@@ -111,7 +110,8 @@ static void slider_event_cb(lv_event_t * e)
     	}
     	else if (slider->parent == slidersList[sliderNum]->sliderObj) {
 			lv_label_set_text(slidersList[sliderNum]->sliderValueText, buff);
-			slidersList[sliderNum]->addressPadParameter = &newVal;
+			*(uint8_t *) slidersList[sliderNum]->addressPadParameter = newVal;
+//			printUpdatedPad();
 			break;
 		}
     }
@@ -134,7 +134,8 @@ static void slider_event_float_cb(lv_event_t * e)
     	}
     	else if (slider->parent == slidersListFloat[sliderNum]->sliderObj) {
 			lv_label_set_text(slidersListFloat[sliderNum]->sliderValueText, newValStr);
-			slidersListFloat[sliderNum]->addressPadParameter = &newValFloat;
+			*(float *) slidersListFloat[sliderNum]->addressPadParameter = newValFloat;
+//			printUpdatedPad();
 			break;
 		}
     }
@@ -157,16 +158,19 @@ static void idButtonsEvent_cb(lv_event_t * e)
 				val = limit_value(--val);
 				sprintf(buff, "%d", val);
 				lv_label_set_text(idButtonsList[idBtn_num]->valueText, buff);
+				*(uint8_t *) idButtonsList[idBtn_num]->addressPadParameter = val;
+//				printUpdatedPad();
 			}
 			else if (btn == idButtonsList[idBtn_num]->incButton) {
 				char buff[3];
-				strcpy(buff,
-						lv_label_get_text(idButtonsList[idBtn_num]->valueText));
+				strcpy(buff, lv_label_get_text(idButtonsList[idBtn_num]->valueText));
 				uint8_t val = atoi(buff);
 
 				val = limit_value(++val);
 				sprintf(buff, "%d", val);
 				lv_label_set_text(idButtonsList[idBtn_num]->valueText, buff);
+				*(uint8_t*) idButtonsList[idBtn_num]->addressPadParameter = val;
+//				printUpdatedPad();
 			}
     	}
     }
@@ -184,9 +188,7 @@ static void initPadWindow(void){
 	slidersListFloat[0] = &soundHeadVolumeDb;
 	slidersListFloat[1] = &soundRimVolumeDb;
 	slidersListFloat[2] = &soundCupVolumeDb;
-}
 
-static void initIdButtonsList(void){
 	idButtonsList[0] = &curvetype;
 	idButtonsList[1] = &soundHeadAddressId;
 	idButtonsList[2] = &soundRimAddressId;
@@ -222,13 +224,13 @@ void lv_example_menu_7(void)
     section = lv_menu_section_create(sub_mechanics_page);
 
     initPadWindow();
-    initIdButtonsList();
-    sensitivity = create_slider(section, NULL, "Sensitivity", 0, 150, 120, &newPad.sensitivity);
-    threshold = create_slider(section, NULL, "Threshold", 0, 150, 50, &newPad.threshold1);
-    scantime = create_slider(section, NULL, "Scan time", 0, 150, 80, &newPad.scantime);
-    masktime = create_slider(section, NULL, "Mask time", 0, 150, 80, &newPad.masktime);
-    rimSensitivity = create_slider(section, NULL, "Rim Sensitivity", 0, 150, 80, &newPad.rimSensitivity);
-    rimThreshold = create_slider(section, NULL, "Rim Threshold", 0, 150, 80, &newPad.rimThreshold);
+
+    sensitivity = create_slider(section, NULL, "Sensitivity", 0, 150, &newPad.sensitivity);
+    threshold = create_slider(section, NULL, "Threshold", 0, 50, &newPad.threshold1);
+    scantime = create_slider(section, NULL, "Scan time", 0, 50, &newPad.scantime);
+    masktime = create_slider(section, NULL, "Mask time", 0, 150, &newPad.masktime);
+    rimSensitivity = create_slider(section, NULL, "Rim Sensitivity", 0, 150, &newPad.rimSensitivity);
+    rimThreshold = create_slider(section, NULL, "Rim Threshold", 0, 150, &newPad.rimThreshold);
     curvetype = create_inc_dec(section, "Curve Type", &newPad.curvetype);
 
     lv_obj_t * sub_sound_page = lv_menu_page_create(menu, NULL);
@@ -252,7 +254,7 @@ void lv_example_menu_7(void)
     lv_obj_set_style_pad_hor(sub_display_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(menu), 0), 0);
     lv_menu_separator_create(sub_display_page);
     section = lv_menu_section_create(sub_display_page);
-    brigthness = create_slider(section, NULL, "Brightness", 0, 150, 100, &newPad.sensitivity);
+    brigthness = create_slider(section, NULL, "Brightness", 0, 150, &newPad.sensitivity);
 
     lv_obj_t * sub_software_info_page = lv_menu_page_create(menu, NULL);
     lv_obj_set_style_pad_hor(sub_software_info_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(menu), 0), 0);
@@ -420,12 +422,14 @@ static int32_t limit_value(int32_t v)
     return LV_CLAMP(30, v, 80);
 }
 
-static SliderWithText create_slider(lv_obj_t * parent, const char * icon, const char * txt, int32_t min, int32_t max,
-                                int32_t val, void * addressParameter)
+static SliderWithText create_slider(lv_obj_t *parent, const char *icon,
+		const char *txt, int32_t min, int32_t max, void *addressParameter)
 {
     lv_obj_t * obj = create_text(parent, icon, txt, LV_MENU_ITEM_BUILDER_VARIANT_2);
 
     lv_obj_t * labelVal = lv_label_create(obj);
+
+    uint8_t val = *(uint8_t *) addressParameter;
 	char buffer[4];
 	sprintf(buffer, "%d", val);
 	lv_label_set_text(labelVal, buffer);
