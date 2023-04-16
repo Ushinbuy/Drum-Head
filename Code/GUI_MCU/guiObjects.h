@@ -12,6 +12,7 @@ typedef struct {
 	lv_obj_t * decButton;
 	lv_obj_t * valueText;
 	void * addressPadParameter;
+	uint8_t maxValue;
 } IdButtonsObj;
 
 #endif /* GUI_OBJECTS_H_ */

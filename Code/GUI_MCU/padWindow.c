@@ -36,12 +36,12 @@ struct PadMemory_s {
 		.masktime = 30,
 		.rimSensitivity = 20,
 		.rimThreshold = 3,
-		.curvetype = 0,
+		.curvetype = 1,
 		.note = 38,
 		.noteRim = 39,
 		.noteCup = 40,
-		.soundHeadAddressId = 0xFF,
-		.soundRimAddressId = 0xFF,
+		.soundHeadAddressId = 0x2,
+		.soundRimAddressId = 0x3,
 		.soundCupAddressId = 0xFF,
 		.soundHeadVolumeDb = -3.,
 		.soundRimVolumeDb = -3.,
@@ -63,7 +63,8 @@ static SliderWithText create_slider_float(lv_obj_t *parent, const char *icon,
 static lv_obj_t * create_switch(lv_obj_t * parent,
                                 const char * icon, const char * txt, bool chk);
 
-static IdButtonsObj create_inc_dec(lv_obj_t * parent, const char * txt, void * addressParameter);
+static IdButtonsObj create_inc_dec(lv_obj_t *parent, const char *txt,
+		uint8_t maxValue, void *addressParameter);
 static int32_t limit_value(int32_t v);
 
 static SliderWithText sensitivity;   //0
@@ -151,22 +152,32 @@ static void idButtonsEvent_cb(lv_event_t * e)
     			continue;
     		}
     		else if (btn == idButtonsList[idBtn_num]->decButton) { /*First object is the dec. button*/
-				char buff[3];
+				char buff[4];
 				strcpy(buff, lv_label_get_text(idButtonsList[idBtn_num]->valueText));
 				uint8_t val = atoi(buff);
 
-				val = limit_value(--val);
+				if(val == 0){
+					val = idButtonsList[idBtn_num]->maxValue;
+				}
+				else{
+					val--;
+				}
 				sprintf(buff, "%d", val);
 				lv_label_set_text(idButtonsList[idBtn_num]->valueText, buff);
 				*(uint8_t *) idButtonsList[idBtn_num]->addressPadParameter = val;
 //				printUpdatedPad();
 			}
 			else if (btn == idButtonsList[idBtn_num]->incButton) {
-				char buff[3];
+				char buff[4];
 				strcpy(buff, lv_label_get_text(idButtonsList[idBtn_num]->valueText));
 				uint8_t val = atoi(buff);
 
-				val = limit_value(++val);
+				if(val == idButtonsList[idBtn_num]->maxValue){
+					val = 0;
+				}
+				else{
+					val++;
+				}
 				sprintf(buff, "%d", val);
 				lv_label_set_text(idButtonsList[idBtn_num]->valueText, buff);
 				*(uint8_t*) idButtonsList[idBtn_num]->addressPadParameter = val;
@@ -231,7 +242,7 @@ void lv_example_menu_7(void)
     masktime = create_slider(section, NULL, "Mask time", 0, 150, &newPad.masktime);
     rimSensitivity = create_slider(section, NULL, "Rim Sensitivity", 0, 150, &newPad.rimSensitivity);
     rimThreshold = create_slider(section, NULL, "Rim Threshold", 0, 150, &newPad.rimThreshold);
-    curvetype = create_inc_dec(section, "Curve Type", &newPad.curvetype);
+    curvetype = create_inc_dec(section, "Curve Type", 4, &newPad.curvetype);
 
     lv_obj_t * sub_sound_page = lv_menu_page_create(menu, NULL);
     lv_obj_set_style_pad_hor(sub_sound_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(menu), 0), 0);
@@ -242,9 +253,9 @@ void lv_example_menu_7(void)
     create_text(section, NULL, "Note MIDI Rim TODO", LV_MENU_ITEM_BUILDER_VARIANT_2); // TODO
     create_text(section, NULL, "Note MIDI Cup TODO", LV_MENU_ITEM_BUILDER_VARIANT_2); // TODO
 
-    soundHeadAddressId = create_inc_dec(section, "Head sound ID", &newPad.soundHeadAddressId);
-    soundRimAddressId = create_inc_dec(section, "Rim sound ID", &newPad.soundRimAddressId);
-    soundCupAddressId = create_inc_dec(section, "Cup sound ID", &newPad.soundCupAddressId);
+    soundHeadAddressId = create_inc_dec(section, "Head sound ID", 5, &newPad.soundHeadAddressId);
+    soundRimAddressId = create_inc_dec(section, "Rim sound ID", 5, &newPad.soundRimAddressId);
+    soundCupAddressId = create_inc_dec(section, "Cup sound ID", 5, &newPad.soundCupAddressId);
 
     soundHeadVolumeDb = create_slider_float(section, NULL, "Head Sound Volume dB", -80., 6., 0.5, &newPad.soundHeadVolumeDb);
     soundRimVolumeDb = create_slider_float(section, NULL, "Rim Sound Volume dB", -80., 6., 0., &newPad.soundRimVolumeDb);
@@ -370,7 +381,7 @@ static lv_obj_t * create_text(lv_obj_t * parent, const char * icon, const char *
     return obj;
 }
 
-static IdButtonsObj create_inc_dec(lv_obj_t * parent, const char * txt, void * addressParameter){
+static IdButtonsObj create_inc_dec(lv_obj_t * parent, const char * txt, uint8_t maxValue, void * addressParameter){
 	lv_obj_t * obj = create_text(parent, NULL, txt, LV_MENU_ITEM_BUILDER_VARIANT_2);
 
 	lv_obj_t * btnPlus;
@@ -391,12 +402,10 @@ static IdButtonsObj create_inc_dec(lv_obj_t * parent, const char * txt, void * a
 	label = lv_label_create(obj);
 	lv_obj_set_flex_grow(label, 2);
 	lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
-	uint8_t startValue = 35;
-	char startValueString[3];
-	sprintf(startValueString, "%d", startValue);
+	uint8_t val = *(uint8_t *) addressParameter;
+	char startValueString[4];
+	sprintf(startValueString, "%d", val);
 	lv_label_set_text(label, startValueString);
-//	lv_msg_subscribe_obj((lv_msg_id_t)&power_value, label, NULL);
-//	lv_obj_add_event(label, label_event_cb, LV_EVENT_MSG_RECEIVED, NULL);
 
 	btnPlus = lv_btn_create(obj);
 	lv_obj_set_flex_grow(btnPlus, 1);
@@ -406,20 +415,14 @@ static IdButtonsObj create_inc_dec(lv_obj_t * parent, const char * txt, void * a
 	lv_obj_set_height(btnPlus, 20);
 	lv_obj_center(btnMinusString);
 
-//	lv_msg_update_value(&power_value);
-
 	IdButtonsObj returnObject;
 	returnObject.valueText = label;
 	returnObject.incButton = btnPlus;
 	returnObject.decButton = btnMinus;
+	returnObject.maxValue = maxValue;
 	returnObject.addressPadParameter = addressParameter;
 
 	return returnObject;
-}
-
-static int32_t limit_value(int32_t v)
-{
-    return LV_CLAMP(30, v, 80);
 }
 
 static SliderWithText create_slider(lv_obj_t *parent, const char *icon,
