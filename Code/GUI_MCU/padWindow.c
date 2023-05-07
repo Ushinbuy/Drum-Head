@@ -4,6 +4,8 @@
 #include "stdio.h"
 #include <stdlib.h>
 #include <string.h>
+#include "padVirtual.h"
+
 #if LV_USE_MENU && LV_USE_MSGBOX && LV_BUILD_EXAMPLES
 
 enum {
@@ -11,44 +13,6 @@ enum {
     LV_MENU_ITEM_BUILDER_VARIANT_2
 };
 typedef uint8_t lv_menu_builder_variant_t;
-
-struct PadMemory_s {
-	uint8_t sensitivity;   //0
-	uint8_t threshold1;     //1
-	uint8_t scantime;       //2
-	uint8_t masktime;       //3
-	uint8_t rimSensitivity; //4
-	uint8_t rimThreshold;    //5
-	uint8_t curvetype;       //6
-	uint8_t note;           //7
-	uint8_t noteRim;        //8
-	uint8_t noteCup;        //9
-	uint8_t soundHeadAddressId;	//10 this field show which item from soundsAdresses
-	uint8_t soundRimAddressId;	//11
-	uint8_t soundCupAddressId;	//12
-	float soundHeadVolumeDb;
-	float soundRimVolumeDb;
-	float soundCupVolumeDb;
-} PadMemory_default = {
-		.sensitivity = 100,
-		.threshold1 = 10,
-		.scantime = 10,
-		.masktime = 30,
-		.rimSensitivity = 20,
-		.rimThreshold = 3,
-		.curvetype = 1,
-		.note = 38,
-		.noteRim = 39,
-		.noteCup = 40,
-		.soundHeadAddressId = 0x2,
-		.soundRimAddressId = 0x3,
-		.soundCupAddressId = 0xFF,
-		.soundHeadVolumeDb = -3.,
-		.soundRimVolumeDb = -3.,
-		.soundCupVolumeDb = -3.
-	};
-
-typedef struct PadMemory_s PadMemory;
 
 static void back_event_handler(lv_event_t * e);
 static void switch_handler(lv_event_t * e);
@@ -95,6 +59,8 @@ static SliderWithText * slidersList[NUM_SLIDERS];
 static SliderWithText * slidersListFloat[NUM_SLIDERS_FLOAT];
 static IdButtonsObj * idButtonsList[NUM_ID_BUTTONS];
 
+static PadMemory newPad;
+
 static void slider_event_cb(lv_event_t * e)
 {
     lv_obj_t * slider = lv_event_get_target(e);
@@ -126,7 +92,6 @@ static void slider_event_float_cb(lv_event_t * e)
 
     char newValStr[20];
     sprintf(newValStr, "%0.1f", newValFloat);
-
 
     for(uint8_t sliderNum = 0; sliderNum < NUM_SLIDERS_FLOAT; sliderNum++){
     	if(slidersListFloat[sliderNum] == NULL){
@@ -205,12 +170,16 @@ static void initPadWindow(void){
 	idButtonsList[3] = &soundCupAddressId;
 }
 
-void lv_example_menu_7(void)
+void lv_example_menu_7(lv_obj_t * scr)
 {
-	PadMemory newPad = PadMemory_default;
+	newPad = PadMemory_default;
 	printf("pad value is %d", newPad.note);
 
-    lv_obj_t * menu = lv_menu_create(lv_scr_act());
+	if(scr == NULL){
+		scr = lv_scr_act();
+		// todo this check doesn't work
+	}
+    lv_obj_t * menu = lv_menu_create(scr);
 
     lv_color_t bg_color = lv_obj_get_style_bg_color(menu, 0);
     if(lv_color_brightness(bg_color) > 127) {
@@ -318,6 +287,7 @@ void lv_example_menu_7(void)
 
     lv_obj_send_event(lv_obj_get_child(lv_obj_get_child(lv_menu_get_cur_sidebar_page(menu), 0), 0), LV_EVENT_CLICKED,
                       NULL);
+
 }
 
 
