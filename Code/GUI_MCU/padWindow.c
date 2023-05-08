@@ -15,7 +15,7 @@ enum {
 typedef uint8_t lv_menu_builder_variant_t;
 
 static void back_event_handler(lv_event_t * e);
-static void switch_handler(lv_event_t * e);
+//static void switch_handler(lv_event_t * e);
 lv_obj_t * root_page;
 static lv_obj_t * create_text(lv_obj_t * parent, const char * icon, const char * txt,
                               lv_menu_builder_variant_t builder_variant);
@@ -24,8 +24,8 @@ static SliderWithText create_slider(lv_obj_t *parent, const char *icon,
 static SliderWithText create_slider_float(lv_obj_t *parent, const char *icon,
 		const char *txt, float min, float max, float val,
 		void *addressParameter);
-static lv_obj_t * create_switch(lv_obj_t * parent,
-                                const char * icon, const char * txt, bool chk);
+//static lv_obj_t * create_switch(lv_obj_t * parent,
+//                                const char * icon, const char * txt, bool chk);
 
 static IdButtonsObj create_inc_dec(lv_obj_t *parent, const char *txt,
 		uint8_t maxValue, void *addressParameter);
@@ -59,7 +59,7 @@ static SliderWithText * slidersList[NUM_SLIDERS];
 static SliderWithText * slidersListFloat[NUM_SLIDERS_FLOAT];
 static IdButtonsObj * idButtonsList[NUM_ID_BUTTONS];
 
-static PadMemory newPad;
+static PadMemory pad;
 
 static void slider_event_cb(lv_event_t * e)
 {
@@ -170,10 +170,13 @@ static void initPadWindow(void){
 	idButtonsList[3] = &soundCupAddressId;
 }
 
-void lv_example_menu_7(lv_obj_t * scr)
+void (*_backToMain)();
+
+void load_pad_screen(lv_obj_t * scr, void (*backToMain)())
 {
-	newPad = PadMemory_default;
-	printf("pad value is %d", newPad.note);
+	pad = PadMemory_default;
+	printf("pad value is %d", pad.note);
+	_backToMain = backToMain;
 
 	if(scr == NULL){
 		scr = lv_scr_act();
@@ -204,13 +207,13 @@ void lv_example_menu_7(lv_obj_t * scr)
 
     initPadWindow();
 
-    sensitivity = create_slider(section, NULL, "Sensitivity", 0, 150, &newPad.sensitivity);
-    threshold = create_slider(section, NULL, "Threshold", 0, 50, &newPad.threshold1);
-    scantime = create_slider(section, NULL, "Scan time", 0, 50, &newPad.scantime);
-    masktime = create_slider(section, NULL, "Mask time", 0, 150, &newPad.masktime);
-    rimSensitivity = create_slider(section, NULL, "Rim Sensitivity", 0, 150, &newPad.rimSensitivity);
-    rimThreshold = create_slider(section, NULL, "Rim Threshold", 0, 150, &newPad.rimThreshold);
-    curvetype = create_inc_dec(section, "Curve Type", 4, &newPad.curvetype);
+    sensitivity = create_slider(section, NULL, "Sensitivity", 0, 150, &pad.sensitivity);
+    threshold = create_slider(section, NULL, "Threshold", 0, 50, &pad.threshold1);
+    scantime = create_slider(section, NULL, "Scan time", 0, 50, &pad.scantime);
+    masktime = create_slider(section, NULL, "Mask time", 0, 150, &pad.masktime);
+    rimSensitivity = create_slider(section, NULL, "Rim Sensitivity", 0, 150, &pad.rimSensitivity);
+    rimThreshold = create_slider(section, NULL, "Rim Threshold", 0, 150, &pad.rimThreshold);
+    curvetype = create_inc_dec(section, "Curve Type", 4, &pad.curvetype);
 
     lv_obj_t * sub_sound_page = lv_menu_page_create(menu, NULL);
     lv_obj_set_style_pad_hor(sub_sound_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(menu), 0), 0);
@@ -221,49 +224,50 @@ void lv_example_menu_7(lv_obj_t * scr)
     create_text(section, NULL, "Note MIDI Rim TODO", LV_MENU_ITEM_BUILDER_VARIANT_2); // TODO
     create_text(section, NULL, "Note MIDI Cup TODO", LV_MENU_ITEM_BUILDER_VARIANT_2); // TODO
 
-    soundHeadAddressId = create_inc_dec(section, "Head sound ID", 5, &newPad.soundHeadAddressId);
-    soundRimAddressId = create_inc_dec(section, "Rim sound ID", 5, &newPad.soundRimAddressId);
-    soundCupAddressId = create_inc_dec(section, "Cup sound ID", 5, &newPad.soundCupAddressId);
+    soundHeadAddressId = create_inc_dec(section, "Head sound ID", 5, &pad.soundHeadAddressId);
+    soundRimAddressId = create_inc_dec(section, "Rim sound ID", 5, &pad.soundRimAddressId);
+    soundCupAddressId = create_inc_dec(section, "Cup sound ID", 5, &pad.soundCupAddressId);
 
-    soundHeadVolumeDb = create_slider_float(section, NULL, "Head Sound Volume dB", -80., 6., 0.5, &newPad.soundHeadVolumeDb);
-    soundRimVolumeDb = create_slider_float(section, NULL, "Rim Sound Volume dB", -80., 6., 0., &newPad.soundRimVolumeDb);
-    soundCupVolumeDb = create_slider_float(section, NULL, "Cup Sound Volume dB", -80., 6., 0., &newPad.soundCupVolumeDb);
+    soundHeadVolumeDb = create_slider_float(section, NULL, "Head Sound Volume dB", -80., 6., 0.5, &pad.soundHeadVolumeDb);
+    soundRimVolumeDb = create_slider_float(section, NULL, "Rim Sound Volume dB", -80., 6., 0., &pad.soundRimVolumeDb);
+    soundCupVolumeDb = create_slider_float(section, NULL, "Cup Sound Volume dB", -80., 6., 0., &pad.soundCupVolumeDb);
 
-    lv_obj_t * sub_display_page = lv_menu_page_create(menu, NULL);
-    lv_obj_set_style_pad_hor(sub_display_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(menu), 0), 0);
-    lv_menu_separator_create(sub_display_page);
-    section = lv_menu_section_create(sub_display_page);
-    brigthness = create_slider(section, NULL, "Brightness", 0, 150, &newPad.sensitivity);
-
-    lv_obj_t * sub_software_info_page = lv_menu_page_create(menu, NULL);
-    lv_obj_set_style_pad_hor(sub_software_info_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(menu), 0), 0);
-    section = lv_menu_section_create(sub_software_info_page);
-    create_text(section, NULL, "Version 1.0", LV_MENU_ITEM_BUILDER_VARIANT_1);
-
-    lv_obj_t * sub_legal_info_page = lv_menu_page_create(menu, NULL);
-    lv_obj_set_style_pad_hor(sub_legal_info_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(menu), 0), 0);
-    section = lv_menu_section_create(sub_legal_info_page);
-    for(uint32_t i = 0; i < 15; i++) {
-        create_text(section, NULL,
-                    "This is a long long long long long long long long long text, if it is long enough it may scroll.",
-                    LV_MENU_ITEM_BUILDER_VARIANT_1);
-    }
-
-    lv_obj_t * sub_about_page = lv_menu_page_create(menu, NULL);
-    lv_obj_set_style_pad_hor(sub_about_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(menu), 0), 0);
-    lv_menu_separator_create(sub_about_page);
-    section = lv_menu_section_create(sub_about_page);
-    cont = create_text(section, NULL, "Software information", LV_MENU_ITEM_BUILDER_VARIANT_1);
-    lv_menu_set_load_page_event(menu, cont, sub_software_info_page);
-    cont = create_text(section, NULL, "Legal information", LV_MENU_ITEM_BUILDER_VARIANT_1);
-    lv_menu_set_load_page_event(menu, cont, sub_legal_info_page);
-
-    lv_obj_t * sub_menu_mode_page = lv_menu_page_create(menu, NULL);
-    lv_obj_set_style_pad_hor(sub_menu_mode_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(menu), 0), 0);
-    lv_menu_separator_create(sub_menu_mode_page);
-    section = lv_menu_section_create(sub_menu_mode_page);
-    cont = create_switch(section, LV_SYMBOL_AUDIO, "Sidebar enable", true);
-    lv_obj_add_event(lv_obj_get_child(cont, 2), switch_handler, LV_EVENT_VALUE_CHANGED, menu);
+    create_keyboard(section);
+//    lv_obj_t * sub_display_page = lv_menu_page_create(menu, NULL);
+//    lv_obj_set_style_pad_hor(sub_display_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(menu), 0), 0);
+//    lv_menu_separator_create(sub_display_page);
+//    section = lv_menu_section_create(sub_display_page);
+//    brigthness = create_slider(section, NULL, "Brightness", 0, 150, &pad.sensitivity);
+//
+//    lv_obj_t * sub_software_info_page = lv_menu_page_create(menu, NULL);
+//    lv_obj_set_style_pad_hor(sub_software_info_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(menu), 0), 0);
+//    section = lv_menu_section_create(sub_software_info_page);
+//    create_text(section, NULL, "Version 1.0", LV_MENU_ITEM_BUILDER_VARIANT_1);
+//
+//    lv_obj_t * sub_legal_info_page = lv_menu_page_create(menu, NULL);
+//    lv_obj_set_style_pad_hor(sub_legal_info_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(menu), 0), 0);
+//    section = lv_menu_section_create(sub_legal_info_page);
+//    for(uint32_t i = 0; i < 15; i++) {
+//        create_text(section, NULL,
+//                    "This is a long long long long long long long long long text, if it is long enough it may scroll.",
+//                    LV_MENU_ITEM_BUILDER_VARIANT_1);
+//    }
+//
+//    lv_obj_t * sub_about_page = lv_menu_page_create(menu, NULL);
+//    lv_obj_set_style_pad_hor(sub_about_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(menu), 0), 0);
+//    lv_menu_separator_create(sub_about_page);
+//    section = lv_menu_section_create(sub_about_page);
+//    cont = create_text(section, NULL, "Software information", LV_MENU_ITEM_BUILDER_VARIANT_1);
+//    lv_menu_set_load_page_event(menu, cont, sub_software_info_page);
+//    cont = create_text(section, NULL, "Legal information", LV_MENU_ITEM_BUILDER_VARIANT_1);
+//    lv_menu_set_load_page_event(menu, cont, sub_legal_info_page);
+//
+//    lv_obj_t * sub_menu_mode_page = lv_menu_page_create(menu, NULL);
+//    lv_obj_set_style_pad_hor(sub_menu_mode_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(menu), 0), 0);
+//    lv_menu_separator_create(sub_menu_mode_page);
+//    section = lv_menu_section_create(sub_menu_mode_page);
+//    cont = create_switch(section, LV_SYMBOL_AUDIO, "Sidebar enable", true);
+//    lv_obj_add_event(lv_obj_get_child(cont, 2), switch_handler, LV_EVENT_VALUE_CHANGED, menu);
 
     /*Create a root page*/
     root_page = lv_menu_page_create(menu, "Settings");
@@ -273,15 +277,15 @@ void lv_example_menu_7(lv_obj_t * scr)
     lv_menu_set_load_page_event(menu, cont, sub_mechanics_page);
     cont = create_text(section, LV_SYMBOL_AUDIO, "Notes", LV_MENU_ITEM_BUILDER_VARIANT_1);
     lv_menu_set_load_page_event(menu, cont, sub_sound_page);
-    cont = create_text(section, LV_SYMBOL_SETTINGS, "Display", LV_MENU_ITEM_BUILDER_VARIANT_1);
-    lv_menu_set_load_page_event(menu, cont, sub_display_page);
+//    cont = create_text(section, LV_SYMBOL_SETTINGS, "Display", LV_MENU_ITEM_BUILDER_VARIANT_1);
+//    lv_menu_set_load_page_event(menu, cont, sub_display_page);
 
-    create_text(root_page, NULL, "Others", LV_MENU_ITEM_BUILDER_VARIANT_1);
-    section = lv_menu_section_create(root_page);
-    cont = create_text(section, NULL, "About", LV_MENU_ITEM_BUILDER_VARIANT_1);
-    lv_menu_set_load_page_event(menu, cont, sub_about_page);
-    cont = create_text(section, LV_SYMBOL_SETTINGS, "Menu mode", LV_MENU_ITEM_BUILDER_VARIANT_1);
-    lv_menu_set_load_page_event(menu, cont, sub_menu_mode_page);
+//    create_text(root_page, NULL, "Others", LV_MENU_ITEM_BUILDER_VARIANT_1);
+//    section = lv_menu_section_create(root_page);
+//    cont = create_text(section, NULL, "About", LV_MENU_ITEM_BUILDER_VARIANT_1);
+//    lv_menu_set_load_page_event(menu, cont, sub_about_page);
+//    cont = create_text(section, LV_SYMBOL_SETTINGS, "Menu mode", LV_MENU_ITEM_BUILDER_VARIANT_1);
+//    lv_menu_set_load_page_event(menu, cont, sub_menu_mode_page);
 
     lv_menu_set_sidebar_page(menu, root_page);
 
@@ -290,37 +294,70 @@ void lv_example_menu_7(lv_obj_t * scr)
 
 }
 
+void create_keyboard(lv_obj_t * obj){
+    static const char * kb_map[] = {
+                  "1","2", "3","\n",
+                  "4", "5", "6","\n",
+                  "7", "8", "9","\n",
+				  LV_SYMBOL_CLOSE ,"0", LV_SYMBOL_OK, NULL
+        };
+    static const lv_btnmatrix_ctrl_t kb_ctrl[] = {4, 4, 4,
+                                                  4, 4, 4,
+                                                  4, 4, 4,
+                                                  4, 4, 4
+                                                 };
+
+    lv_obj_t * keyboard = lv_keyboard_create(obj);
+
+    lv_keyboard_set_map(keyboard, LV_KEYBOARD_MODE_USER_1, kb_map, kb_ctrl);
+	lv_keyboard_set_mode(keyboard, LV_KEYBOARD_MODE_USER_1);
+
+
+    lv_obj_set_size(keyboard,100,100);
+
+//    lv_obj_t * ta;
+//    ta = lv_textarea_create(scr);
+//    lv_obj_align(ta, LV_ALIGN_TOP_MID, 0, 10);
+//    lv_obj_set_size(ta, lv_pct(90), 80);
+//    lv_obj_add_state(ta, LV_STATE_FOCUSED);
+//
+//    lv_keyboard_set_textarea(keyboard, ta);
+
+
+    //    lv_obj_align(keyboard, LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
+}
 
 static void back_event_handler(lv_event_t * e)
 {
-    lv_obj_t * obj = lv_event_get_target(e);
-    lv_obj_t * menu = lv_event_get_user_data(e);
-
-    if(lv_menu_back_btn_is_root(menu, obj)) {
-        lv_obj_t * mbox1 = lv_msgbox_create(NULL, "Hello", "Root back btn click.", NULL, true);
-        lv_obj_center(mbox1);
-    }
+//    lv_obj_t * obj = lv_event_get_target(e);
+//    lv_obj_t * menu = lv_event_get_user_data(e);
+//
+//    if(lv_menu_back_btn_is_root(menu, obj)) {
+//        lv_obj_t * mbox1 = lv_msgbox_create(NULL, "Hello", "Root back btn click.", NULL, true);
+//        lv_obj_center(mbox1);
+//    }
+	(*_backToMain)();
 }
 
-static void switch_handler(lv_event_t * e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-    lv_obj_t * menu = lv_event_get_user_data(e);
-    lv_obj_t * obj = lv_event_get_target(e);
-    if(code == LV_EVENT_VALUE_CHANGED) {
-        if(lv_obj_has_state(obj, LV_STATE_CHECKED)) {
-            lv_menu_set_page(menu, NULL);
-            lv_menu_set_sidebar_page(menu, root_page);
-            lv_obj_send_event(lv_obj_get_child(lv_obj_get_child(lv_menu_get_cur_sidebar_page(menu), 0), 0), LV_EVENT_CLICKED,
-                              NULL);
-        }
-        else {
-            lv_menu_set_sidebar_page(menu, NULL);
-            lv_menu_clear_history(menu); /* Clear history because we will be showing the root page later */
-            lv_menu_set_page(menu, root_page);
-        }
-    }
-}
+//static void switch_handler(lv_event_t * e)
+//{
+//    lv_event_code_t code = lv_event_get_code(e);
+//    lv_obj_t * menu = lv_event_get_user_data(e);
+//    lv_obj_t * obj = lv_event_get_target(e);
+//    if(code == LV_EVENT_VALUE_CHANGED) {
+//        if(lv_obj_has_state(obj, LV_STATE_CHECKED)) {
+//            lv_menu_set_page(menu, NULL);
+//            lv_menu_set_sidebar_page(menu, root_page);
+//            lv_obj_send_event(lv_obj_get_child(lv_obj_get_child(lv_menu_get_cur_sidebar_page(menu), 0), 0), LV_EVENT_CLICKED,
+//                              NULL);
+//        }
+//        else {
+//            lv_menu_set_sidebar_page(menu, NULL);
+//            lv_menu_clear_history(menu); /* Clear history because we will be showing the root page later */
+//            lv_menu_set_page(menu, root_page);
+//        }
+//    }
+//}
 
 static lv_obj_t * create_text(lv_obj_t * parent, const char * icon, const char * txt,
                               lv_menu_builder_variant_t builder_variant)
@@ -474,14 +511,14 @@ static SliderWithText create_slider_float(lv_obj_t * parent, const char * icon, 
     return returnSlider;
 }
 
-static lv_obj_t * create_switch(lv_obj_t * parent, const char * icon, const char * txt, bool chk)
-{
-    lv_obj_t * obj = create_text(parent, icon, txt, LV_MENU_ITEM_BUILDER_VARIANT_1);
-
-    lv_obj_t * sw = lv_switch_create(obj);
-    lv_obj_add_state(sw, chk ? LV_STATE_CHECKED : 0);
-
-    return obj;
-}
+//static lv_obj_t * create_switch(lv_obj_t * parent, const char * icon, const char * txt, bool chk)
+//{
+//    lv_obj_t * obj = create_text(parent, icon, txt, LV_MENU_ITEM_BUILDER_VARIANT_1);
+//
+//    lv_obj_t * sw = lv_switch_create(obj);
+//    lv_obj_add_state(sw, chk ? LV_STATE_CHECKED : 0);
+//
+//    return obj;
+//}
 
 #endif
