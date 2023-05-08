@@ -19,24 +19,7 @@ struct PadMemory_s {
 	float soundHeadVolumeDb;
 	float soundRimVolumeDb;
 	float soundCupVolumeDb;
-} PadMemory_default = {
-		.sensitivity = 100,
-		.threshold1 = 10,
-		.scantime = 10,
-		.masktime = 30,
-		.rimSensitivity = 20,
-		.rimThreshold = 3,
-		.curvetype = 1,
-		.note = 38,
-		.noteRim = 39,
-		.noteCup = 40,
-		.soundHeadAddressId = 0x2,
-		.soundRimAddressId = 0x3,
-		.soundCupAddressId = 0xFF,
-		.soundHeadVolumeDb = -3.,
-		.soundRimVolumeDb = -3.,
-		.soundCupVolumeDb = -3.
-	};
+};
 
 typedef struct PadMemory_s PadMemory;
 

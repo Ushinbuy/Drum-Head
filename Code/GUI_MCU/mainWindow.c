@@ -2,6 +2,7 @@
 #include "lvgl/examples/lv_examples.h"
 #include "padWindow.h"
 #include <stdlib.h>
+#include "padVirtual.h"
 
 #if LV_USE_LIST && LV_BUILD_EXAMPLES
 
@@ -14,6 +15,9 @@ static void back_from_pad_to_main_screen(){
 	load_main_window(_numberOfPads);
 	lv_obj_del(padScreen);
 }
+
+PadMemory pad;
+uint8_t padWasInit = 0;
 
 static void event_handler(lv_event_t * e)
 {
@@ -34,7 +38,7 @@ static void event_handler(lv_event_t * e)
             lv_obj_t * child = lv_obj_get_child(parent, i);
             if(child == currentButton) {
             	padScreen = lv_obj_create(NULL);
-				load_pad_screen(padScreen, back_from_pad_to_main_screen);
+				load_pad_screen(padScreen, &pad, back_from_pad_to_main_screen);
 
 				lv_scr_load(padScreen);
 				lv_obj_del(mainScreen);
@@ -43,12 +47,37 @@ static void event_handler(lv_event_t * e)
     }
 }
 
+static void initPad(){
+	pad.sensitivity = 100;
+	pad.threshold1 = 10;
+	pad.scantime = 10;
+	pad.masktime = 30;
+	pad.rimSensitivity = 20;
+	pad.rimThreshold = 3;
+	pad.curvetype = 1;
+	pad.note = 38;
+	pad.noteRim = 39;
+	pad.noteCup = 40;
+	pad.soundHeadAddressId = 0x2;
+	pad.soundRimAddressId = 0x3;
+	pad.soundCupAddressId = 0xFF;
+	pad.soundHeadVolumeDb = -3.;
+	pad.soundRimVolumeDb = -3.;
+	pad.soundCupVolumeDb = -3.;
+
+	padWasInit = 1;
+}
+
 void load_main_window(uint8_t numberOfPads)
 {
     /*Create a list*/
 	_numberOfPads = numberOfPads;
+	if(padWasInit == 0){
+		initPad();
+	}
+
     mainScreen = lv_list_create(NULL);
-//    lv_obj_set_size(mainScreen, lv_pct(60), lv_pct(100));
+    lv_obj_set_size(mainScreen, lv_pct(60), lv_pct(100));
     lv_obj_set_style_pad_row(mainScreen, 5, 0);
 
     /*Add buttons to the list*/
