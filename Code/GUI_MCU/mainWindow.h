@@ -2,6 +2,8 @@
 #define MAIN_WINDOW_H_
 #include <stdlib.h>
 
-void load_main_window(uint8_t numberOfPads);
+#include "padVirtual.h"
+
+void start_UI(uint8_t numberOfPads, PadMemory _padList[]);
 
 #endif /* MAIN_WINDOW_H_ */

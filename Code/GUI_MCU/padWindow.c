@@ -13,19 +13,7 @@ enum {
 };
 typedef uint8_t lv_menu_builder_variant_t;
 
-lv_obj_t * root_page;
-static lv_obj_t * create_text(lv_obj_t * parent, const char * icon, const char * txt,
-                              lv_menu_builder_variant_t builder_variant);
-static SliderWithText create_slider(lv_obj_t *parent, const char *icon,
-		const char *txt, int32_t min, int32_t max, void *addressParameter);
-static SliderWithText create_slider_float(lv_obj_t *parent, const char *icon,
-		const char *txt, float min, float max, float val,
-		void *addressParameter);
-//static lv_obj_t * create_switch(lv_obj_t * parent,
-//                                const char * icon, const char * txt, bool chk);
-
-static IdButtonsObj create_inc_dec(lv_obj_t *parent, const char *txt,
-		uint8_t maxValue, void *addressParameter);
+static lv_obj_t * root_page;
 
 static SliderWithText sensitivity;   //0
 static SliderWithText threshold;     //1
@@ -190,6 +178,158 @@ static void back_event_handler(lv_event_t * e)
 	(*_backToMain)();
 }
 
+static lv_obj_t * create_text(lv_obj_t * parent, const char * icon, const char * txt,
+                              lv_menu_builder_variant_t builder_variant)
+{
+    lv_obj_t * obj = lv_menu_cont_create(parent);
+
+    lv_obj_t * img = NULL;
+    lv_obj_t * label = NULL;
+
+    if(icon) {
+        img = lv_img_create(obj);
+        lv_img_set_src(img, icon);
+    }
+
+    if(txt) {
+        label = lv_label_create(obj);
+        lv_label_set_text(label, txt);
+        lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL_CIRCULAR);
+        lv_obj_set_flex_grow(label, 0);
+    }
+
+    if(builder_variant == LV_MENU_ITEM_BUILDER_VARIANT_2 && icon && txt) {
+        lv_obj_add_flag(img, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
+        lv_obj_swap(img, label);
+    }
+
+    return obj;
+}
+
+static IdButtonsObj create_inc_dec(lv_obj_t * parent, const char * txt, uint8_t maxValue, void * addressParameter){
+	lv_obj_t * obj = create_text(parent, NULL, txt, LV_MENU_ITEM_BUILDER_VARIANT_2);
+
+	lv_obj_t * btnPlus;
+	lv_obj_t * btnPlusString;
+	lv_obj_t * btnMinus;
+	lv_obj_t * btnMinusString;
+	lv_obj_t * label;
+
+	/*Up button*/
+	btnMinus = lv_btn_create(obj);
+	lv_obj_set_flex_grow(btnMinus, 1);
+	lv_obj_add_event(btnMinus, idButtonsEvent_cb, LV_EVENT_ALL, NULL);
+	btnPlusString = lv_label_create(btnMinus);
+	lv_label_set_text(btnPlusString, LV_SYMBOL_LEFT);
+	lv_obj_set_height(btnMinus, 20);
+	lv_obj_center(btnPlusString);
+
+	label = lv_label_create(obj);
+	lv_obj_set_flex_grow(label, 2);
+	lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
+	uint8_t val = *(uint8_t *) addressParameter;
+	char startValueString[4];
+	sprintf(startValueString, "%d", val);
+	lv_label_set_text(label, startValueString);
+
+	btnPlus = lv_btn_create(obj);
+	lv_obj_set_flex_grow(btnPlus, 1);
+	lv_obj_add_event(btnPlus, idButtonsEvent_cb, LV_EVENT_ALL, NULL);
+	btnMinusString = lv_label_create(btnPlus);
+	lv_label_set_text(btnMinusString, LV_SYMBOL_RIGHT);
+	lv_obj_set_height(btnPlus, 20);
+	lv_obj_center(btnMinusString);
+
+	IdButtonsObj returnObject;
+	returnObject.valueText = label;
+	returnObject.incButton = btnPlus;
+	returnObject.decButton = btnMinus;
+	returnObject.maxValue = maxValue;
+	returnObject.addressPadParameter = addressParameter;
+
+	return returnObject;
+}
+
+static SliderWithText create_slider(lv_obj_t *parent, const char *icon,
+		const char *txt, int32_t min, int32_t max, void *addressParameter)
+{
+    lv_obj_t * obj = create_text(parent, icon, txt, LV_MENU_ITEM_BUILDER_VARIANT_2);
+
+    lv_obj_t * labelVal = lv_label_create(obj);
+
+    uint8_t val = *(uint8_t *) addressParameter;
+	char buffer[4];
+	sprintf(buffer, "%d", val);
+	lv_label_set_text(labelVal, buffer);
+	lv_label_set_long_mode(labelVal, LV_LABEL_LONG_SCROLL_CIRCULAR);
+	lv_obj_set_flex_grow(labelVal, 0);
+
+    lv_obj_t * slider = lv_slider_create(obj);
+    lv_obj_set_flex_grow(slider, 10);
+    lv_slider_set_range(slider, min, max);
+    lv_slider_set_value(slider, val, LV_ANIM_OFF);
+
+    lv_obj_set_width(slider, 20);
+
+    lv_obj_add_event(slider, slider_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+
+    if(icon == NULL) {
+        lv_obj_add_flag(slider, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
+    }
+
+    SliderWithText returnSlider;
+    returnSlider.sliderObj = obj;
+    returnSlider.sliderValueText = labelVal;
+    returnSlider.addressPadParameter = addressParameter;
+    return returnSlider;
+}
+
+static SliderWithText create_slider_float(lv_obj_t * parent, const char * icon, const char * txt, float min, float max,
+                                float val, void * addressParameter)
+{
+    lv_obj_t * obj = create_text(parent, icon, txt, LV_MENU_ITEM_BUILDER_VARIANT_2);
+
+    lv_obj_t * labelVal = lv_label_create(obj);
+	char buffer[20];
+
+	sprintf(buffer, "%0.1f", val);
+	lv_label_set_text(labelVal, buffer);
+	lv_label_set_long_mode(labelVal, LV_LABEL_LONG_SCROLL_CIRCULAR);
+	lv_obj_set_flex_grow(labelVal, 0);
+
+    lv_obj_t * slider = lv_slider_create(obj);
+    lv_obj_set_flex_grow(slider, 10);
+
+    if(min < -100.1){
+    	printf("minimum is incorrect value, must be more than -100.0");
+    }
+    else if(max > 10.1){
+    	printf("maximum is incorrect value, must be less than 10.0");
+    }
+
+    int16_t min_int = multiplier_float_int * (int16_t) min;
+    int16_t max_int = multiplier_float_int * (int16_t) max;
+    int16_t val_int = multiplier_float_int * (int16_t) val;
+    lv_slider_set_range(slider, min_int, max_int);
+    lv_slider_set_value(slider, val_int, LV_ANIM_OFF);
+
+    lv_obj_set_width(slider, 20);
+
+    lv_obj_add_event(slider, slider_event_float_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+
+    if(icon == NULL) {
+        lv_obj_add_flag(slider, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
+    }
+
+    SliderWithText returnSlider;
+    returnSlider.sliderObj = obj;
+    returnSlider.sliderValueText = labelVal;
+    returnSlider.addressPadParameter = addressParameter;
+    return returnSlider;
+}
+
 static void initPadWindow(void){
 	slidersList[0] = &sensitivity;
 	slidersList[1] = &threshold;
@@ -349,156 +489,6 @@ void load_pad_screen(lv_obj_t * scr, PadMemory * currentPad, void (*backToMain)(
 //    }
 //}
 
-static lv_obj_t * create_text(lv_obj_t * parent, const char * icon, const char * txt,
-                              lv_menu_builder_variant_t builder_variant)
-{
-    lv_obj_t * obj = lv_menu_cont_create(parent);
 
-    lv_obj_t * img = NULL;
-    lv_obj_t * label = NULL;
-
-    if(icon) {
-        img = lv_img_create(obj);
-        lv_img_set_src(img, icon);
-    }
-
-    if(txt) {
-        label = lv_label_create(obj);
-        lv_label_set_text(label, txt);
-        lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL_CIRCULAR);
-        lv_obj_set_flex_grow(label, 0);
-    }
-
-    if(builder_variant == LV_MENU_ITEM_BUILDER_VARIANT_2 && icon && txt) {
-        lv_obj_add_flag(img, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
-        lv_obj_swap(img, label);
-    }
-
-    return obj;
-}
-
-static IdButtonsObj create_inc_dec(lv_obj_t * parent, const char * txt, uint8_t maxValue, void * addressParameter){
-	lv_obj_t * obj = create_text(parent, NULL, txt, LV_MENU_ITEM_BUILDER_VARIANT_2);
-
-	lv_obj_t * btnPlus;
-	lv_obj_t * btnPlusString;
-	lv_obj_t * btnMinus;
-	lv_obj_t * btnMinusString;
-	lv_obj_t * label;
-
-	/*Up button*/
-	btnMinus = lv_btn_create(obj);
-	lv_obj_set_flex_grow(btnMinus, 1);
-	lv_obj_add_event(btnMinus, idButtonsEvent_cb, LV_EVENT_ALL, NULL);
-	btnPlusString = lv_label_create(btnMinus);
-	lv_label_set_text(btnPlusString, LV_SYMBOL_LEFT);
-	lv_obj_set_height(btnMinus, 20);
-	lv_obj_center(btnPlusString);
-
-	label = lv_label_create(obj);
-	lv_obj_set_flex_grow(label, 2);
-	lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
-	uint8_t val = *(uint8_t *) addressParameter;
-	char startValueString[4];
-	sprintf(startValueString, "%d", val);
-	lv_label_set_text(label, startValueString);
-
-	btnPlus = lv_btn_create(obj);
-	lv_obj_set_flex_grow(btnPlus, 1);
-	lv_obj_add_event(btnPlus, idButtonsEvent_cb, LV_EVENT_ALL, NULL);
-	btnMinusString = lv_label_create(btnPlus);
-	lv_label_set_text(btnMinusString, LV_SYMBOL_RIGHT);
-	lv_obj_set_height(btnPlus, 20);
-	lv_obj_center(btnMinusString);
-
-	IdButtonsObj returnObject;
-	returnObject.valueText = label;
-	returnObject.incButton = btnPlus;
-	returnObject.decButton = btnMinus;
-	returnObject.maxValue = maxValue;
-	returnObject.addressPadParameter = addressParameter;
-
-	return returnObject;
-}
-
-static SliderWithText create_slider(lv_obj_t *parent, const char *icon,
-		const char *txt, int32_t min, int32_t max, void *addressParameter)
-{
-    lv_obj_t * obj = create_text(parent, icon, txt, LV_MENU_ITEM_BUILDER_VARIANT_2);
-
-    lv_obj_t * labelVal = lv_label_create(obj);
-
-    uint8_t val = *(uint8_t *) addressParameter;
-	char buffer[4];
-	sprintf(buffer, "%d", val);
-	lv_label_set_text(labelVal, buffer);
-	lv_label_set_long_mode(labelVal, LV_LABEL_LONG_SCROLL_CIRCULAR);
-	lv_obj_set_flex_grow(labelVal, 0);
-
-    lv_obj_t * slider = lv_slider_create(obj);
-    lv_obj_set_flex_grow(slider, 10);
-    lv_slider_set_range(slider, min, max);
-    lv_slider_set_value(slider, val, LV_ANIM_OFF);
-
-    lv_obj_set_width(slider, 20);
-
-    lv_obj_add_event(slider, slider_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
-
-
-    if(icon == NULL) {
-        lv_obj_add_flag(slider, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
-    }
-
-    SliderWithText returnSlider;
-    returnSlider.sliderObj = obj;
-    returnSlider.sliderValueText = labelVal;
-    returnSlider.addressPadParameter = addressParameter;
-    return returnSlider;
-}
-
-static SliderWithText create_slider_float(lv_obj_t * parent, const char * icon, const char * txt, float min, float max,
-                                float val, void * addressParameter)
-{
-    lv_obj_t * obj = create_text(parent, icon, txt, LV_MENU_ITEM_BUILDER_VARIANT_2);
-
-    lv_obj_t * labelVal = lv_label_create(obj);
-	char buffer[20];
-
-	sprintf(buffer, "%0.1f", val);
-	lv_label_set_text(labelVal, buffer);
-	lv_label_set_long_mode(labelVal, LV_LABEL_LONG_SCROLL_CIRCULAR);
-	lv_obj_set_flex_grow(labelVal, 0);
-
-    lv_obj_t * slider = lv_slider_create(obj);
-    lv_obj_set_flex_grow(slider, 10);
-
-    if(min < -100.1){
-    	printf("minimum is incorrect value, must be more than -100.0");
-    }
-    else if(max > 10.1){
-    	printf("maximum is incorrect value, must be less than 10.0");
-    }
-
-    int16_t min_int = multiplier_float_int * (int16_t) min;
-    int16_t max_int = multiplier_float_int * (int16_t) max;
-    int16_t val_int = multiplier_float_int * (int16_t) val;
-    lv_slider_set_range(slider, min_int, max_int);
-    lv_slider_set_value(slider, val_int, LV_ANIM_OFF);
-
-    lv_obj_set_width(slider, 20);
-
-    lv_obj_add_event(slider, slider_event_float_cb, LV_EVENT_VALUE_CHANGED, NULL);
-
-
-    if(icon == NULL) {
-        lv_obj_add_flag(slider, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
-    }
-
-    SliderWithText returnSlider;
-    returnSlider.sliderObj = obj;
-    returnSlider.sliderValueText = labelVal;
-    returnSlider.addressPadParameter = addressParameter;
-    return returnSlider;
-}
 
 #endif
