@@ -22,9 +22,9 @@ static SliderWithText masktime;       //3
 static SliderWithText rimSensitivity; //4
 static SliderWithText rimThreshold;    //5
 static IdButtonsObj curvetype;       //6
-uint8_t note;           //7
-uint8_t noteRim;        //8
-uint8_t noteCup;        //9
+static SliderWithText note;           //7
+static SliderWithText noteRim;        //8
+static SliderWithText noteCup;        //9
 static IdButtonsObj soundHeadAddressId;	//10 this field show which item from soundsAdresses
 static IdButtonsObj soundRimAddressId;	//11
 static IdButtonsObj soundCupAddressId;	//12
@@ -37,7 +37,7 @@ static const uint8_t multiplier_float_int = 10;
 
 static SliderWithText brigthness;
 
-#define NUM_SLIDERS 7
+#define NUM_SLIDERS 10
 #define NUM_SLIDERS_FLOAT 3
 #define NUM_ID_BUTTONS 4
 static SliderWithText * slidersList[NUM_SLIDERS];
@@ -250,6 +250,34 @@ static IdButtonsObj create_inc_dec(lv_obj_t * parent, const char * txt, uint8_t 
 	return returnObject;
 }
 
+static lv_obj_t * create_text_edit(lv_obj_t * parent, const char * txt, void * addressParameter){
+	lv_obj_t * text = create_text(parent, NULL, txt, LV_MENU_ITEM_BUILDER_VARIANT_2);
+
+	/*Up button*/
+	lv_obj_t * textArea = lv_textarea_create(text);
+
+//	static lv_style_t style;
+//	lv_style_init(&style);
+//	lv_style_set_text_font(&style, &lv_font_montserrat_10);
+//	lv_obj_add_style(textArea, &style, LV_PART_SELECTED);
+
+	lv_obj_set_size(textArea, 70, 40);
+
+	uint8_t value = *(uint8_t*) addressParameter;
+
+	char startValueString[4];
+	sprintf(startValueString, "%d", value);
+
+	lv_textarea_add_text(textArea, startValueString);
+
+//	IdButtonsObj returnObject;
+//	returnObject.valueText = label;
+
+//	returnObject.addressPadParameter = addressParameter;
+
+	return textArea;
+}
+
 static SliderWithText create_slider(lv_obj_t *parent, const char *icon,
 		const char *txt, int32_t min, int32_t max, void *addressParameter)
 {
@@ -338,6 +366,9 @@ static void initPadWindow(void){
 	slidersList[4] = &rimSensitivity;
 	slidersList[5] = &rimThreshold;
 	slidersList[6] = &brigthness;
+	slidersList[7] = &note;
+	slidersList[8] = &noteRim;
+	slidersList[9] = &noteCup;
 
 	slidersListFloat[0] = &soundHeadVolumeDb;
 	slidersListFloat[1] = &soundRimVolumeDb;
@@ -347,6 +378,13 @@ static void initPadWindow(void){
 	idButtonsList[1] = &soundHeadAddressId;
 	idButtonsList[2] = &soundRimAddressId;
 	idButtonsList[3] = &soundCupAddressId;
+}
+
+lv_obj_t * saveBtn;
+lv_obj_t * discardBtn;
+
+static void save_btn_cb(lv_event_t * e){
+	lv_obj_add_flag(discardBtn, LV_OBJ_FLAG_HIDDEN);
 }
 
 void load_pad_screen(lv_obj_t * scr, PadMemory * currentPad, void (*backToMain)())
@@ -390,13 +428,22 @@ void load_pad_screen(lv_obj_t * scr, PadMemory * currentPad, void (*backToMain)(
     rimThreshold = create_slider(section, NULL, "Rim Threshold", 0, 150, &currentPad->rimThreshold);
     curvetype = create_inc_dec(section, "Curve Type", 4, &currentPad->curvetype);
 
+    lv_obj_t * sub_note_page = lv_menu_page_create(menu, NULL);
+	lv_obj_set_style_pad_hor(sub_note_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(menu), 0), 0);
+	lv_menu_separator_create(sub_note_page);
+	section = lv_menu_section_create(sub_note_page);
+
+	// TODO add later notes description like C#1
+	note = create_slider(section, NULL, "Note MIDI Head", 21, 127, &currentPad->note);
+	noteRim = create_slider(section, NULL, "Note MIDI Rim", 21, 127, &currentPad->noteRim);
+	noteCup = create_slider(section, NULL, "Note MIDI Cup", 21, 127, &currentPad->noteCup);
+
+//	create_keyboard(section);
+
     lv_obj_t * sub_sound_page = lv_menu_page_create(menu, NULL);
     lv_obj_set_style_pad_hor(sub_sound_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(menu), 0), 0);
     lv_menu_separator_create(sub_sound_page);
     section = lv_menu_section_create(sub_sound_page);
-    create_text(section, NULL, "Note MIDI Head TODO", LV_MENU_ITEM_BUILDER_VARIANT_2); // TODO
-    create_text(section, NULL, "Note MIDI Rim TODO", LV_MENU_ITEM_BUILDER_VARIANT_2); // TODO
-    create_text(section, NULL, "Note MIDI Cup TODO", LV_MENU_ITEM_BUILDER_VARIANT_2); // TODO
 
     soundHeadAddressId = create_inc_dec(section, "Head sound ID", 5, &currentPad->soundHeadAddressId);
     soundRimAddressId = create_inc_dec(section, "Rim sound ID", 5, &currentPad->soundRimAddressId);
@@ -406,22 +453,35 @@ void load_pad_screen(lv_obj_t * scr, PadMemory * currentPad, void (*backToMain)(
     soundRimVolumeDb = create_slider_float(section, NULL, "Rim Sound Volume dB", -80., 6., 0., &currentPad->soundRimVolumeDb);
     soundCupVolumeDb = create_slider_float(section, NULL, "Cup Sound Volume dB", -80., 6., 0., &currentPad->soundCupVolumeDb);
 
-    create_keyboard(section);
-
     /*Create a root page*/
+
     root_page = lv_menu_page_create(menu, "Settings");
     lv_obj_set_style_pad_hor(root_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(menu), 0), 0);
     section = lv_menu_section_create(root_page);
     cont = create_text(section, LV_SYMBOL_SETTINGS, "Sensitivity", LV_MENU_ITEM_BUILDER_VARIANT_1);
     lv_menu_set_load_page_event(menu, cont, sub_mechanics_page);
     cont = create_text(section, LV_SYMBOL_AUDIO, "Notes", LV_MENU_ITEM_BUILDER_VARIANT_1);
-    lv_menu_set_load_page_event(menu, cont, sub_sound_page);
+    lv_menu_set_load_page_event(menu, cont, sub_note_page);
+    cont = create_text(section, LV_SYMBOL_BELL, "Sounds", LV_MENU_ITEM_BUILDER_VARIANT_1);
+	lv_menu_set_load_page_event(menu, cont, sub_sound_page);
+
+	lv_obj_t * obj = lv_menu_cont_create(root_page);
+	saveBtn = lv_btn_create(obj);
+	lv_obj_add_event(saveBtn, save_btn_cb, LV_EVENT_CLICKED, NULL);
+	lv_obj_t * btnSaveString = lv_label_create(saveBtn);
+	lv_label_set_text(btnSaveString, "Save");
+	lv_obj_center(btnSaveString);
+
+	obj = lv_menu_cont_create(root_page);
+	discardBtn = lv_btn_create(obj);
+	//	lv_obj_add_event(saveBtn, idButtonsEvent_cb, LV_EVENT_ALL, NULL);
+	lv_obj_t * btnDiscardString = lv_label_create(discardBtn);
+	lv_label_set_text(btnDiscardString, "Discard");
+	lv_obj_center(btnDiscardString);
 
     lv_menu_set_sidebar_page(menu, root_page);
 
-    lv_obj_send_event(lv_obj_get_child(lv_obj_get_child(lv_menu_get_cur_sidebar_page(menu), 0), 0), LV_EVENT_CLICKED,
-                      NULL);
-
+    lv_obj_send_event(lv_obj_get_child(lv_obj_get_child(lv_menu_get_cur_sidebar_page(menu), 0), 0), LV_EVENT_CLICKED, NULL);
 }
 
 #endif

@@ -2,7 +2,7 @@
 #define PADVIRTUAL_H_
 
 #ifdef SIMULATION
-struct PadMemory_s {
+typedef struct {
 	uint8_t sensitivity;   //0
 	uint8_t threshold1;     //1
 	uint8_t scantime;       //2
@@ -19,9 +19,17 @@ struct PadMemory_s {
 	float soundHeadVolumeDb;
 	float soundRimVolumeDb;
 	float soundCupVolumeDb;
-};
+} PadMemory;
 
-typedef struct PadMemory_s PadMemory;
+typedef enum {
+	PAD_NOT_CHANGED,
+	PAD_WAS_CHANGED
+} PadState;
+
+typedef struct {
+	PadMemory pad;
+	PadState padState;
+} PadGuiState;
 
 #endif
 
