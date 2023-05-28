@@ -26,11 +26,6 @@ typedef enum {
 	PAD_WAS_CHANGED
 } PadState;
 
-typedef struct {
-	PadMemory pad;
-	PadState padState;
-} PadGuiState;
-
 #endif
 
 #endif /* PADVIRTUAL_H_ */
