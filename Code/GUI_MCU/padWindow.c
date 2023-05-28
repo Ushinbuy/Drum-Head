@@ -15,6 +15,8 @@ typedef uint8_t lv_menu_builder_variant_t;
 
 static lv_obj_t * root_page;
 
+PadState * _padState;
+
 static SliderWithText sensitivity;   //0
 static SliderWithText threshold;     //1
 static SliderWithText scantime;       //2
@@ -45,6 +47,16 @@ static SliderWithText * slidersListFloat[NUM_SLIDERS_FLOAT];
 static IdButtonsObj * idButtonsList[NUM_ID_BUTTONS];
 
 static void (*_backToMain)();
+lv_obj_t * saveBtn;
+lv_obj_t * cancelBtn;
+
+static void showSaveAndCancelButtons(void){
+	if(*_padState == PAD_NOT_CHANGED){
+		*_padState = PAD_WAS_CHANGED;
+		lv_obj_clear_flag(saveBtn, LV_OBJ_FLAG_HIDDEN);
+		lv_obj_clear_flag(cancelBtn, LV_OBJ_FLAG_HIDDEN);
+	}
+}
 
 static void slider_event_cb(lv_event_t * e)
 {
@@ -62,6 +74,7 @@ static void slider_event_cb(lv_event_t * e)
     	else if (slider->parent == slidersList[sliderNum]->sliderObj) {
 			lv_label_set_text(slidersList[sliderNum]->sliderValueText, buff);
 			*(uint8_t *) slidersList[sliderNum]->addressPadParameter = newVal;
+			showSaveAndCancelButtons();
 //			printUpdatedPad();
 			break;
 		}
@@ -85,6 +98,7 @@ static void slider_event_float_cb(lv_event_t * e)
     	else if (slider->parent == slidersListFloat[sliderNum]->sliderObj) {
 			lv_label_set_text(slidersListFloat[sliderNum]->sliderValueText, newValStr);
 			*(float *) slidersListFloat[sliderNum]->addressPadParameter = newValFloat;
+			showSaveAndCancelButtons();
 //			printUpdatedPad();
 			break;
 		}
@@ -114,6 +128,7 @@ static void idButtonsEvent_cb(lv_event_t * e)
 				sprintf(buff, "%d", val);
 				lv_label_set_text(idButtonsList[idBtn_num]->valueText, buff);
 				*(uint8_t *) idButtonsList[idBtn_num]->addressPadParameter = val;
+				showSaveAndCancelButtons();
 //				printUpdatedPad();
 			}
 			else if (btn == idButtonsList[idBtn_num]->incButton) {
@@ -130,6 +145,7 @@ static void idButtonsEvent_cb(lv_event_t * e)
 				sprintf(buff, "%d", val);
 				lv_label_set_text(idButtonsList[idBtn_num]->valueText, buff);
 				*(uint8_t*) idButtonsList[idBtn_num]->addressPadParameter = val;
+				showSaveAndCancelButtons();
 //				printUpdatedPad();
 			}
     	}
@@ -380,16 +396,32 @@ static void initPadWindow(void){
 	idButtonsList[3] = &soundCupAddressId;
 }
 
-lv_obj_t * saveBtn;
-lv_obj_t * discardBtn;
-
 static void save_btn_cb(lv_event_t * e){
-	lv_obj_add_flag(discardBtn, LV_OBJ_FLAG_HIDDEN);
+	lv_event_code_t code = lv_event_get_code(e);
+	if (code == LV_EVENT_CLICKED) {
+		printf("\n was saved");	// TODO here must be callback
+
+		lv_obj_add_flag(saveBtn, LV_OBJ_FLAG_HIDDEN);
+		lv_obj_add_flag(cancelBtn, LV_OBJ_FLAG_HIDDEN);
+		*_padState = PAD_NOT_CHANGED;
+	}
 }
 
-void load_pad_screen(lv_obj_t * scr, PadMemory * currentPad, void (*backToMain)())
+static void cancel_btn_cb(lv_event_t * e){
+	lv_event_code_t code = lv_event_get_code(e);
+	if (code == LV_EVENT_CLICKED) {
+		printf("\n was canceled");	// TODO here must be callback
+
+		lv_obj_add_flag(saveBtn, LV_OBJ_FLAG_HIDDEN);
+		lv_obj_add_flag(cancelBtn, LV_OBJ_FLAG_HIDDEN);
+		*_padState = PAD_NOT_CHANGED;
+	}
+}
+
+void load_pad_screen(lv_obj_t * scr, PadMemory * currentPad, PadState * padState, void (*backToMain)())
 {
 	_backToMain = backToMain;
+	_padState = padState;
 
 	if(scr == NULL){
 		scr = lv_scr_act();
@@ -473,11 +505,16 @@ void load_pad_screen(lv_obj_t * scr, PadMemory * currentPad, void (*backToMain)(
 	lv_obj_center(btnSaveString);
 
 	obj = lv_menu_cont_create(root_page);
-	discardBtn = lv_btn_create(obj);
-	//	lv_obj_add_event(saveBtn, idButtonsEvent_cb, LV_EVENT_ALL, NULL);
-	lv_obj_t * btnDiscardString = lv_label_create(discardBtn);
-	lv_label_set_text(btnDiscardString, "Discard");
-	lv_obj_center(btnDiscardString);
+	cancelBtn = lv_btn_create(obj);
+	lv_obj_add_event(cancelBtn, cancel_btn_cb, LV_EVENT_ALL, NULL);
+	lv_obj_t *btnCancelString = lv_label_create(cancelBtn);
+	lv_label_set_text(btnCancelString, "Cancel");
+	lv_obj_center(btnCancelString);
+
+	if(*_padState == PAD_NOT_CHANGED){
+		lv_obj_add_flag(saveBtn, LV_OBJ_FLAG_HIDDEN);
+		lv_obj_add_flag(cancelBtn, LV_OBJ_FLAG_HIDDEN);
+	}
 
     lv_menu_set_sidebar_page(menu, root_page);
 

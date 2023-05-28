@@ -11,6 +11,7 @@ static lv_obj_t * mainScreen;
 static uint8_t _numberOfPads;
 
 PadMemory *padsList;
+PadState * padStateList;
 
 static void load_main_window(void);
 
@@ -38,7 +39,7 @@ static void event_handler(lv_event_t * e)
             lv_obj_t * child = lv_obj_get_child(parent, i);
             if(child == currentButton) {
             	padScreen = lv_obj_create(NULL);
-				load_pad_screen(padScreen, padsList + i, back_from_pad_to_main_screen);
+				load_pad_screen(padScreen, padsList + i, &padStateList[i],back_from_pad_to_main_screen);
 
 				lv_scr_load(padScreen);
 				lv_obj_del(mainScreen);
@@ -71,6 +72,13 @@ static void load_main_window(void)
 void start_UI(uint8_t numberOfPads, PadMemory _padList[]){
 	_numberOfPads = numberOfPads;
 	padsList = _padList;
+	padStateList = (PadState*) malloc(numberOfPads * sizeof(PadState));
+	if (padStateList == NULL){
+		return;
+	}
+	for (uint8_t i = 0; i < numberOfPads; i++){
+		padStateList[i] = PAD_NOT_CHANGED;
+	}
 
 	load_main_window();
 }
