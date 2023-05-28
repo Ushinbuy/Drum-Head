@@ -511,6 +511,8 @@ void load_pad_screen(lv_obj_t * scr, PadMemory * currentPad, PadState * padState
 	lv_label_set_text(btnCancelString, "Cancel");
 	lv_obj_center(btnCancelString);
 
+	lv_obj_set_style_bg_color(cancelBtn, lv_color_make(0xFF, 0x0, 0x0), LV_PART_MAIN);
+
 	if(*_padState == PAD_NOT_CHANGED){
 		lv_obj_add_flag(saveBtn, LV_OBJ_FLAG_HIDDEN);
 		lv_obj_add_flag(cancelBtn, LV_OBJ_FLAG_HIDDEN);
